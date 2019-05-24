@@ -156,7 +156,7 @@ namespace Ninject.Components
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns>The exception message.</returns>
-        public static string NoConstructorsAvailable(IContext context)
+        public string NoConstructorsAvailable(IContext context)
         {
             using (var sw = new StringWriter())
             {
@@ -180,7 +180,7 @@ namespace Ninject.Components
         /// </summary>
         /// <param name="context">The context.</param>
         /// <returns>The exception message.</returns>
-        public static string ProviderCallbackIsNull(IContext context)
+        public string ProviderCallbackIsNull(IContext context)
         {
             using (var sw = new StringWriter())
             {

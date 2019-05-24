@@ -151,6 +151,18 @@ namespace Ninject
         }
 
         /// <summary>
+        /// Gets an instance of the specified service.
+        /// </summary>
+        /// <param name="service">The service to resolve.</param>
+        /// <returns>
+        /// An instance of the service.
+        /// </returns>
+        public object Get(Type service)
+        {
+            return null;
+        }
+
+        /// <summary>
         /// Registers the specified binding.
         /// </summary>
         /// <param name="binding">The binding to add.</param>

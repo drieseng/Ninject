@@ -37,18 +37,27 @@ namespace Ninject.Selection.Heuristics
     /// Scores constructors by either looking for the existence of an injection marker
     /// attribute, or by counting the number of parameters.
     /// </summary>
-    public class StandardConstructorScorer : NinjectComponent, IConstructorScorer
+    public class StandardConstructorScorer : NinjectComponent, IConstructorInjectionScorer
     {
-        private readonly INinjectSettings settings;
+        /// <summary>
+        /// Gets or sets the type of a custom attribute that can be applied to a constructor to give it the
+        /// highest score.
+        /// </summary>
+        /// <value>
+        /// The type of a custom attribute that can be applied to a constructor to give it the highest score,
+        /// or <see langword="null"/> to not boost the score based on the presence of a custom attribute.
+        /// </value>
+        public Type HighestScoreAttribute { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StandardConstructorScorer"/> class.
+        /// Gets or sets the type of a custom attribute that can be applied to a constructor to give it the
+        /// lowest score.
         /// </summary>
-        /// <param name="settings">The ninject settings.</param>
-        public StandardConstructorScorer(INinjectSettings settings)
-        {
-            this.settings = settings;
-        }
+        /// <value>
+        /// The type of a custom attribute that can be applied to a constructor to give it the lowest score,
+        /// or <see langword="null"/> to not reduce the score based on the presence of a custom attribute.
+        /// </value>
+        public Type LowestScoreAttribute { get; set; }
 
         /// <summary>
         /// Gets the score for the specified constructor.
@@ -65,12 +74,12 @@ namespace Ninject.Selection.Heuristics
             Ensure.ArgumentNotNull(context, nameof(context));
             Ensure.ArgumentNotNull(directive, nameof(directive));
 
-            if (directive.Constructor.HasAttribute(this.settings.InjectAttribute))
+            if (this.HighestScoreAttribute != null & directive.Constructor.HasAttribute(this.HighestScoreAttribute))
             {
                 return int.MaxValue;
             }
 
-            if (directive.Constructor.HasAttribute(typeof(ObsoleteAttribute)))
+            if (this.LowestScoreAttribute != null && directive.Constructor.HasAttribute(this.LowestScoreAttribute))
             {
                 return int.MinValue;
             }

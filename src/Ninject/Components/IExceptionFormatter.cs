@@ -54,6 +54,13 @@ namespace Ninject.Components
         string CyclicalDependenciesDetected(IContext context);
 
         /// <summary>
+        /// Generates a message saying that no constructors are available on the specified context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <returns>The exception message.</returns>
+        string NoConstructorsAvailable(IContext context);
+
+        /// <summary>
         /// Generates a message saying that no constructors are available for the given component.
         /// </summary>
         /// <param name="component">The component.</param>

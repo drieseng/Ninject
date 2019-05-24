@@ -83,12 +83,12 @@ namespace Ninject.Parameters
         /// <summary>
         /// Gets the name of the parameter.
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         /// <summary>
         /// Gets a value indicating whether the parameter should be inherited into child requests.
         /// </summary>
-        public bool ShouldInherit { get; private set; }
+        public bool ShouldInherit { get; }
 
         /// <summary>
         /// Gets the callback that will be triggered to get the parameter's value.

@@ -34,6 +34,9 @@ namespace Ninject.Planning
     public class Plan : IPlan
     {
         private readonly List<IDirective> directives;
+        private readonly List<ConstructorInjectionDirective> constructors;
+        private List<PropertyInjectionDirective> properties;
+        private List<MethodInjectionDirective> methods;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Plan"/> class.
@@ -45,6 +48,7 @@ namespace Ninject.Planning
             Ensure.ArgumentNotNull(type, nameof(type));
 
             this.Type = type;
+            this.constructors = new List<ConstructorInjectionDirective>();
             this.directives = new List<IDirective>();
         }
 
@@ -68,9 +72,69 @@ namespace Ninject.Planning
         /// <exception cref="ArgumentNullException"><paramref name="directive"/> is <see langword="null"/>.</exception>
         public void Add(IDirective directive)
         {
-            Ensure.ArgumentNotNull(directive, nameof(directive));
+            if (directive is ConstructorInjectionDirective constructor)
+            {
+                this.Add(constructor);
+            }
+            else if (directive is PropertyInjectionDirective property)
+            {
+                this.Add(property);
+            }
+            else if (directive is MethodInjectionDirective method)
+            {
+                this.Add(method);
+            }
+            else
+            {
+                Ensure.ArgumentNotNull(directive, nameof(directive));
+                this.directives.Add(directive);
+            }
+        }
 
-            this.directives.Add(directive);
+        /// <summary>
+        /// Adds the specified constructor directive to the plan.
+        /// </summary>
+        /// <param name="constructor">The constructor directive.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="constructor"/> is <see langword="null"/>.</exception>
+        public void Add(ConstructorInjectionDirective constructor)
+        {
+            Ensure.ArgumentNotNull(constructor, nameof(constructor));
+
+            this.constructors.Add(constructor);
+        }
+
+        /// <summary>
+        /// Adds the specified property directive to the plan.
+        /// </summary>
+        /// <param name="property">The property directive.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="property"/> is <see langword="null"/>.</exception>
+        public void Add(PropertyInjectionDirective property)
+        {
+            Ensure.ArgumentNotNull(property, nameof(property));
+
+            if (this.properties == null)
+            {
+                this.properties = new List<PropertyInjectionDirective>();
+            }
+
+            this.properties.Add(property);
+        }
+
+        /// <summary>
+        /// Adds the specified method directive to the plan.
+        /// </summary>
+        /// <param name="method">The method directive.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="method"/> is <see langword="null"/>.</exception>
+        public void Add(MethodInjectionDirective method)
+        {
+            Ensure.ArgumentNotNull(method, nameof(method));
+
+            if (this.methods == null)
+            {
+                this.methods = new List<MethodInjectionDirective>();
+            }
+
+            this.methods.Add(method);
         }
 
         /// <summary>
@@ -84,6 +148,49 @@ namespace Ninject.Planning
             where TDirective : IDirective
         {
             return this.GetAll<TDirective>().Any();
+        }
+
+        /// <summary>
+        /// Returns the constructors for the current plan.
+        /// </summary>
+        /// <returns>
+        /// The constructors for the current plan.
+        /// </returns>
+        public IReadOnlyList<ConstructorInjectionDirective> GetConstructors()
+        {
+            return this.constructors;
+        }
+
+        /// <summary>
+        /// Returns the properties for the current plan.
+        /// </summary>
+        /// <returns>
+        /// The properties for the current plan.
+        /// </returns>
+        public IReadOnlyList<PropertyInjectionDirective> GetProperties()
+        {
+            if (this.properties == null)
+            {
+                this.properties = new List<PropertyInjectionDirective>();
+            }
+
+            return this.properties;
+        }
+
+        /// <summary>
+        /// Returns the methods for the current plan.
+        /// </summary>
+        /// <returns>
+        /// The methods for the current plan.
+        /// </returns>
+        public IReadOnlyList<MethodInjectionDirective> GetMethods()
+        {
+            if (this.methods == null)
+            {
+                this.methods = new List<MethodInjectionDirective>();
+            }
+
+            return this.methods;
         }
 
         /// <summary>
@@ -115,6 +222,34 @@ namespace Ninject.Planning
                 if (this.directives[i] is TDirective tdir)
                 {
                     yield return tdir;
+                }
+            }
+
+            if (typeof(TDirective) == typeof(ConstructorInjectionDirective))
+            {
+                foreach (var constructor in this.constructors)
+                {
+                    yield return (TDirective)(object)constructor;
+                }
+            }
+            else if (typeof(TDirective) == typeof(PropertyInjectionDirective))
+            {
+                if (this.properties != null)
+                {
+                    foreach (var property in this.properties)
+                    {
+                        yield return (TDirective)(object)property;
+                    }
+                }
+            }
+            else if (typeof(TDirective) == typeof(MethodInjectionDirective))
+            {
+                if (this.methods != null)
+                {
+                    foreach (var method in this.methods)
+                    {
+                        yield return (TDirective)(object)method;
+                    }
                 }
             }
         }

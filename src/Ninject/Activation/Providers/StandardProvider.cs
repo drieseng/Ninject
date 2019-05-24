@@ -46,7 +46,7 @@ namespace Ninject.Activation.Providers
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="planner"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="constructorScorer"/> is <see langword="null"/>.</exception>
-        public StandardProvider(Type type, IPlanner planner, IConstructorScorer constructorScorer)
+        public StandardProvider(Type type, IPlanner planner, IConstructorInjectionScorer constructorScorer)
         {
             Ensure.ArgumentNotNull(type, nameof(type));
             Ensure.ArgumentNotNull(planner, nameof(planner));
@@ -70,7 +70,7 @@ namespace Ninject.Activation.Providers
         /// <summary>
         /// Gets the constructor scorer component.
         /// </summary>
-        public IConstructorScorer ConstructorScorer { get; }
+        public IConstructorInjectionScorer ConstructorScorer { get; }
 
         /// <summary>
         /// Creates an instance within the specified context.
@@ -170,7 +170,7 @@ namespace Ninject.Activation.Providers
 
             if (directives.Length == 0)
             {
-                throw new ActivationException(ExceptionFormatter.NoConstructorsAvailable(context));
+                throw new ActivationException(new ExceptionFormatter().NoConstructorsAvailable(context));
             }
 
             if (directives.Length == 1)

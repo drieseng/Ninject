@@ -27,7 +27,6 @@ namespace Ninject.Activation.Caching
 
     using Ninject.Components;
     using Ninject.Infrastructure;
-    using Ninject.Infrastructure.Language;
 
     /// <summary>
     /// Uses a <see cref="Timer"/> and some <see cref="WeakReference"/> magic to poll
@@ -35,11 +34,6 @@ namespace Ninject.Activation.Caching
     /// </summary>
     public class GarbageCollectionCachePruner : NinjectComponent, ICachePruner
     {
-        /// <summary>
-        /// The ninject settings.
-        /// </summary>
-        private readonly INinjectSettings settings;
-
         /// <summary>
         /// indicator for if GC has been run.
         /// </summary>
@@ -63,14 +57,18 @@ namespace Ninject.Activation.Caching
         /// <summary>
         /// Initializes a new instance of the <see cref="GarbageCollectionCachePruner"/> class.
         /// </summary>
-        /// <param name="settings">The ninject settings.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
-        public GarbageCollectionCachePruner(INinjectSettings settings)
+        public GarbageCollectionCachePruner()
         {
-            Ensure.ArgumentNotNull(settings, nameof(settings));
-
-            this.settings = settings;
+            this.PruningInterval = TimeSpan.FromSeconds(30);
         }
+
+        /// <summary>
+        /// Gets or sets the interval at which the GC should be polled.
+        /// </summary>
+        /// <value>
+        /// The interval at which the GC should be polled. The default is <c>30</c> seconds.
+        /// </value>
+        public TimeSpan PruningInterval { get; set; }
 
         /// <summary>
         /// Releases resources held by the object.
@@ -98,7 +96,7 @@ namespace Ninject.Activation.Caching
             this.caches.Add(pruneable);
             if (this.timer == null)
             {
-                this.timer = new Timer((state) => this.PruneCacheIfGarbageCollectorHasRun(state), null, this.GetTimeoutInMilliseconds(), Timeout.Infinite);
+                this.timer = new Timer((state) => this.PruneCacheIfGarbageCollectorHasRun(state), null, this.PruningInterval, Timeout.InfiniteTimeSpan);
             }
         }
 
@@ -142,15 +140,9 @@ namespace Ninject.Activation.Caching
                 }
                 finally
                 {
-                    this.timer.Change(this.GetTimeoutInMilliseconds(), Timeout.Infinite);
+                    this.timer.Change(this.PruningInterval, Timeout.InfiniteTimeSpan);
                 }
             }
-        }
-
-        private int GetTimeoutInMilliseconds()
-        {
-            var interval = this.settings.CachePruningInterval;
-            return interval == TimeSpan.MaxValue ? -1 : (int)interval.TotalMilliseconds;
         }
     }
 }

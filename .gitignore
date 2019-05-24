@@ -3,3 +3,5 @@
 bin
 obj
 TestResults
+/Ninject.Console/Ninject.Console.csproj
+/Ninject.Console/Program.cs

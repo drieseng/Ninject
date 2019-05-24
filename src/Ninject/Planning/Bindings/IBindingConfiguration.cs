@@ -60,7 +60,7 @@ namespace Ninject.Planning.Bindings
         /// <summary>
         /// Gets or sets the callback that returns the provider that should be used by the binding.
         /// </summary>
-        Func<IContext, IProvider> ProviderCallback { get; set; }
+        IProvider Provider { get; set; }
 
         /// <summary>
         /// Gets or sets the callback that returns the object that will act as the binding's scope.
@@ -81,14 +81,6 @@ namespace Ninject.Planning.Bindings
         /// Gets the actions that should be called before instances are deactivated via the binding.
         /// </summary>
         ICollection<Action<IContext, object>> DeactivationActions { get; }
-
-        /// <summary>
-        /// Gets the provider for the binding.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <returns>The provider to use.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        IProvider GetProvider(IContext context);
 
         /// <summary>
         /// Gets the scope for the binding, if any.

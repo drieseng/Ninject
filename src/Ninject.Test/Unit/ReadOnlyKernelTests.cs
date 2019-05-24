@@ -21,7 +21,7 @@ namespace Ninject.Test.Unit
         protected Mock<INinjectSettings> NinjectSettingsMock { get; }
         protected Mock<ICache> CacheMock { get; }
         protected Mock<IPlanner> PlannerMock { get; }
-        protected Mock<IConstructorScorer> ConstructorScorerMock { get; }
+        protected Mock<IConstructorInjectionScorer> ConstructorScorerMock { get; }
         protected Mock<IPipeline> PipelineMock { get; }
         protected Mock<IExceptionFormatter> ExceptionFormatterMock { get; }
         protected Mock<IBindingPrecedenceComparer> BindingPrecedenceComparerMock { get; }
@@ -37,7 +37,7 @@ namespace Ninject.Test.Unit
             NinjectSettingsMock = new Mock<INinjectSettings>(MockBehavior.Strict);
             CacheMock = new Mock<ICache>(MockBehavior.Strict);
             PlannerMock = new Mock<IPlanner>(MockBehavior.Strict);
-            ConstructorScorerMock = new Mock<IConstructorScorer>(MockBehavior.Strict);
+            ConstructorScorerMock = new Mock<IConstructorInjectionScorer>(MockBehavior.Strict);
             PipelineMock = new Mock<IPipeline>(MockBehavior.Strict);
             ExceptionFormatterMock = new Mock<IExceptionFormatter>(MockBehavior.Strict);
             BindingPrecedenceComparerMock = new Mock<IBindingPrecedenceComparer>(MockBehavior.Strict);
@@ -301,7 +301,7 @@ namespace Ninject.Test.Unit
                                       Dictionary<Type, ICollection<IBinding>> bindings,
                                       ICache cache,
                                       IPlanner planner,
-                                      IConstructorScorer constructorScorer,
+                                      IConstructorInjectionScorer constructorScorer,
                                       IPipeline pipeline,
                                       IExceptionFormatter exceptionFormatter,
                                       IBindingPrecedenceComparer bindingPrecedenceComparer,

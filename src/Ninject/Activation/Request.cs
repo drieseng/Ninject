@@ -33,8 +33,27 @@ namespace Ninject.Activation
     /// <summary>
     /// Describes the request for a service resolution.
     /// </summary>
-    public class Request : IRequest
+    public sealed class Request : IRequest
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Request"/> class.
+        /// </summary>
+        /// <param name="service">The service that was requested.</param>
+        /// <param name="isUnique"><see langword="true"/> if the request should return a unique result; otherwise, <see langword="false"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+        public Request(Type service, bool isUnique)
+        {
+            if (service == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(service));
+            }
+
+            this.Service = service;
+            this.Parameters = Array.Empty<IParameter>();
+            this.ActiveBindings = new Stack<IBinding>();
+            this.IsUnique = isUnique;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Request"/> class.
         /// </summary>
@@ -48,8 +67,15 @@ namespace Ninject.Activation
         /// <exception cref="ArgumentNullException"><paramref name="parameters"/> is <see langword="null"/>.</exception>
         public Request(Type service, Func<IBindingMetadata, bool> constraint, IReadOnlyList<IParameter> parameters, Func<object> scopeCallback, bool isOptional, bool isUnique)
         {
-            Ensure.ArgumentNotNull(service, nameof(service));
-            Ensure.ArgumentNotNull(parameters, nameof(parameters));
+            if (service == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(service));
+            }
+
+            if (parameters == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(parameters));
+            }
 
             this.Service = service;
             this.Constraint = constraint;
@@ -85,42 +111,42 @@ namespace Ninject.Activation
         /// <summary>
         /// Gets the service that was requested.
         /// </summary>
-        public Type Service { get; private set; }
+        public Type Service { get; }
 
         /// <summary>
         /// Gets the parent request.
         /// </summary>
-        public IRequest ParentRequest { get; private set; }
+        public IRequest ParentRequest { get; }
 
         /// <summary>
         /// Gets the parent context.
         /// </summary>
-        public IContext ParentContext { get; private set; }
+        public IContext ParentContext { get; }
 
         /// <summary>
         /// Gets the target that will receive the injection, if any.
         /// </summary>
-        public ITarget Target { get; private set; }
+        public ITarget Target { get; }
 
         /// <summary>
         /// Gets the constraint that will be applied to filter the bindings used for the request.
         /// </summary>
-        public Func<IBindingMetadata, bool> Constraint { get; private set; }
+        public Func<IBindingMetadata, bool> Constraint { get; }
 
         /// <summary>
         /// Gets the parameters that affect the resolution.
         /// </summary>
-        public IReadOnlyList<IParameter> Parameters { get; private set; }
+        public IReadOnlyList<IParameter> Parameters { get; }
 
         /// <summary>
         /// Gets the stack of bindings which have been activated by either this request or its ancestors.
         /// </summary>
-        public Stack<IBinding> ActiveBindings { get; private set; }
+        public Stack<IBinding> ActiveBindings { get; }
 
         /// <summary>
         /// Gets the recursive depth at which this request occurs.
         /// </summary>
-        public int Depth { get; private set; }
+        public int Depth { get; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the request is optional.
@@ -142,7 +168,7 @@ namespace Ninject.Activation
         /// <summary>
         /// Gets the callback that resolves the scope for the request, if an external scope was provided.
         /// </summary>
-        public Func<object> ScopeCallback { get; private set; }
+        public Func<object> ScopeCallback { get; }
 
         /// <summary>
         /// Determines whether the specified binding satisfies the constraints defined on this request.

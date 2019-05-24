@@ -72,24 +72,33 @@ namespace Ninject.Activation
         /// <summary>
         /// Gets a value indicating whether the request involves inferred generic arguments.
         /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the request involves inferred generic arguments; otherwise, <see langword="false"/>.
+        /// </value>
         bool HasInferredGenericArguments { get; }
 
         /// <summary>
         /// Gets the provider that should be used to create the instance for this context.
         /// </summary>
-        /// <returns>The provider that should be used.</returns>
-        IProvider GetProvider();
+        /// <value>
+        /// The provider that should be used.
+        /// </value>
+        IProvider Provider { get; }
 
         /// <summary>
         /// Gets the scope for the context that "owns" the instance activated therein.
         /// </summary>
-        /// <returns>The object that acts as the scope.</returns>
+        /// <returns>
+        /// The object that acts as the scope.
+        /// </returns>
         object GetScope();
 
         /// <summary>
         /// Resolves this instance for this context.
         /// </summary>
-        /// <returns>The resolved instance.</returns>
+        /// <returns>
+        /// The resolved instance.
+        /// </returns>
         object Resolve();
     }
 }

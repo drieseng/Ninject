@@ -44,6 +44,43 @@ namespace Ninject.Planning
         void Add(IDirective directive);
 
         /// <summary>
+        /// Adds the specified constructor directive to the plan.
+        /// </summary>
+        /// <param name="constructor">The constructor directive.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="constructor"/> is <see langword="null"/>.</exception>
+        void Add(ConstructorInjectionDirective constructor);
+
+        /// <summary>
+        /// Adds the specified property directive to the plan.
+        /// </summary>
+        /// <param name="property">The property directive.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="property"/> is <see langword="null"/>.</exception>
+        void Add(PropertyInjectionDirective property);
+
+        /// <summary>
+        /// Adds the specified method directive to the plan.
+        /// </summary>
+        /// <param name="method">The method directive.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="method"/> is <see langword="null"/>.</exception>
+        void Add(MethodInjectionDirective method);
+
+        /// <summary>
+        /// Returns the constructors for the current plan.
+        /// </summary>
+        /// <returns>
+        /// The constructors for the current plan.
+        /// </returns>
+        IReadOnlyList<ConstructorInjectionDirective> GetConstructors();
+
+        /// <summary>
+        /// Returns the properties for the current plan.
+        /// </summary>
+        /// <returns>
+        /// The properties for the current plan.
+        /// </returns>
+        IReadOnlyList<PropertyInjectionDirective> GetProperties();
+
+        /// <summary>
         /// Determines whether the plan contains one or more directives of the specified type.
         /// </summary>
         /// <typeparam name="TDirective">The type of directive.</typeparam>

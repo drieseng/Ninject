@@ -37,14 +37,14 @@ namespace Ninject.Planning.Bindings.Resolvers
     public class SelfBindingResolver : NinjectComponent, IMissingBindingResolver
     {
         private readonly IPlanner planner;
-        private readonly IConstructorScorer constructorScorer;
+        private readonly IConstructorInjectionScorer constructorScorer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SelfBindingResolver"/> class.
         /// </summary>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
-        /// <param name="constructorScorer">The <see cref="IConstructorScorer"/> component.</param>
-        public SelfBindingResolver(IPlanner planner, IConstructorScorer constructorScorer)
+        /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
+        public SelfBindingResolver(IPlanner planner, IConstructorInjectionScorer constructorScorer)
         {
             Ensure.ArgumentNotNull(planner, nameof(planner));
             Ensure.ArgumentNotNull(constructorScorer, nameof(constructorScorer));
@@ -74,7 +74,7 @@ namespace Ninject.Planning.Bindings.Resolvers
             {
                 new Binding(service)
                 {
-                    ProviderCallback = ctx => new StandardProvider(service, this.planner, this.constructorScorer),
+                    Provider = new StandardProvider(service, this.planner, this.constructorScorer),
                 },
             };
         }

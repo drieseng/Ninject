@@ -42,7 +42,7 @@ namespace Ninject.Planning.Strategies
         /// <param name="injectorFactory">The injector factory component.</param>
         /// <exception cref="ArgumentNullException"><paramref name="selector"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="injectorFactory"/> is <see langword="null"/>.</exception>
-        public PropertyReflectionStrategy(ISelector selector, IInjectorFactory injectorFactory)
+        public PropertyReflectionStrategy(IPropertyReflectionSelector selector, IInjectorFactory injectorFactory)
         {
             Ensure.ArgumentNotNull(selector, nameof(selector));
             Ensure.ArgumentNotNull(injectorFactory, nameof(injectorFactory));
@@ -54,7 +54,7 @@ namespace Ninject.Planning.Strategies
         /// <summary>
         /// Gets the selector component.
         /// </summary>
-        public ISelector Selector { get; private set; }
+        public IPropertyReflectionSelector Selector { get; private set; }
 
         /// <summary>
         /// Gets or sets the injector factory component.
@@ -71,7 +71,7 @@ namespace Ninject.Planning.Strategies
         {
             Ensure.ArgumentNotNull(plan, nameof(plan));
 
-            foreach (PropertyInfo property in this.Selector.SelectPropertiesForInjection(plan.Type))
+            foreach (PropertyInfo property in this.Selector.Select(plan.Type))
             {
                 plan.Add(new PropertyInjectionDirective(property, this.InjectorFactory.Create(property)));
             }

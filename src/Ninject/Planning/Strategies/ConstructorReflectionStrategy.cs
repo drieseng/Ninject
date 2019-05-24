@@ -37,7 +37,7 @@ namespace Ninject.Planning.Strategies
         /// <summary>
         /// the <see cref="ISelector"/> component.
         /// </summary>
-        private readonly ISelector selector;
+        private readonly IConstructorReflectionSelector selector;
 
         /// <summary>
         /// The <see cref="IInjectorFactory"/> component.
@@ -51,7 +51,7 @@ namespace Ninject.Planning.Strategies
         /// <param name="injectorFactory">The injector factory component.</param>
         /// <exception cref="ArgumentNullException"><paramref name="selector"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="injectorFactory"/> is <see langword="null"/>.</exception>
-        public ConstructorReflectionStrategy(ISelector selector, IInjectorFactory injectorFactory)
+        public ConstructorReflectionStrategy(IConstructorReflectionSelector selector, IInjectorFactory injectorFactory)
         {
             Ensure.ArgumentNotNull(selector, nameof(selector));
             Ensure.ArgumentNotNull(injectorFactory, nameof(injectorFactory));
@@ -70,7 +70,7 @@ namespace Ninject.Planning.Strategies
         {
             Ensure.ArgumentNotNull(plan, nameof(plan));
 
-            var constructors = this.selector.SelectConstructorsForInjection(plan.Type);
+            var constructors = this.selector.Select(plan.Type);
 
             foreach (var constructor in constructors)
             {

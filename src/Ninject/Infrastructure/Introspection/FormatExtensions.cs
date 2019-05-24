@@ -76,7 +76,7 @@ namespace Ninject.Infrastructure.Introspection
                     sw.Write("implicit ");
                 }
 
-                var provider = binding.GetProvider(context);
+                var provider = binding.Provider;
 
                 switch (binding.Target)
                 {

@@ -9,7 +9,7 @@
     <Copyright>2007-2010 Enkari, Ltd. 2010-2017 Ninject Project Contributors.</Copyright>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyOriginatorKeyFile>..\Ninject.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageId>Ninject</PackageId>
     <PackageVersion>0.0.0</PackageVersion>

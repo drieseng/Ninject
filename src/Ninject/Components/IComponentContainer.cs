@@ -44,6 +44,14 @@ namespace Ninject.Components
             where TImplementation : TComponent, INinjectComponent;
 
         /// <summary>
+        /// Registers an instance of a component in the container.
+        /// </summary>
+        /// <typeparam name="TComponent">The component type.</typeparam>
+        /// <param name="instance">THe instance of <typeparamref name="TComponent"/> to register.</param>
+        void Add<TComponent>(TComponent instance)
+            where TComponent : INinjectComponent;
+
+        /// <summary>
         /// Removes all registrations for the specified component.
         /// </summary>
         /// <typeparam name="T">The component type.</typeparam>

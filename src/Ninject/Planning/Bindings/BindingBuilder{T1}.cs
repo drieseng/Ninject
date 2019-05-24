@@ -41,7 +41,7 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <param name="binding">The binding to build.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
-        /// <param name="constructorScorer">The <see cref="IConstructorScorer"/> component.</param>
+        /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
         /// <param name="serviceNames">The names of the services.</param>
         /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="planner"/> is <see langword="null"/>.</exception>
@@ -50,7 +50,7 @@ namespace Ninject.Planning.Bindings
         public BindingBuilder(
             IBinding binding,
             IPlanner planner,
-            IConstructorScorer constructorScorer,
+            IConstructorInjectionScorer constructorScorer,
             string serviceNames)
             : base(
                   binding.BindingConfiguration,
@@ -74,7 +74,7 @@ namespace Ninject.Planning.Bindings
         /// <returns>The fluent syntax.</returns>
         public IBindingWhenInNamedWithOrOnSyntax<T1> ToSelf()
         {
-            this.Binding.ProviderCallback = ctx => new StandardProvider(this.Binding.Service, this.Planner, this.ConstructorScorer);
+            this.Binding.Provider = new StandardProvider(this.Binding.Service, this.Planner, this.ConstructorScorer);
             this.Binding.Target = BindingTarget.Self;
 
             return new BindingConfigurationBuilder<T1>(this.Binding.BindingConfiguration, this.ServiceNames);

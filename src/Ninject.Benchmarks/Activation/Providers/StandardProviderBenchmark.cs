@@ -79,7 +79,7 @@ namespace Ninject.Benchmarks.Activation.Providers
 
             _standardProvider = new StandardProvider(typeof(StandardProviderBenchmark),
                                                      kernelConfigurationWithoutBindings.Components.Get<IPlanner>(),
-                                                     kernelConfigurationWithoutBindings.Components.Get<IConstructorScorer>());
+                                                     kernelConfigurationWithoutBindings.Components.Get<IConstructorInjectionScorer>());
 
         }
 

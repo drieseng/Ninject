@@ -62,7 +62,7 @@ namespace Ninject.Tests.Unit.CacheTests
 
         private static IContext CreateContextMock(object scope, IBindingConfiguration bindingConfiguration, params Type[] genericArguments)
         {
-            var bindingMock = new Mock<IBinding>();
+            var bindingMock = new Mock<IBinding>(MockBehavior.Strict);
             bindingMock.Setup(b => b.BindingConfiguration).Returns(bindingConfiguration);
             return new ContextMock(scope, bindingMock.Object, genericArguments);
         }
@@ -71,14 +71,15 @@ namespace Ninject.Tests.Unit.CacheTests
         {
             var sword = new Sword();
             var swordWeakReference = new WeakReference(sword);
-            var context = CreateContextMock(new TestObject(42), this.bindingConfigurationMock.Object);
-            this.Remember(sword, context);
+            var scope = new TestObject(42);
+            var context = CreateContextMock(scope, this.bindingConfigurationMock.Object);
+            this.Remember(sword, scope, context);
             return swordWeakReference;
         }
 
-        private void Remember(Sword sword, IContext context)
+        private void Remember(Sword sword, object scope, IContext context)
         {
-            this.cache.Remember(context, new InstanceReference { Instance = sword });
+            this.cache.Remember(context, scope, new InstanceReference { Instance = sword });
         }
     }
 
@@ -94,6 +95,19 @@ namespace Ninject.Tests.Unit.CacheTests
             set;
         }
 
+        /// <summary>
+        /// Initializes the instance using the specified context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="instance">The instance.</param>
+        /// <returns>
+        /// The initialized instance.
+        /// </returns>
+        public object Initialize(IContext context, object instance)
+        {
+            return instance;
+        }
+
         public void Activate(IContext context, InstanceReference reference)
         {
         }
@@ -102,7 +116,7 @@ namespace Ninject.Tests.Unit.CacheTests
         {
         }
 
-        public IList<IActivationStrategy> Strategies
+        public IReadOnlyList<IActivationStrategy> Strategies
         {
             get;
             set;
@@ -117,11 +131,6 @@ namespace Ninject.Tests.Unit.CacheTests
             this.scope = new WeakReference(scope);
             this.Binding = binding;
             this.GenericArguments = genericArguments;
-        }
-
-        public IProvider GetProvider()
-        {
-            throw new NotImplementedException();
         }
 
         public object GetScope()
@@ -150,6 +159,8 @@ namespace Ninject.Tests.Unit.CacheTests
         public ICache Cache { get; private set; }
 
         public IReadOnlyList<IParameter> Parameters { get; set; }
+
+        public IProvider Provider => throw new NotImplementedException();
 
         public Type[] GenericArguments
         {

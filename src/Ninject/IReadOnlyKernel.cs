@@ -33,6 +33,15 @@ namespace Ninject
     public interface IReadOnlyKernel : IResolutionRoot, IServiceProvider
     {
         /// <summary>
+        /// Gets an instance of the specified service.
+        /// </summary>
+        /// <param name="service">The service to resolve.</param>
+        /// <returns>
+        /// An instance of the service.
+        /// </returns>
+        object Get(Type service);
+
+        /// <summary>
         /// Gets the bindings registered for the specified service.
         /// </summary>
         /// <param name="service">The service in question.</param>

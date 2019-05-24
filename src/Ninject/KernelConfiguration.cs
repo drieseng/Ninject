@@ -272,11 +272,10 @@ namespace Ninject
         public IReadOnlyKernel BuildReadOnlyKernel()
         {
             var readonlyKernel = new ReadOnlyKernel(
-                this.Settings,
                 this.bindings.Clone(new ReferenceEqualityTypeComparer()),
                 this.Components.Get<ICache>(),
                 this.Components.Get<IPlanner>(),
-                this.Components.Get<IConstructorScorer>(),
+                this.Components.Get<IConstructorInjectionScorer>(),
                 this.Components.Get<IPipeline>(),
                 this.Components.Get<IExceptionFormatter>(),
                 this.Components.Get<IBindingPrecedenceComparer>(),
@@ -310,8 +309,10 @@ namespace Ninject
 
             if (this.Settings.PropertyInjection)
             {
+                /*
                 this.Components.Add<IPlanningStrategy, PropertyReflectionStrategy>();
                 this.Components.Add<IActivationStrategy, PropertyInjectionStrategy>();
+                */
             }
 
             if (this.Settings.MethodInjection)
@@ -321,7 +322,7 @@ namespace Ninject
             }
 
             this.Components.Add<ISelector, Selector>();
-            this.Components.Add<IConstructorScorer, StandardConstructorScorer>();
+            this.Components.Add<IConstructorInjectionScorer, StandardConstructorScorer>();
             this.Components.Add<IInjectionHeuristic, StandardInjectionHeuristic>();
 
             this.Components.Add<IPipeline, Pipeline>();

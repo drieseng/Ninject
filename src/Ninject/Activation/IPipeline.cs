@@ -21,9 +21,6 @@
 
 namespace Ninject.Activation
 {
-    using System.Collections.Generic;
-
-    using Ninject.Activation.Strategies;
     using Ninject.Components;
 
     /// <summary>
@@ -32,9 +29,14 @@ namespace Ninject.Activation
     public interface IPipeline : INinjectComponent
     {
         /// <summary>
-        /// Gets the strategies that contribute to the activation and deactivation processes.
+        /// Initializes the instance using the specified context.
         /// </summary>
-        IList<IActivationStrategy> Strategies { get; }
+        /// <param name="context">The context.</param>
+        /// <param name="instance">The instance.</param>
+        /// <returns>
+        /// The initialized instance.
+        /// </returns>
+        object Initialize(IContext context, object instance);
 
         /// <summary>
         /// Activates the instance in the specified context.

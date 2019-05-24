@@ -50,13 +50,13 @@ namespace Ninject.Planning.Bindings.Resolvers
             }
 
             return new[]
-            {
-                new Binding(service)
                 {
-                    Condition = r => HasDefaultValue(r.Target),
-                    ProviderCallback = context => new DefaultParameterValueProvider(service),
-                },
-            };
+                    new Binding(service)
+                    {
+                        Condition = r => HasDefaultValue(r.Target),
+                        Provider = new DefaultParameterValueProvider(service),
+                    },
+                };
         }
 
         private static bool HasDefaultValue(ITarget target)

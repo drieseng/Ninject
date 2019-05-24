@@ -44,10 +44,9 @@ namespace Ninject
     /// </summary>
     public class ReadOnlyKernel : DisposableObject, IReadOnlyKernel
     {
-        private readonly INinjectSettings settings;
         private readonly ICache cache;
         private readonly IPlanner planner;
-        private readonly IConstructorScorer constructorScorer;
+        private readonly IConstructorInjectionScorer constructorScorer;
         private readonly IPipeline pipeline;
         private readonly IBindingPrecedenceComparer bindingPrecedenceComparer;
         private readonly IExceptionFormatter exceptionFormatter;
@@ -61,29 +60,26 @@ namespace Ninject
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOnlyKernel"/> class.
         /// </summary>
-        /// <param name="settings">The <see cref="INinjectSettings"/>.</param>
         /// <param name="bindings">The preconfigured bindings.</param>
         /// <param name="cache">The <see cref="ICache"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
-        /// <param name="constructorScorer">The <see cref="IConstructorScorer"/> component.</param>
+        /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
         /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         /// <param name="bindingPrecedenceComparer">The <see cref="IBindingPrecedenceComparer"/> component.</param>
         /// <param name="bindingResolvers">The binding resolvers.</param>
         /// <param name="missingBindingResolvers">The missing binding resolvers.</param>
         internal ReadOnlyKernel(
-            INinjectSettings settings,
             Dictionary<Type, ICollection<IBinding>> bindings,
             ICache cache,
             IPlanner planner,
-            IConstructorScorer constructorScorer,
+            IConstructorInjectionScorer constructorScorer,
             IPipeline pipeline,
             IExceptionFormatter exceptionFormatter,
             IBindingPrecedenceComparer bindingPrecedenceComparer,
             List<IBindingResolver> bindingResolvers,
             List<IMissingBindingResolver> missingBindingResolvers)
         {
-            this.settings = settings;
             this.bindings = bindings;
             this.bindingResolvers = bindingResolvers;
             this.missingBindingResolvers = missingBindingResolvers;
@@ -250,6 +246,19 @@ namespace Ninject
         }
 
         /// <summary>
+        /// Gets an instance of the specified service.
+        /// </summary>
+        /// <param name="service">The service to resolve.</param>
+        /// <returns>
+        /// An instance of the service.
+        /// </returns>
+        public object Get(Type service)
+        {
+            var request = this.CreateRequest(service, null, Array.Empty<IParameter>(), false, true);
+            return this.ResolveSingle(request);
+        }
+
+        /// <summary>
         /// Gets the bindings registered for the specified service.
         /// </summary>
         /// <param name="service">The service in question.</param>
@@ -334,7 +343,7 @@ namespace Ninject
         /// <returns>The created context.</returns>
         protected virtual IContext CreateContext(IRequest request, IBinding binding)
         {
-            return new Context(this, this.settings, request, binding, this.cache, this.planner, this.pipeline, this.exceptionFormatter);
+            return new Context(this, request, binding, this.cache, this.exceptionFormatter);
         }
 
         private IEnumerable<object> ResolveAllWithMissingBindings(IRequest request, bool handleMissingBindings)
@@ -457,7 +466,7 @@ namespace Ninject
 
             if (handleMissingBindings && this.HandleMissingBinding(request))
             {
-                return this.ResolveSingle(request, true);
+                return this.ResolveSingle(request, false);
             }
 
             if (request.IsOptional)
@@ -585,7 +594,7 @@ namespace Ninject
 
             if (handleMissingBindings && this.HandleMissingBinding(request))
             {
-                return this.ResolveSingle(request, true);
+                return this.ResolveSingle(request, false);
             }
 
             if (request.IsOptional)

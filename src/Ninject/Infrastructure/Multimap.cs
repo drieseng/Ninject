@@ -90,6 +90,20 @@ namespace Ninject.Infrastructure
         }
 
         /// <summary>
+        /// Gets the value associated with the specified key.
+        /// </summary>
+        /// <param name="key">The key of the value to get.</param>
+        /// <param name="values">When this method returns, contains the value associated with the specified key, if the key is found; otherwise, the default value for the type of the value parameter. This parameter is passed uninitialized.</param>
+        /// <returns>
+        /// <see langword="true"/> if the <see cref="Multimap{TKey,TValue}"/> contains an element with the specified key;
+        /// otherwise, <see langword="false"/>.
+        /// </returns>
+        public bool TryGetValue(TKey key, out IList<TValue> values)
+        {
+            return this.items.TryGetValue(key, out values);
+        }
+
+        /// <summary>
         /// Adds the specified value for the specified key.
         /// </summary>
         /// <param name="key">The key.</param>

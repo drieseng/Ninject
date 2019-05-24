@@ -48,7 +48,7 @@ namespace Ninject.Planning.Directives
             Ensure.ArgumentNotNull(injector, nameof(injector));
 
             this.Injector = injector;
-            this.Targets = this.CreateTargetsFromParameters(method);
+            this.Targets = CreateTargetsFromParameters(method);
         }
 
         /// <summary>
@@ -59,22 +59,22 @@ namespace Ninject.Planning.Directives
         /// <summary>
         /// Gets the targets for the directive.
         /// </summary>
-        public ITarget[] Targets { get; private set; }
+        public ITarget<ParameterInfo>[] Targets { get; private set; }
 
         /// <summary>
         /// Creates targets for the parameters of the method.
         /// </summary>
         /// <param name="method">The method.</param>
         /// <returns>The targets for the method's parameters.</returns>
-        protected virtual ITarget[] CreateTargetsFromParameters(TMethod method)
+        private static ParameterTarget[] CreateTargetsFromParameters(TMethod method)
         {
             var parameters = method.GetParameters();
             if (parameters.Length == 0)
             {
-                return Array.Empty<ITarget>();
+                return Array.Empty<ParameterTarget>();
             }
 
-            var targets = new ITarget[parameters.Length];
+            var targets = new ParameterTarget[parameters.Length];
             for (var i = 0; i < parameters.Length; i++)
             {
                 targets[i] = new ParameterTarget(method, parameters[i]);

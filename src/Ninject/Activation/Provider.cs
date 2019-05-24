@@ -32,8 +32,11 @@ namespace Ninject.Activation
     public abstract class Provider<T> : IProvider<T>
     {
         /// <summary>
-        /// Gets the type (or prototype) of instances the provider creates.
+        /// Gets the type of instances the provider creates.
         /// </summary>
+        /// <value>
+        /// The type of instances the provider creates.
+        /// </value>
         public virtual Type Type
         {
             get { return typeof(T); }

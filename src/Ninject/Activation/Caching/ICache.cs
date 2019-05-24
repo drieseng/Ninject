@@ -36,14 +36,6 @@ namespace Ninject.Activation.Caching
         int Count { get; }
 
         /// <summary>
-        /// Stores the specified instance in the cache.
-        /// </summary>
-        /// <param name="context">The context to store.</param>
-        /// <param name="reference">The instance reference.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        void Remember(IContext context, InstanceReference reference);
-
-        /// <summary>
         /// Stores the specified context in the cache.
         /// </summary>
         /// <param name="context">The context to store.</param>
@@ -52,16 +44,6 @@ namespace Ninject.Activation.Caching
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="scope"/> is <see langword="null"/>.</exception>
         void Remember(IContext context, object scope, InstanceReference reference);
-
-        /// <summary>
-        /// Tries to retrieve an instance to re-use in the specified context.
-        /// </summary>
-        /// <param name="context">The context that is being activated.</param>
-        /// <returns>
-        /// The instance for re-use, or <see langword="null"/> if none has been stored.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        object TryGet(IContext context);
 
         /// <summary>
         /// Tries to retrieve an instance to re-use in the specified context and scope.

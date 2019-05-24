@@ -25,7 +25,6 @@ namespace Ninject.Modules
     using System.Collections.Generic;
 
     using Ninject.Infrastructure;
-    using Ninject.Infrastructure.Language;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 

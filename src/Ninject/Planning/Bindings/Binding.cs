@@ -31,7 +31,7 @@ namespace Ninject.Planning.Bindings
     /// <summary>
     /// Contains information about a service registration.
     /// </summary>
-    public class Binding : IBinding
+    public sealed class Binding : IBinding
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Binding"/> class.
@@ -63,12 +63,12 @@ namespace Ninject.Planning.Bindings
         /// Gets the binding configuration.
         /// </summary>
         /// <value>The binding configuration.</value>
-        public IBindingConfiguration BindingConfiguration { get; private set; }
+        public IBindingConfiguration BindingConfiguration { get; }
 
         /// <summary>
         /// Gets the service type that is controlled by the binding.
         /// </summary>
-        public Type Service { get; private set; }
+        public Type Service { get; }
 
         /// <summary>
         /// Gets the binding's metadata.
@@ -143,16 +143,16 @@ namespace Ninject.Planning.Bindings
         /// <summary>
         /// Gets or sets the callback that returns the provider that should be used by the binding.
         /// </summary>
-        public Func<IContext, IProvider> ProviderCallback
+        public IProvider Provider
         {
             get
             {
-                return this.BindingConfiguration.ProviderCallback;
+                return this.BindingConfiguration.Provider;
             }
 
             set
             {
-                this.BindingConfiguration.ProviderCallback = value;
+                this.BindingConfiguration.Provider = value;
             }
         }
 
@@ -203,19 +203,6 @@ namespace Ninject.Planning.Bindings
             {
                 return this.BindingConfiguration.DeactivationActions;
             }
-        }
-
-        /// <summary>
-        /// Gets the provider for the binding.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <returns>
-        /// The provider to use.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public IProvider GetProvider(IContext context)
-        {
-            return this.BindingConfiguration.GetProvider(context);
         }
 
         /// <summary>

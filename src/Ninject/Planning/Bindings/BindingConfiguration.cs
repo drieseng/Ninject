@@ -32,7 +32,7 @@ namespace Ninject.Planning.Bindings
     /// <summary>
     /// The configuration of a binding.
     /// </summary>
-    public class BindingConfiguration : IBindingConfiguration
+    public sealed class BindingConfiguration : IBindingConfiguration
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BindingConfiguration"/> class.
@@ -41,6 +41,19 @@ namespace Ninject.Planning.Bindings
         {
             this.Metadata = new BindingMetadata();
             this.Parameters = new List<IParameter>();
+            this.ActivationActions = new List<Action<IContext, object>>();
+            this.DeactivationActions = new List<Action<IContext, object>>();
+            this.ScopeCallback = StandardScopeCallbacks.Transient;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BindingConfiguration"/> class.
+        /// </summary>
+        /// <param name="parameters">The parameters defined for the binding.</param>
+        internal BindingConfiguration(IList<IParameter> parameters)
+        {
+            this.Metadata = new BindingMetadata();
+            this.Parameters = parameters;
             this.ActivationActions = new List<Action<IContext, object>>();
             this.DeactivationActions = new List<Action<IContext, object>>();
             this.ScopeCallback = StandardScopeCallbacks.Transient;
@@ -77,7 +90,7 @@ namespace Ninject.Planning.Bindings
         /// <summary>
         /// Gets or sets the callback that returns the provider that should be used by the binding.
         /// </summary>
-        public Func<IContext, IProvider> ProviderCallback { get; set; }
+        public IProvider Provider { get; set; }
 
         /// <summary>
         /// Gets or sets the callback that returns the object that will act as the binding's scope.
@@ -100,26 +113,6 @@ namespace Ninject.Planning.Bindings
         public ICollection<Action<IContext, object>> DeactivationActions { get; private set; }
 
         /// <summary>
-        /// Gets the provider for the binding.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <returns>
-        /// The provider to use.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public IProvider GetProvider(IContext context)
-        {
-            Ensure.ArgumentNotNull(context, nameof(context));
-
-            if (this.ProviderCallback == null)
-            {
-                throw new ActivationException(ExceptionFormatter.ProviderCallbackIsNull(context));
-            }
-
-            return this.ProviderCallback(context);
-        }
-
-        /// <summary>
         /// Gets the scope for the binding, if any.
         /// </summary>
         /// <param name="context">The context.</param>
@@ -129,7 +122,10 @@ namespace Ninject.Planning.Bindings
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
         public object GetScope(IContext context)
         {
-            Ensure.ArgumentNotNull(context, nameof(context));
+            if (context == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(context));
+            }
 
             return this.ScopeCallback(context);
         }

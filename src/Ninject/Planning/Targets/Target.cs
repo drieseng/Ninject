@@ -36,7 +36,7 @@ namespace Ninject.Planning.Targets
     /// Represents a site on a type where a value can be injected.
     /// </summary>
     /// <typeparam name="T">The type of site this represents.</typeparam>
-    public abstract class Target<T> : ITarget
+    public abstract class Target<T> : ITarget<T>
         where T : ICustomAttributeProvider
     {
         /// <summary>
@@ -130,12 +130,7 @@ namespace Ninject.Planning.Targets
         /// An array of custom attributes of the specified type.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="attributeType"/> is <see langword="null"/>.</exception>
-        public object[] GetCustomAttributes(Type attributeType, bool inherit)
-        {
-            Ensure.ArgumentNotNull(attributeType, nameof(attributeType));
-
-            return this.Site.GetCustomAttributesExtended(attributeType, inherit);
-        }
+        public abstract object[] GetCustomAttributes(Type attributeType, bool inherit);
 
         /// <summary>
         /// Returns an array of custom attributes defined on the target.
@@ -158,12 +153,7 @@ namespace Ninject.Planning.Targets
         /// <see langword="true"/> if such an attribute is defined; otherwise, <see langword="false"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="attributeType"/> is <see langword="null"/>.</exception>
-        public bool IsDefined(Type attributeType, bool inherit)
-        {
-            Ensure.ArgumentNotNull(attributeType, nameof(attributeType));
-
-            return this.Site.HasAttribute(attributeType);
-        }
+        public abstract bool IsDefined(Type attributeType, bool inherit);
 
         /// <summary>
         /// Resolves a value for the target within the specified parent context.

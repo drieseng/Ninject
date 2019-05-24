@@ -29,8 +29,11 @@ namespace Ninject.Activation
     public interface IProvider
     {
         /// <summary>
-        /// Gets the type (or prototype) of instances the provider creates.
+        /// Gets the type of instances the provider creates.
         /// </summary>
+        /// <value>
+        /// The type of instances the provider creates.
+        /// </value>
         Type Type { get; }
 
         /// <summary>

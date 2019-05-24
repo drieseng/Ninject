@@ -23,6 +23,9 @@ namespace Ninject.Parameters
 {
     using System;
 
+    using Ninject.Activation;
+    using Ninject.Planning.Targets;
+
     /// <summary>
     /// Overrides the injected value of a property.
     /// Keeps a weak reference to the value.
@@ -42,6 +45,23 @@ namespace Ninject.Parameters
         {
             this.weakReference = new WeakReference(value);
             this.ValueCallback = (ctx, target) => this.weakReference.Target;
+        }
+
+        /// <summary>
+        /// Determines if the parameter applies to the given target.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="target">The target.</param>
+        /// <returns>
+        /// <see langword="true"/> if the parameter applies in the specified context to the specified target;
+        /// otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <remarks>
+        /// Only one parameter may return <see langword="true"/>.
+        /// </remarks>
+        public bool AppliesToTarget(IContext context, ITarget target)
+        {
+            return string.Equals(this.Name, target.Name);
         }
     }
 }

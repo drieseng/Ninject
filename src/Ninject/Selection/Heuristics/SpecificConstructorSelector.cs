@@ -30,7 +30,7 @@ namespace Ninject.Selection.Heuristics
     /// <summary>
     /// Constructor selector that selects the constructor matching the one passed to the constructor.
     /// </summary>
-    public class SpecificConstructorSelector : NinjectComponent, IConstructorScorer
+    public class SpecificConstructorSelector : NinjectComponent, IConstructorInjectionScorer
     {
         private readonly ConstructorInfo constructorInfo;
 

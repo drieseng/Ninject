@@ -29,7 +29,7 @@ namespace Ninject.Planning.Directives
     /// <summary>
     /// Describes the injection of a method.
     /// </summary>
-    public class MethodInjectionDirective : MethodInjectionDirectiveBase<MethodInfo, MethodInjector>
+    public sealed class MethodInjectionDirective : MethodInjectionDirectiveBase<MethodInfo, MethodInjector>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MethodInjectionDirective"/> class.

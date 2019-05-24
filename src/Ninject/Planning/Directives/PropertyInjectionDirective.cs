@@ -29,7 +29,7 @@ namespace Ninject.Planning.Directives
     /// <summary>
     /// Describes the injection of a property.
     /// </summary>
-    public class PropertyInjectionDirective : IDirective
+    public sealed class PropertyInjectionDirective : IDirective
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyInjectionDirective"/> class.
@@ -39,7 +39,7 @@ namespace Ninject.Planning.Directives
         public PropertyInjectionDirective(PropertyInfo member, PropertyInjector injector)
         {
             this.Injector = injector;
-            this.Target = this.CreateTarget(member);
+            this.Target = new PropertyTarget(member);
         }
 
         /// <summary>
@@ -51,15 +51,5 @@ namespace Ninject.Planning.Directives
         /// Gets the injection target for the directive.
         /// </summary>
         public ITarget Target { get; private set; }
-
-        /// <summary>
-        /// Creates a target for the property.
-        /// </summary>
-        /// <param name="propertyInfo">The property.</param>
-        /// <returns>The target for the property.</returns>
-        protected virtual ITarget CreateTarget(PropertyInfo propertyInfo)
-        {
-            return new PropertyTarget(propertyInfo);
-        }
     }
 }

@@ -46,27 +46,93 @@ namespace Ninject.Activation
         private readonly List<IActivationStrategy> strategies;
 
         /// <summary>
+        /// The strategies that contribute to the initialization process.
+        /// </summary>
+        private readonly List<IInitializationStrategy> initializationStrategies;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Pipeline"/> class.
         /// </summary>
         /// <param name="strategies">The strategies to execute during activation and deactivation.</param>
+        /// <param name="initializationStrategies">The strategies to execute during initialization.</param>
         /// <param name="activationCache">The activation cache.</param>
         /// <exception cref="ArgumentNullException"><paramref name="strategies"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="initializationStrategies"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="activationCache"/> is <see langword="null"/>.</exception>
-        public Pipeline(IEnumerable<IActivationStrategy> strategies, IActivationCache activationCache)
+        public Pipeline(IEnumerable<IActivationStrategy> strategies, IEnumerable<IInitializationStrategy> initializationStrategies, IActivationCache activationCache)
         {
             Ensure.ArgumentNotNull(strategies, nameof(strategies));
+            Ensure.ArgumentNotNull(initializationStrategies, nameof(initializationStrategies));
             Ensure.ArgumentNotNull(activationCache, nameof(activationCache));
 
             this.strategies = strategies.ToList();
+            this.initializationStrategies = initializationStrategies.ToList();
             this.activationCache = activationCache;
         }
 
         /// <summary>
         /// Gets the strategies that contribute to the activation and deactivation processes.
         /// </summary>
-        public IList<IActivationStrategy> Strategies
+        public IReadOnlyList<IActivationStrategy> Strategies
         {
             get { return this.strategies; }
+        }
+
+        /// <summary>
+        /// Gets the strategies that contribute to the initialization process.
+        /// </summary>
+        public IReadOnlyList<IInitializationStrategy> InitializationStrategies
+        {
+            get { return this.initializationStrategies; }
+        }
+
+        /// <summary>
+        /// Initializes the instance in the specified context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="instance">The instance.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="instance"/> is <see langword="null"/>.</exception>
+        /// <returns>
+        /// The initialized instance.
+        /// </returns>
+        public object Initialize(IContext context, object instance)
+        {
+            if (context == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(context));
+            }
+
+            if (instance == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(instance));
+            }
+
+            if (this.initializationStrategies.Count > 0)
+            {
+                var targetType = context.Request.Service;
+
+                this.initializationStrategies.ForEach(s =>
+                    {
+                        instance = s.Initialize(context, instance);
+
+                        // Protect against strategy returning null
+                        if (instance == null)
+                        {
+                            throw new Exception("TODO");
+                        }
+
+                        // Protect against strategy returning an incompatible type
+                        if (!targetType.IsAssignableFrom(instance.GetType()))
+                        {
+                            throw new Exception("TODO");
+                        }
+
+                        // TODO UPDATE PLAN!!
+                    });
+            }
+
+            return instance;
         }
 
         /// <summary>
@@ -83,6 +149,7 @@ namespace Ninject.Activation
 
             if (!this.activationCache.IsActivated(reference.Instance))
             {
+                Console.WriteLine("ACTIVATE " + this.strategies.Count);
                 this.strategies.ForEach(s => s.Activate(context, reference));
             }
         }
@@ -101,6 +168,7 @@ namespace Ninject.Activation
 
             if (!this.activationCache.IsDeactivated(reference.Instance))
             {
+                Console.WriteLine("DEACTIVATE " + this.strategies.Count);
                 this.strategies.ForEach(s => s.Deactivate(context, reference));
             }
         }

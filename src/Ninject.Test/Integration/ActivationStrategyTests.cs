@@ -95,8 +95,7 @@
                           instance.Warrior = new FootSoldier();
                           instance.Weapon = new Shuriken();
                       })
-                  .OnDeactivation(
-                      instance =>
+                  .OnDeactivation((ctx, instance) =>
                       {
                           instance.Warrior = null;
                           instance.Weapon = null;

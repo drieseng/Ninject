@@ -29,7 +29,7 @@ namespace Ninject.Planning.Directives
     /// <summary>
     /// Describes the injection of a constructor.
     /// </summary>
-    public class ConstructorInjectionDirective : MethodInjectionDirectiveBase<ConstructorInfo, ConstructorInjector>
+    public sealed class ConstructorInjectionDirective : MethodInjectionDirectiveBase<ConstructorInfo, ConstructorInjector>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConstructorInjectionDirective"/> class.

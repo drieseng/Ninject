@@ -90,41 +90,6 @@ namespace Ninject.Activation.Caching
         /// Stores the specified context in the cache.
         /// </summary>
         /// <param name="context">The context to store.</param>
-        /// <param name="reference">The instance reference.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public void Remember(IContext context, InstanceReference reference)
-        {
-            Ensure.ArgumentNotNull(context, nameof(context));
-
-            var scope = context.GetScope();
-            var entry = new CacheEntry(context, reference);
-
-            var weakScopeReference = new ReferenceEqualWeakReference(scope);
-
-            var scopedEntries = this.entries.GetOrAdd(
-                   weakScopeReference,
-                   key =>
-                   {
-                       if (scope is INotifyWhenDisposed notifyScope)
-                       {
-                           notifyScope.Disposed += (o, e) => this.Clear(key);
-                       }
-
-                       return new ConcurrentDictionary<IBindingConfiguration, List<CacheEntry>>();
-                   });
-
-            var cacheEntriesForBinding = scopedEntries.GetOrAdd(context.Binding.BindingConfiguration, new List<CacheEntry>());
-
-            lock (cacheEntriesForBinding)
-            {
-                cacheEntriesForBinding.Add(entry);
-            }
-        }
-
-        /// <summary>
-        /// Stores the specified context in the cache.
-        /// </summary>
-        /// <param name="context">The context to store.</param>
         /// <param name="scope">The scope of the context.</param>
         /// <param name="reference">The instance reference.</param>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
@@ -134,7 +99,6 @@ namespace Ninject.Activation.Caching
             Ensure.ArgumentNotNull(context, nameof(context));
             Ensure.ArgumentNotNull(scope, nameof(scope));
 
-            var entry = new CacheEntry(context, reference);
             var weakScopeReference = new ReferenceEqualWeakReference(scope);
 
             var scopedEntries = this.entries.GetOrAdd(
@@ -156,58 +120,10 @@ namespace Ninject.Activation.Caching
 
             lock (cacheEntriesForBinding)
             {
-                cacheEntriesForBinding.Add(entry);
-            }
-        }
-
-        /// <summary>
-        /// Tries to retrieve an instance to re-use in the specified context.
-        /// </summary>
-        /// <param name="context">The context that is being activated.</param>
-        /// <returns>
-        /// The instance for re-use, or <see langword="null"/> if none has been stored.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public object TryGet(IContext context)
-        {
-            Ensure.ArgumentNotNull(context, nameof(context));
-
-            var scope = context.GetScope();
-            if (scope == null)
-            {
-                return null;
+                cacheEntriesForBinding.Add(new CacheEntry(context, reference));
             }
 
-            if (!this.entries.TryGetValue(scope, out ConcurrentDictionary<IBindingConfiguration, List<CacheEntry>> bindings))
-            {
-                return null;
-            }
-
-            if (bindings.TryGetValue(context.Binding.BindingConfiguration, out List<CacheEntry> cacheEntriesForBinding))
-            {
-                lock (cacheEntriesForBinding)
-                {
-                    var entryCount = cacheEntriesForBinding.Count;
-                    for (var i = 0; i < entryCount; i++)
-                    {
-                        var entry = cacheEntriesForBinding[i];
-                        if (context.HasInferredGenericArguments)
-                        {
-                            var cachedArguments = entry.Context.GenericArguments;
-                            var arguments = context.GenericArguments;
-
-                            if (!cachedArguments.SequenceEqual(arguments))
-                            {
-                                continue;
-                            }
-                        }
-
-                        return entry.Reference.Instance;
-                    }
-                }
-            }
-
-            return null;
+            this.Pipeline.Activate(context, reference);
         }
 
         /// <summary>
@@ -222,8 +138,15 @@ namespace Ninject.Activation.Caching
         /// <exception cref="ArgumentNullException"><paramref name="scope"/> is <see langword="null"/>.</exception>
         public object TryGet(IContext context, object scope)
         {
-            Ensure.ArgumentNotNull(context, nameof(context));
-            Ensure.ArgumentNotNull(scope, nameof(scope));
+            if (context == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(context));
+            }
+
+            if (scope == null)
+            {
+                Ensure.ThrowArgumentNotNull(nameof(scope));
+            }
 
             if (!this.entries.TryGetValue(scope, out ConcurrentDictionary<IBindingConfiguration, List<CacheEntry>> bindings))
             {
@@ -232,8 +155,9 @@ namespace Ninject.Activation.Caching
 
             if (bindings.TryGetValue(context.Binding.BindingConfiguration, out List<CacheEntry> cacheEntriesForBinding))
             {
-                lock (cacheEntriesForBinding)
+                /*lock (cacheEntriesForBinding)
                 {
+                */
                     var entryCount = cacheEntriesForBinding.Count;
                     for (var i = 0; i < entryCount; i++)
                     {
@@ -250,7 +174,7 @@ namespace Ninject.Activation.Caching
                         }
 
                         return entry.Reference.Instance;
-                    }
+                    /*}*/
                 }
             }
 
@@ -444,10 +368,10 @@ namespace Ninject.Activation.Caching
         /// <summary>
         /// An entry in the cache.
         /// </summary>
-        private class CacheEntry
+        private struct CacheEntry
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="CacheEntry"/> class.
+            /// Initializes a new instance of the <see cref="CacheEntry"/> struct.
             /// </summary>
             /// <param name="context">The context.</param>
             /// <param name="reference">The instance reference.</param>
@@ -461,13 +385,13 @@ namespace Ninject.Activation.Caching
             /// Gets the context of the instance.
             /// </summary>
             /// <value>The context.</value>
-            public IContext Context { get; private set; }
+            public IContext Context { get; }
 
             /// <summary>
             /// Gets the instance reference.
             /// </summary>
             /// <value>The instance reference.</value>
-            public InstanceReference Reference { get; private set; }
+            public InstanceReference Reference { get; }
         }
     }
 }

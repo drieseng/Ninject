@@ -41,7 +41,7 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <param name="bindingConfiguration">The binding to build.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
-        /// <param name="constructorScorer">The <see cref="IConstructorScorer"/> component.</param>
+        /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
         /// <param name="serviceNames">The names of the services.</param>
         /// <exception cref="ArgumentNullException"><paramref name="bindingConfiguration"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="planner"/> is <see langword="null"/>.</exception>
@@ -50,7 +50,7 @@ namespace Ninject.Planning.Bindings
         public BindingBuilder(
             IBindingConfiguration bindingConfiguration,
             IPlanner planner,
-            IConstructorScorer constructorScorer,
+            IConstructorInjectionScorer constructorScorer,
             string serviceNames)
             : base(
                  bindingConfiguration,

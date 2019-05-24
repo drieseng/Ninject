@@ -22,6 +22,7 @@
 namespace Ninject.Infrastructure
 {
     using System;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Argument guard.
@@ -34,6 +35,7 @@ namespace Ninject.Infrastructure
         /// <param name="argument">The argument value.</param>
         /// <param name="name">The argument name.</param>
         /// <exception cref="ArgumentNullException"><paramref name="argument"/> is <see langword="null"/>.</exception>
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void ArgumentNotNull(object argument, string name)
         {
             if (argument == null)
@@ -43,11 +45,22 @@ namespace Ninject.Infrastructure
         }
 
         /// <summary>
+        /// Throws an wwwx.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowArgumentNotNull(string name)
+        {
+            throw new ArgumentNullException(name, "Cannot be null");
+        }
+
+        /// <summary>
         /// Ensures the argument is not null or empty.
         /// </summary>
         /// <param name="argument">The argument value.</param>
         /// <param name="name">The argument name.</param>
         /// <exception cref="ArgumentException"><paramref name="argument"/> is <see langword="null"/> or a zero-length <see cref="string"/>.</exception>
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal static void ArgumentNotNullOrEmpty(string argument, string name)
         {
             if (string.IsNullOrEmpty(argument))

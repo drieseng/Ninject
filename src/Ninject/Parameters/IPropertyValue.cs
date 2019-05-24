@@ -21,10 +21,26 @@
 
 namespace Ninject.Parameters
 {
+    using Ninject.Activation;
+    using Ninject.Planning.Targets;
+
     /// <summary>
     /// Overrides the injected value of a property.
     /// </summary>
     public interface IPropertyValue : IParameter
     {
+        /// <summary>
+        /// Determines if the parameter applies to the given target.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="target">The target.</param>
+        /// <returns>
+        /// <see langword="true"/> if the parameter applies in the specified context to the specified target;
+        /// otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <remarks>
+        /// Only one parameter may return <see langword="true"/>.
+        /// </remarks>
+        bool AppliesToTarget(IContext context, ITarget target);
     }
 }

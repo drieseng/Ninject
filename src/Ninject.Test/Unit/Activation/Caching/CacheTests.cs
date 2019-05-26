@@ -71,19 +71,6 @@ namespace Ninject.Tests.Unit.Activation.Caching
         }
 
         [Fact]
-        public void Remember_ContextAndReference_ShouldThrowArgumentNullExceptionWhenContextIsNull()
-        {
-            const IContext context = null;
-            var instanceReference = new InstanceReference { Instance = new object() };
-            var cache = CreateCache();
-
-            var actual = Assert.Throws<ArgumentNullException>(() => cache.Remember(context, instanceReference));
-
-            Assert.Null(actual.InnerException);
-            Assert.Equal(nameof(context), actual.ParamName);
-        }
-
-        [Fact]
         public void Remember_ContextAndScopeAndReference_ShouldThrowArgumentNullExceptionWhenContextIsNull()
         {
             const IContext context = null;
@@ -172,18 +159,6 @@ namespace Ninject.Tests.Unit.Activation.Caching
             Assert.Null(cache.TryGet(context, scope));
 
             _pipelineMock.Verify(p => p.Deactivate(_contextMock1.Object, instanceReference2));
-        }
-
-        [Fact]
-        public void TryGet_Context_ShouldThrowArgumentNullExceptionWhenContextIsNull()
-        {
-            const IContext context = null;
-            var cache = CreateCache();
-
-            var actual = Assert.Throws<ArgumentNullException>(() => cache.TryGet(context));
-
-            Assert.Null(actual.InnerException);
-            Assert.Equal(nameof(context), actual.ParamName);
         }
 
         [Fact]

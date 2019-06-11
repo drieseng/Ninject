@@ -615,7 +615,7 @@ namespace Ninject
         private void AddReadOnlyKernelBinding<T>(T readonlyKernel, Dictionary<Type, ICollection<IBinding>> bindings)
         {
             var binding = new Binding(typeof(T));
-            new BindingBuilder<T>(binding, this.planner, this.constructorScorer, typeof(T).Format()).ToConstant(readonlyKernel);
+            new BindingBuilder<T>(binding, this.pipeline, this.planner, this.constructorScorer, typeof(T).Format()).ToConstant(readonlyKernel);
             bindings[typeof(T)] = new[] { binding };
         }
 

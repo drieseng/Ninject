@@ -34,9 +34,9 @@ namespace Ninject.Planning
     public class Plan : IPlan
     {
         private readonly List<IDirective> directives;
-        private readonly List<ConstructorInjectionDirective> constructors;
-        private List<PropertyInjectionDirective> properties;
-        private List<MethodInjectionDirective> methods;
+        private readonly List<IConstructorInjectionDirective> constructors;
+        private List<IPropertyInjectionDirective> properties;
+        private List<IMethodInjectionDirective> methods;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Plan"/> class.
@@ -48,7 +48,7 @@ namespace Ninject.Planning
             Ensure.ArgumentNotNull(type, nameof(type));
 
             this.Type = type;
-            this.constructors = new List<ConstructorInjectionDirective>();
+            this.constructors = new List<IConstructorInjectionDirective>();
             this.directives = new List<IDirective>();
         }
 
@@ -72,15 +72,15 @@ namespace Ninject.Planning
         /// <exception cref="ArgumentNullException"><paramref name="directive"/> is <see langword="null"/>.</exception>
         public void Add(IDirective directive)
         {
-            if (directive is ConstructorInjectionDirective constructor)
+            if (directive is IConstructorInjectionDirective constructor)
             {
                 this.Add(constructor);
             }
-            else if (directive is PropertyInjectionDirective property)
+            else if (directive is IPropertyInjectionDirective property)
             {
                 this.Add(property);
             }
-            else if (directive is MethodInjectionDirective method)
+            else if (directive is IMethodInjectionDirective method)
             {
                 this.Add(method);
             }
@@ -96,7 +96,7 @@ namespace Ninject.Planning
         /// </summary>
         /// <param name="constructor">The constructor directive.</param>
         /// <exception cref="ArgumentNullException"><paramref name="constructor"/> is <see langword="null"/>.</exception>
-        public void Add(ConstructorInjectionDirective constructor)
+        public void Add(IConstructorInjectionDirective constructor)
         {
             Ensure.ArgumentNotNull(constructor, nameof(constructor));
 
@@ -108,13 +108,13 @@ namespace Ninject.Planning
         /// </summary>
         /// <param name="property">The property directive.</param>
         /// <exception cref="ArgumentNullException"><paramref name="property"/> is <see langword="null"/>.</exception>
-        public void Add(PropertyInjectionDirective property)
+        public void Add(IPropertyInjectionDirective property)
         {
             Ensure.ArgumentNotNull(property, nameof(property));
 
             if (this.properties == null)
             {
-                this.properties = new List<PropertyInjectionDirective>();
+                this.properties = new List<IPropertyInjectionDirective>();
             }
 
             this.properties.Add(property);
@@ -125,13 +125,13 @@ namespace Ninject.Planning
         /// </summary>
         /// <param name="method">The method directive.</param>
         /// <exception cref="ArgumentNullException"><paramref name="method"/> is <see langword="null"/>.</exception>
-        public void Add(MethodInjectionDirective method)
+        public void Add(IMethodInjectionDirective method)
         {
             Ensure.ArgumentNotNull(method, nameof(method));
 
             if (this.methods == null)
             {
-                this.methods = new List<MethodInjectionDirective>();
+                this.methods = new List<IMethodInjectionDirective>();
             }
 
             this.methods.Add(method);
@@ -156,7 +156,7 @@ namespace Ninject.Planning
         /// <returns>
         /// The constructors for the current plan.
         /// </returns>
-        public IReadOnlyList<ConstructorInjectionDirective> GetConstructors()
+        public IReadOnlyList<IConstructorInjectionDirective> GetConstructors()
         {
             return this.constructors;
         }
@@ -167,11 +167,11 @@ namespace Ninject.Planning
         /// <returns>
         /// The properties for the current plan.
         /// </returns>
-        public IReadOnlyList<PropertyInjectionDirective> GetProperties()
+        public IReadOnlyList<IPropertyInjectionDirective> GetProperties()
         {
             if (this.properties == null)
             {
-                this.properties = new List<PropertyInjectionDirective>();
+                this.properties = new List<IPropertyInjectionDirective>();
             }
 
             return this.properties;
@@ -183,11 +183,11 @@ namespace Ninject.Planning
         /// <returns>
         /// The methods for the current plan.
         /// </returns>
-        public IReadOnlyList<MethodInjectionDirective> GetMethods()
+        public IReadOnlyList<IMethodInjectionDirective> GetMethods()
         {
             if (this.methods == null)
             {
-                this.methods = new List<MethodInjectionDirective>();
+                this.methods = new List<IMethodInjectionDirective>();
             }
 
             return this.methods;
@@ -225,30 +225,30 @@ namespace Ninject.Planning
                 }
             }
 
-            if (typeof(TDirective) == typeof(ConstructorInjectionDirective))
+            if (typeof(TDirective).IsAssignableFrom(typeof(ConstructorInjectionDirective)))
             {
                 foreach (var constructor in this.constructors)
                 {
-                    yield return (TDirective)(object)constructor;
+                    yield return (TDirective)constructor;
                 }
             }
-            else if (typeof(TDirective) == typeof(PropertyInjectionDirective))
+            else if (typeof(TDirective).IsAssignableFrom(typeof(PropertyInjectionDirective)))
             {
                 if (this.properties != null)
                 {
                     foreach (var property in this.properties)
                     {
-                        yield return (TDirective)(object)property;
+                        yield return (TDirective)property;
                     }
                 }
             }
-            else if (typeof(TDirective) == typeof(MethodInjectionDirective))
+            else if (typeof(TDirective).IsAssignableFrom(typeof(MethodInjectionDirective)))
             {
                 if (this.methods != null)
                 {
                     foreach (var method in this.methods)
                     {
-                        yield return (TDirective)(object)method;
+                        yield return (TDirective)method;
                     }
                 }
             }

@@ -26,10 +26,10 @@ namespace Ninject.Builder
 
     using Ninject.Activation;
     using Ninject.Activation.Providers;
-    using Ninject.Components;
     using Ninject.Parameters;
     using Ninject.Planning;
     using Ninject.Selection;
+    using Ninject.Syntax;
 
     /// <summary>
     /// Factory for a creating a built-in <see cref="IProvider"/>.
@@ -37,41 +37,32 @@ namespace Ninject.Builder
     internal sealed class StandardProviderFactory : IProviderFactory
     {
         private readonly Type implementation;
-        private readonly ComponentContainer components;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StandardProviderFactory"/> class.
         /// </summary>
         /// <param name="implementation">The type of instances the factory creates <see cref="IProvider"/> instances for.</param>
-        /// <param name="components">The components.</param>
-        internal StandardProviderFactory(Type implementation, ComponentContainer components)
+        internal StandardProviderFactory(Type implementation)
         {
             this.implementation = implementation;
-            this.components = components;
         }
 
         /// <summary>
         /// Creates an appropiate <see cref="IProvider"/> taking into account the configured <see cref="IConstructorInjectionSelector"/>
         /// and the parameters.
         /// </summary>
+        /// <param name="root">The resolution root.</param>
         /// <param name="parameters">The parameters of the binding.</param>
         /// <returns>
         /// An <see cref="IProvider"/>.
         /// </returns>
-        public IProvider Create(IReadOnlyList<IParameter> parameters)
+        public IProvider Create(IResolutionRoot root, IReadOnlyList<IParameter> parameters)
         {
-            var constructorSelector = this.components.Get<IConstructorInjectionSelector>();
-            var pipeline = this.components.Get<IPipeline>();
+            var constructorSelector = root.Get<IConstructorInjectionSelector>();
+            var pipeline = root.Get<IPipeline>();
 
-            if (!this.components.TryGet<IPropertyReflectionSelector>(out _))
-            {
-                EnsureNoPropertyValuesAreConfigured(parameters);
-            }
-
-            var planner = this.components.Get<IPlanner>();
+            var planner = root.Get<IPlanner>();
             var plan = planner.GetPlan(this.implementation);
-
-            /* TODO: FAIL if method argument, but method injection is not active */
 
             if (constructorSelector is DefaultConstructorInjectionSelector || constructorSelector is UniqueConstructorInjectionSelector)
             {
@@ -94,21 +85,10 @@ namespace Ninject.Builder
                     constructor,
                     plan,
                     pipeline,
-                    this.components.Get<IConstructorParameterValueProvider>());
+                    root.Get<IConstructorParameterValueProvider>());
             }
 
-            return new ContextAwareConstructorProvider(plan, constructorSelector, pipeline, this.components.Get<IConstructorParameterValueProvider>());
-        }
-
-        private static void EnsureNoPropertyValuesAreConfigured(IReadOnlyList<IParameter> parameters)
-        {
-            foreach (var parameter in parameters)
-            {
-                if (parameter is IPropertyValue)
-                {
-                    throw new Exception("Cannot define property values when property injection is not enabled.");
-                }
-            }
+            return new ContextAwareConstructorProvider(plan, constructorSelector, pipeline, root.Get<IConstructorParameterValueProvider>());
         }
     }
 }

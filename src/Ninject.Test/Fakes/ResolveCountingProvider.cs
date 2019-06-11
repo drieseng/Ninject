@@ -4,46 +4,23 @@
 
     using Ninject.Activation;
 
-    public class ResolveCountingProvider
+    public class ResolveCountingProvider : IProvider
     {
-        private readonly Func<IContext, IProvider> providerCallback;
+        private readonly IProvider provider;
 
         public int Count { get; set; }
 
-        public ResolveCountingProvider(Func<IContext, IProvider> providerCallback)
+        public Type Type => provider.GetType();
+
+        public ResolveCountingProvider(IProvider provider)
         {
-            this.providerCallback = providerCallback;
+            this.provider = provider;
         }
 
-        public IProvider Callback(IContext ctx)
+        public object Create(IContext context)
         {
-            return new ProviderImpl(this, this.providerCallback(ctx));
-        }
-
-        private class ProviderImpl : IProvider
-        {
-            private readonly ResolveCountingProvider parent;
-            private readonly IProvider authority;
-
-            public ProviderImpl(ResolveCountingProvider parent, IProvider authority)
-            {
-                this.parent = parent;
-                this.authority = authority;
-            }
-
-            public Type Type
-            {
-                get
-                {
-                    return this.authority.Type;
-                }
-            }
-
-            public object Create(IContext context)
-            {
-                ++this.parent.Count;
-                return this.authority.Create(context);
-            }
+            ++this.Count;
+            return this.provider.Create(context);
         }
     }
 }

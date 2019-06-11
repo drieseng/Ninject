@@ -14,6 +14,7 @@ using Xunit;
 namespace Ninject.Tests.Unit.MethodInjectionStrategyTests
 {
     using FluentAssertions;
+    using System.Collections.Generic;
 
     public class MethodInjectionStrategyContext
     {
@@ -27,80 +28,104 @@ namespace Ninject.Tests.Unit.MethodInjectionStrategyTests
 
     public class WhenActivateIsCalled : MethodInjectionStrategyContext
     {
-        protected Dummy instance = new Dummy();
-        protected InstanceReference reference;
-        protected MethodInfo method1 = typeof(Dummy).GetMethod("Foo");
-        protected MethodInfo method2 = typeof(Dummy).GetMethod("Bar");
-        protected Mock<IContext> contextMock;
-        protected Mock<IPlan> planMock;
-        protected FakeMethodInjectionDirective[] directives;
-        protected MethodInjector injector1;
-        protected MethodInjector injector2;
-        protected bool injector1WasCalled;
-        protected bool injector2WasCalled;
+        private Dummy instance;
+
+        private Mock<IMethodInjectionDirective> method1DirectiveMock;
+        private Mock<ITarget<ParameterInfo>> method1Target1Mock;
+        private Mock<ITarget<ParameterInfo>> method1Target2Mock;
+        private object method1Target1ResolvedValue;
+        private object method1Target2ResolvedValue;
+        private Mock<MethodInjector> method1InjectorMock;
+
+        private Mock<IMethodInjectionDirective> method2DirectiveMock;
+        private Mock<ITarget<ParameterInfo>> method2Target1Mock;
+        private Mock<MethodInjector> method2InjectorMock;
+        private object method2Target1ResolvedValue;
+
+        private Mock<IContext> contextMock;
+        private Mock<IPlan> planMock;
 
         public WhenActivateIsCalled()
         {
-            this.reference = new InstanceReference { Instance = this.instance };
+            this.instance = new Dummy();
 
             this.contextMock = new Mock<IContext>();
             this.planMock = new Mock<IPlan>();
-            this.injector1 = (x, args) => { this.injector1WasCalled = true; };
-            this.injector2 = (x, args) => { this.injector2WasCalled = true; };
+            this.method1Target1ResolvedValue = new object();
+            this.method1Target2ResolvedValue = new object();
+            this.method2Target1ResolvedValue = new object();
 
-            this.directives = new[]
-            {
-                new FakeMethodInjectionDirective(this.method1, this.injector1),
-                new FakeMethodInjectionDirective(this.method2, this.injector2)
-            };
+            method1DirectiveMock = new Mock<IMethodInjectionDirective>(MockBehavior.Strict);
+            method1InjectorMock = new Mock<MethodInjector>(MockBehavior.Strict);
+            method1Target1Mock = new Mock<ITarget<ParameterInfo>>(MockBehavior.Strict);
+            method1Target2Mock = new Mock<ITarget<ParameterInfo>>(MockBehavior.Strict);
 
-            this.contextMock.SetupGet(x => x.Plan).Returns(this.planMock.Object);
+            method2DirectiveMock = new Mock<IMethodInjectionDirective>(MockBehavior.Strict);
+            method2InjectorMock = new Mock<MethodInjector>(MockBehavior.Strict);
+            method2Target1Mock = new Mock<ITarget<ParameterInfo>>(MockBehavior.Strict);
 
-            this.planMock.Setup(x => x.GetAll<MethodInjectionDirective>()).Returns(this.directives);
+            var mockSequence = new MockSequence();
+
+            contextMock.InSequence(mockSequence)
+                       .SetupGet(x => x.Plan)
+                       .Returns(this.planMock.Object);
+            planMock.InSequence(mockSequence)
+                    .Setup(x => x.GetMethods())
+                    .Returns(new List<IMethodInjectionDirective> { method1DirectiveMock.Object, method2DirectiveMock.Object });
+
+            method1DirectiveMock.InSequence(mockSequence)
+                                .Setup(p => p.Injector)
+                                .Returns(this.method1InjectorMock.Object);
+            method1DirectiveMock.InSequence(mockSequence)
+                                .Setup(p => p.Targets)
+                                .Returns(new ITarget<ParameterInfo>[] { method1Target1Mock.Object, method1Target2Mock.Object });
+            method1Target1Mock.InSequence(mockSequence)
+                              .Setup(p => p.ResolveWithin(this.contextMock.Object))
+                              .Returns(this.method1Target1ResolvedValue);
+            method1Target2Mock.InSequence(mockSequence)
+                              .Setup(p => p.ResolveWithin(this.contextMock.Object))
+                              .Returns(this.method1Target2ResolvedValue);
+            method1InjectorMock.InSequence(mockSequence)
+                               .Setup(p => p(this.instance, this.method1Target1ResolvedValue, this.method1Target2ResolvedValue));
+
+            method2DirectiveMock.InSequence(mockSequence)
+                                 .Setup(p => p.Injector)
+                                 .Returns(this.method2InjectorMock.Object);
+            method2DirectiveMock.InSequence(mockSequence)
+                                .Setup(p => p.Targets)
+                                .Returns(new ITarget<ParameterInfo>[] { method2Target1Mock.Object });
+            method2Target1Mock.InSequence(mockSequence)
+                              .Setup(p => p.ResolveWithin(this.contextMock.Object))
+                              .Returns(this.method2Target1ResolvedValue);
+            method2InjectorMock.InSequence(mockSequence)
+                               .Setup(p => p(this.instance, this.method2Target1ResolvedValue));
         }
 
         [Fact]
         public void ReadsMethodInjectorsFromPlan()
         {
-            this.strategy.Activate(this.contextMock.Object, this.reference);
+            this.strategy.Initialize(this.contextMock.Object, this.instance);
 
-            this.planMock.Verify(x => x.GetAll<MethodInjectionDirective>());
-        }
-
-        [Fact]
-        public void CreatesMethodInjectorsForEachDirective()
-        {
-            this.strategy.Activate(this.contextMock.Object, this.reference);
+            this.planMock.Verify(x => x.GetMethods(), Times.Once);
         }
 
         [Fact]
         public void ResolvesValuesForEachTargetOfEachDirective()
         {
-            this.strategy.Activate(this.contextMock.Object, this.reference);
+            this.strategy.Initialize(this.contextMock.Object, this.instance);
 
-            this.directives.Map(d => d.TargetMocks.Map(m => m.Verify(x => x.ResolveWithin(this.contextMock.Object))));
+            this.method1Target1Mock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
+            this.method1Target2Mock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
+            this.method2Target1Mock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
         }
 
         [Fact]
         public void InvokesInjectorsForEachDirective()
         {
-            this.strategy.Activate(this.contextMock.Object, this.reference);
-            this.injector1WasCalled.Should().BeTrue();
-            this.injector2WasCalled.Should().BeTrue();
-        }
-    }
+            this.strategy.Initialize(this.contextMock.Object, this.instance);
 
-    public class FakeMethodInjectionDirective : MethodInjectionDirective
-    {
-        public Mock<ITarget>[] TargetMocks { get; private set; }
-
-        public FakeMethodInjectionDirective(MethodInfo method, MethodInjector injector)
-            : base(method, injector) { }
-
-        protected override ITarget[] CreateTargetsFromParameters(MethodInfo method)
-        {
-            this.TargetMocks = method.GetParameters().Select(p => new Mock<ITarget>()).ToArray();
-            return this.TargetMocks.Select(m => m.Object).ToArray();
+            method1InjectorMock.Verify(p => p(this.instance, this.method1Target1ResolvedValue, this.method1Target2ResolvedValue), Times.Once);
+            method2InjectorMock.Verify(p => p(this.instance, this.method2Target1ResolvedValue), Times.Once);
         }
     }
 

@@ -25,7 +25,7 @@ namespace Ninject.Syntax
     /// Used to add additional information or actions to a binding.
     /// </summary>
     /// <typeparam name="T">The service being bound.</typeparam>
-    public interface IBindingWithOrOnSyntax<T> : IBindingWithSyntax<T>, IBindingOnSyntax<T>
+    public interface IBindingWithOrOnSyntax<T> : IBindingWithSyntax<T>, IBindingOnActivationSyntax<T>
     {
     }
 }

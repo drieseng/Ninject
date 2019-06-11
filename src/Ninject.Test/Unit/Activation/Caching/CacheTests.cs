@@ -124,6 +124,7 @@ namespace Ninject.Tests.Unit.Activation.Caching
 
             _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
+            _pipelineMock.InSequence(_mockSequence).Setup(p => p.Activate(_contextMock1.Object, instanceReference));
             _pipelineMock.InSequence(_mockSequence).Setup(p => p.Deactivate(_contextMock1.Object, instanceReference));
 
             var disposabledScope = RememberDisposableScope(cache, _contextMock1, _bindingConfigurationMock1.Object, instanceReference);
@@ -133,7 +134,15 @@ namespace Ninject.Tests.Unit.Activation.Caching
 
             Assert.False(disposabledScope.IsAlive);
 
-            _pipelineMock.Verify(p => p.Deactivate(_contextMock1.Object, instanceReference), Times.Never());
+            _pipelineMock.Verify(p => p.Deactivate(_contextMock1.Object, instanceReference), Times.Never);
+
+            _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
+            _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
+            _pipelineMock.InSequence(_mockSequence).Setup(p => p.Deactivate(_contextMock1.Object, instanceReference));
+
+            cache.Prune();
+
+            _pipelineMock.Verify(p => p.Deactivate(_contextMock1.Object, instanceReference), Times.Once);
         }
 
         [Fact]
@@ -146,8 +155,8 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var instanceReference1 = new InstanceReference { Instance = instance };
             var instanceReference2 = new InstanceReference { Instance = instance };
 
-            Remember(cache, _contextMock1, new object(), _bindingConfigurationMock1.Object, instanceReference1);
-            Remember(cache, _contextMock1, scope, _bindingConfigurationMock1.Object, instanceReference2);
+            Remember(cache, _contextMock1, new object(), _bindingMock1, _bindingConfigurationMock1.Object, instanceReference1);
+            Remember(cache, _contextMock1, scope, _bindingMock1, _bindingConfigurationMock1.Object, instanceReference2);
 
             _pipelineMock.InSequence(_mockSequence).Setup(p => p.Deactivate(_contextMock1.Object, instanceReference2));
 
@@ -209,7 +218,7 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var instance = new object();
             var instanceReference = new InstanceReference { Instance = instance };
 
-            Remember(cache, _contextMock1, scope, otherBindingConfiguration, instanceReference);
+            Remember(cache, _contextMock1, scope, _bindingMock1, otherBindingConfiguration, instanceReference);
 
             _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
@@ -232,7 +241,7 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var instance = new object();
             var instanceReference = new InstanceReference { Instance = instance };
 
-            Remember(cache, _contextMock1, scope, _bindingConfigurationMock1.Object, instanceReference);
+            Remember(cache, _contextMock1, scope, _bindingMock1, _bindingConfigurationMock1.Object, instanceReference);
 
             _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
@@ -257,10 +266,10 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var instance = new object();
             var instanceReference = new InstanceReference { Instance = instance };
 
-            Remember(cache, _contextMock1, scope, otherBindingConfiguration, new InstanceReference { Instance = new object() });
-            Remember(cache, _contextMock1, scope, _bindingConfigurationMock1.Object, instanceReference);
-            Remember(cache, _contextMock1, scope, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object() });
-            Remember(cache, _contextMock1, scope, otherBindingConfiguration, new InstanceReference { Instance = new object() });
+            Remember(cache, _contextMock1, scope, _bindingMock1, otherBindingConfiguration, new InstanceReference { Instance = new object() });
+            Remember(cache, _contextMock1, scope, _bindingMock1, _bindingConfigurationMock1.Object, instanceReference);
+            Remember(cache, _contextMock1, scope, _bindingMock1, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object() });
+            Remember(cache, _contextMock1, scope, _bindingMock1, otherBindingConfiguration, new InstanceReference { Instance = new object() });
 
             _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
@@ -287,7 +296,7 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var instance = new object();
             var instanceReference = new InstanceReference { Instance = instance };
 
-            Remember(cache, rememberedInstanceContextMock, scope, _bindingConfigurationMock1.Object, instanceReference);
+            Remember(cache, rememberedInstanceContextMock, scope, _bindingMock1, _bindingConfigurationMock1.Object, instanceReference);
 
             _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
@@ -320,8 +329,8 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var instance = new object();
             var instanceReference = new InstanceReference { Instance = instance };
 
-            Remember(cache, rememberedInstance1ContextMock, scope, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object()});
-            Remember(cache, rememberedInstance2ContextMock, scope, _bindingConfigurationMock1.Object, instanceReference);
+            Remember(cache, rememberedInstance1ContextMock, scope, _bindingMock1, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object()});
+            Remember(cache, rememberedInstance2ContextMock, scope, _bindingMock1, _bindingConfigurationMock1.Object, instanceReference);
 
             _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
@@ -355,8 +364,8 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var cache = CreateCache();
             const object instance = null;
 
-            Remember(cache, rememberedInstance1ContextMock, scope1, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object() });
-            Remember(cache, rememberedInstance2ContextMock, scope2, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object() });
+            Remember(cache, rememberedInstance1ContextMock, scope1, _bindingMock1, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object() });
+            Remember(cache, rememberedInstance2ContextMock, scope2, _bindingMock1, _bindingConfigurationMock1.Object, new InstanceReference { Instance = new object() });
 
             var actual = cache.Release(instance);
 
@@ -389,6 +398,11 @@ namespace Ninject.Tests.Unit.Activation.Caching
             contextMock3.Setup(p => p.Binding).Returns(bindingMock2.Object);
             bindingMock1.Setup(p => p.BindingConfiguration).Returns(bindingConfigurationMock1.Object);
             bindingMock2.Setup(p => p.BindingConfiguration).Returns(bindingConfigurationMock2.Object);
+            _pipelineMock.Setup(p => p.Activate(contextMock1.Object, notNullInstanceReference1));
+            _pipelineMock.Setup(p => p.Activate(contextMock2.Object, nullInstanceReference1));
+            _pipelineMock.Setup(p => p.Activate(contextMock1.Object, nullInstanceReference2));
+            _pipelineMock.Setup(p => p.Activate(contextMock3.Object, notNullInstanceReference2));
+            _pipelineMock.Setup(p => p.Activate(contextMock1.Object, nullInstanceReference3));
 
             cache.Remember(contextMock1.Object, scope1, notNullInstanceReference1);
             cache.Remember(contextMock2.Object, scope2, nullInstanceReference1);
@@ -427,11 +441,11 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var notNullInstanceReference1 = new InstanceReference { Instance = new object() };
             var notNullInstanceReference2 = new InstanceReference { Instance = new object() };
 
+            Remember(cache, _contextMock1, scope1, _bindingMock1, _bindingConfigurationMock1.Object, notNullInstanceReference1);
+            Remember(cache, _contextMock1, scope2, _bindingMock1, _bindingConfigurationMock1.Object, notNullInstanceReference2);
+
             _contextMock1.Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
-
-            cache.Remember(_contextMock1.Object, scope1, notNullInstanceReference1);
-            cache.Remember(_contextMock1.Object, scope2, notNullInstanceReference2);
 
             var actual = cache.Release(new object());
 
@@ -457,8 +471,12 @@ namespace Ninject.Tests.Unit.Activation.Caching
 
             _contextMock1.Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
+            _pipelineMock.Setup(p => p.Activate(_contextMock1.Object, notNullInstanceReference1));
+            _pipelineMock.Setup(p => p.Activate(_contextMock1.Object, notNullInstanceReference2));
             _contextMock2.Setup(p => p.Binding).Returns(_bindingMock2.Object);
             _bindingMock2.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock2.Object);
+            _pipelineMock.Setup(p => p.Activate(_contextMock2.Object, notNullInstanceReference1));
+            _pipelineMock.Setup(p => p.Activate(_contextMock2.Object, notNullInstanceReference3));
 
             cache.Remember(_contextMock1.Object, scope1, notNullInstanceReference1);
             cache.Remember(_contextMock1.Object, scope2, notNullInstanceReference2);
@@ -498,8 +516,10 @@ namespace Ninject.Tests.Unit.Activation.Caching
 
             _contextMock1.Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
+            _pipelineMock.Setup(p => p.Activate(_contextMock1.Object, notNullInstanceReference1));
             _contextMock2.Setup(p => p.Binding).Returns(_bindingMock2.Object);
             _bindingMock2.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock2.Object);
+            _pipelineMock.Setup(p => p.Activate(_contextMock1.Object, notNullInstanceReference2));
 
             cache.Remember(_contextMock1.Object, scope1, notNullInstanceReference1);
             cache.Remember(_contextMock1.Object, scope2, notNullInstanceReference2);
@@ -548,17 +568,12 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var notNullInstanceReference5 = new InstanceReference { Instance = new object() };
             var notNullInstanceReference6 = new InstanceReference { Instance = new object() };
 
-            _contextMock1.Setup(p => p.Binding).Returns(_bindingMock1.Object);
-            _bindingMock1.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
-            _contextMock2.Setup(p => p.Binding).Returns(_bindingMock2.Object);
-            _bindingMock2.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock2.Object);
-
-            cache.Remember(_contextMock1.Object, scope1, notNullInstanceReference1);
-            cache.Remember(_contextMock1.Object, scope1, notNullInstanceReference2);
-            cache.Remember(_contextMock2.Object, scope2, notNullInstanceReference3);
-            cache.Remember(_contextMock1.Object, scope2, notNullInstanceReference4);
-            cache.Remember(_contextMock2.Object, scope3, notNullInstanceReference5);
-            cache.Remember(_contextMock2.Object, scope4, notNullInstanceReference6);
+            Remember(cache, _contextMock1, scope1, _bindingMock1, _bindingConfigurationMock1.Object, notNullInstanceReference1);
+            Remember(cache, _contextMock1, scope1, _bindingMock1, _bindingConfigurationMock1.Object, notNullInstanceReference2);
+            Remember(cache, _contextMock2, scope2, _bindingMock2, _bindingConfigurationMock2.Object, notNullInstanceReference3);
+            Remember(cache, _contextMock1, scope2, _bindingMock1, _bindingConfigurationMock1.Object, notNullInstanceReference4);
+            Remember(cache, _contextMock2, scope3, _bindingMock2, _bindingConfigurationMock2.Object, notNullInstanceReference5);
+            Remember(cache, _contextMock2, scope4, _bindingMock2, _bindingConfigurationMock2.Object, notNullInstanceReference6);
 
             Assert.Equal(6, cache.Count);
 
@@ -581,7 +596,14 @@ namespace Ninject.Tests.Unit.Activation.Caching
             _contextMock1.Setup(p => p.HasInferredGenericArguments).Returns(false);
             _contextMock2.Setup(p => p.HasInferredGenericArguments).Returns(false);
 
+            _contextMock1.Setup(p => p.Binding).Returns(_bindingMock1.Object);
+            _bindingMock1.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
+
             Assert.Same(notNullInstanceReference1.Instance, cache.TryGet(_contextMock1.Object, scope1));
+
+            _contextMock2.Setup(p => p.Binding).Returns(_bindingMock2.Object);
+            _bindingMock2.Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock2.Object);
+
             Assert.Same(notNullInstanceReference5.Instance, cache.TryGet(_contextMock2.Object, scope3));
         }
 
@@ -609,6 +631,8 @@ namespace Ninject.Tests.Unit.Activation.Caching
             var rememberTask = new Task(() =>
             {
                 var reference = new InstanceReference { Instance = instance };
+
+                _pipelineMock.Setup(p => p.Activate(_contextMock1.Object, reference));
 
                 for (var i = 0; i < iterations; i++)
                 {
@@ -660,15 +684,17 @@ namespace Ninject.Tests.Unit.Activation.Caching
             return new Cache(_pipelineMock.Object, _cachePrunerMock.Object);
         }
 
-        private void Remember(Cache cache, Mock<IContext> contextMock, object scope, IBindingConfiguration bindingConfiguration, InstanceReference instanceReference)
+        private void Remember(Cache cache, Mock<IContext> contextMock, object scope, Mock<IBinding> bindingMock, IBindingConfiguration bindingConfiguration, InstanceReference instanceReference)
         {
-            contextMock.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
-            _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(bindingConfiguration);
+            contextMock.InSequence(_mockSequence).Setup(p => p.Binding).Returns(bindingMock.Object);
+            bindingMock.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(bindingConfiguration);
+            _pipelineMock.InSequence(_mockSequence).Setup(p => p.Activate(contextMock.Object, instanceReference));
 
             cache.Remember(contextMock.Object, scope, instanceReference);
 
             contextMock.Reset();
-            _bindingMock1.Reset();
+            bindingMock.Reset();
+            _pipelineMock.Reset();
         }
 
         private WeakReference Remember(Cache cache, Mock<IContext> contextMock, IBindingConfiguration bindingConfiguration, InstanceReference instanceReference)
@@ -677,11 +703,13 @@ namespace Ninject.Tests.Unit.Activation.Caching
 
             contextMock.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(bindingConfiguration);
+            _pipelineMock.InSequence(_mockSequence).Setup(p => p.Activate(contextMock.Object, instanceReference));
 
             cache.Remember(contextMock.Object, scope, instanceReference);
 
             contextMock.Reset();
             _bindingMock1.Reset();
+            _pipelineMock.Reset();
 
             return new WeakReference(scope);
         }

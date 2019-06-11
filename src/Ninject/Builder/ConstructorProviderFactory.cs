@@ -37,36 +37,26 @@ namespace Ninject.Builder
     public class ConstructorProviderFactory<T> : IProviderFactory
     {
         private Expression<Func<IConstructorArgumentSyntax, T>> newExpression;
-        private readonly ComponentContainer components;
 
-        public ConstructorProviderFactory(Expression<Func<IConstructorArgumentSyntax, T>> newExpression, ComponentContainer components)
+        public ConstructorProviderFactory(Expression<Func<IConstructorArgumentSyntax, T>> newExpression)
         {
-            if (!(newExpression.Body is NewExpression ctorExpression))
+            if (!(newExpression.Body is NewExpression))
             {
                 throw new ArgumentException("The expression must be a constructor call.", nameof(newExpression));
             }
 
             this.newExpression = newExpression;
-            this.components = components;
         }
 
-        public IProvider Create(IReadOnlyList<IParameter> parameters)
+        public IProvider Create(IResolutionRoot root, IReadOnlyList<IParameter> parameters)
         {
             var ctorExpression = (NewExpression)this.newExpression.Body;
 
-            var planner = this.components.Get<IPlanner>();
-            var exceptionFormatter = this.components.Get<IExceptionFormatter>();
             var scorer = new SpecificConstructorSelector(ctorExpression.Constructor);
-            var pipeline = this.components.Get<IPipeline>();
-            var selector = new BestMatchConstructorInjectionSelector(scorer, exceptionFormatter);
-            var plan = planner.GetPlan(typeof(T));
+            var selector = new BestMatchConstructorInjectionSelector(scorer, root.Get<IExceptionFormatter>());
+            var plan = root.Get<IPlanner>().GetPlan(typeof(T));
 
-            if (!this.components.TryGet<IConstructorParameterValueProvider>(out var constructorParameterValueProvider))
-            {
-                constructorParameterValueProvider = new ConstructorParameterValueProvider();
-            }
-
-            return new ContextAwareConstructorProvider(plan, selector, pipeline, constructorParameterValueProvider);
+            return new ContextAwareConstructorProvider(plan, selector, root.Get<IPipeline>(), root.Get<IConstructorParameterValueProvider>());
         }
 
         public List<ConstructorArgument> GetConstructorArguments()

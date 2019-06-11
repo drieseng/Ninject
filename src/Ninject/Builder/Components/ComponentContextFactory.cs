@@ -52,15 +52,16 @@ namespace Ninject.Components
         /// <summary>
         /// Initializes a new instance of the <see cref="ComponentContextFactory"/> class.
         /// </summary>
+        /// <param name="pipeline">The pipeline component.</param>
         /// <param name="cache">A <see cref="ICache"/> component.</param>
         /// <param name="constructorInjectionSelector">A constructor selector.</param>
         /// <param name="constructorParameterValueProvider">A value provider for constructor parameters.</param>
         /// <param name="exceptionFormatter">An <see cref="IExceptionFormatter"/> component.</param>
-        public ComponentContextFactory(ICache cache, IConstructorInjectionSelector constructorInjectionSelector, IConstructorParameterValueProvider constructorParameterValueProvider, IExceptionFormatter exceptionFormatter)
+        public ComponentContextFactory(IPipeline pipeline, ICache cache, IConstructorInjectionSelector constructorInjectionSelector, IConstructorParameterValueProvider constructorParameterValueProvider, IExceptionFormatter exceptionFormatter)
         {
-            this.planner = CreatePlanner();
-            this.pipeline = CreatePipeline(exceptionFormatter);
+            this.pipeline = pipeline;
             this.cache = cache;
+            this.planner = CreatePlanner();
             this.constructorInjectionSelector = constructorInjectionSelector;
             this.constructorParameterValueProvider = constructorParameterValueProvider;
             this.exceptionFormatter = exceptionFormatter;
@@ -121,7 +122,7 @@ namespace Ninject.Components
             return new Planner(new IPlanningStrategy[]
                 {
                     new ConstructorReflectionStrategy(new ConstructorReflectionSelector(), injectorFactory),
-                    new PropertyReflectionStrategy(new PropertyReflectionSelector(Array.Empty<IInjectionHeuristic>()), injectorFactory),
+                    new PropertyReflectionStrategy(new PropertyReflectionSelector(new IPropertyInjectionHeuristic[] { new DefaultPropertyInjectionHeuristic() }), injectorFactory),
                 });
         }
 
@@ -129,8 +130,9 @@ namespace Ninject.Components
         {
             var propertyInjectionStrategy = new PropertyInjectionStrategy(new PropertyValueProvider(), exceptionFormatter);
             var pipelineInitializer = new PipelineInitializer(new List<IInitializationStrategy> { propertyInjectionStrategy });
+            var pipelineDeactivator = new PipelineDeactivator(new List<IDeactivationStrategy> { new DisposableStrategy() });
 
-            return new DefaultPipeline(pipelineInitializer, new NoOpPipelineActivator(), new NoOpPipelineDeactivator());
+            return new DefaultPipeline(pipelineInitializer, new NoOpPipelineActivator(), pipelineDeactivator);
         }
 
         private IProvider CreateProvider(IPlan plan)

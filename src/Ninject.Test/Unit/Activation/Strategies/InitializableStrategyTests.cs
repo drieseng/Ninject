@@ -24,51 +24,43 @@ namespace Ninject.Tests.Unit.Activation.Strategies
         }
 
         [Fact]
-        public void Activate_NotTransparantProxy_Initializable()
+        public void Initialize_NotTransparantProxy_Initializable()
         {
             var initializableMock = new Mock<IInitializable>(MockBehavior.Strict);
-            var reference = new InstanceReference { Instance = initializableMock.Object };
+            var instance = initializableMock.Object;
 
             initializableMock.Setup(p => p.Initialize());
 
-            _strategy.Activate(_contextMock.Object, reference);
+            _strategy.Initialize(_contextMock.Object, instance);
 
-            Assert.Same(initializableMock.Object, reference.Instance);
+            Assert.Same(initializableMock.Object, instance);
             initializableMock.Verify(p => p.Initialize(), Times.Once);
         }
 
         [Fact]
-        public void Activate_NotTransparantProxy_NotInitializable()
+        public void Initialize_NotTransparantProxy_NotInitializable()
         {
             var nonInitializableMock = new Mock<IWarrior>(MockBehavior.Strict);
             var reference = new InstanceReference { Instance = nonInitializableMock.Object };
 
-            _strategy.Activate(_contextMock.Object, reference);
+            _strategy.Initialize(_contextMock.Object, reference);
 
             Assert.Same(nonInitializableMock.Object, reference.Instance);
         }
 
         [Fact]
-        public void Activate_InstanceIsNull()
+        public void Initialize_InstanceIsNull()
         {
             var reference = new InstanceReference();
 
-            _strategy.Activate(_contextMock.Object, reference);
+            _strategy.Initialize(_contextMock.Object, reference);
 
             Assert.Null(reference.Instance);
         }
 
-        [Fact]
-        public void Activate_ReferenceIsNull()
-        {
-            const InstanceReference reference = null;
-
-            Assert.Throws<NullReferenceException>(() => _strategy.Activate(_contextMock.Object, reference));
-        }
-
 #if !NO_REMOTING
         [Fact]
-        public void Activate_TransparentProxy_Initializable()
+        public void Initialize_TransparentProxy_Initializable()
         {
             using (var server = new RemotingServer())
             using (var client = new RemotingClient())
@@ -78,7 +70,7 @@ namespace Ninject.Tests.Unit.Activation.Strategies
                 var initializable = client.GetService<Initializable>();
                 var reference = new InstanceReference { Instance = initializable };
 
-                _strategy.Activate(_contextMock.Object, reference);
+                _strategy.Initialize(_contextMock.Object, reference);
 
                 Assert.Equal(1, initializable.InitializeCount);
                 Assert.Same(initializable, reference.Instance);
@@ -86,7 +78,7 @@ namespace Ninject.Tests.Unit.Activation.Strategies
         }
 
         [Fact]
-        public void Activate_TransparentProxy_NotInitializable()
+        public void Initialize_TransparentProxy_NotInitializable()
         {
             using (var server = new RemotingServer())
             using (var client = new RemotingClient())
@@ -96,87 +88,7 @@ namespace Ninject.Tests.Unit.Activation.Strategies
                 var notInitializable = client.GetService<Monk>();
                 var reference = new InstanceReference { Instance = notInitializable };
 
-                _strategy.Activate(_contextMock.Object, reference);
-
-                Assert.Same(notInitializable, reference.Instance);
-            }
-        }
-#endif // !NO_REMOTING
-
-        [Fact]
-        public void Deactivate_NotTransparantProxy_Initializable()
-        {
-            var initializableMock = new Mock<IInitializable>(MockBehavior.Strict);
-            var reference = new InstanceReference { Instance = initializableMock.Object };
-
-            initializableMock.Setup(p => p.Initialize());
-
-            _strategy.Deactivate(_contextMock.Object, reference);
-
-            Assert.Same(initializableMock.Object, reference.Instance);
-            initializableMock.Verify(p => p.Initialize(), Times.Never);
-        }
-
-        [Fact]
-        public void Deactivate_NotTransparantProxy_NotInitializable()
-        {
-            var nonInitializableMock = new Mock<IWarrior>(MockBehavior.Strict);
-            var reference = new InstanceReference { Instance = nonInitializableMock.Object };
-
-            _strategy.Deactivate(_contextMock.Object, reference);
-
-            Assert.Same(nonInitializableMock.Object, reference.Instance);
-        }
-
-        [Fact]
-        public void Deactivate_InstanceIsNull()
-        {
-            var reference = new InstanceReference();
-
-            _strategy.Deactivate(_contextMock.Object, reference);
-
-            Assert.Null(reference.Instance);
-        }
-
-        [Fact]
-        public void Deactivate_ReferenceIsNull()
-        {
-            const InstanceReference reference = null;
-
-            _strategy.Deactivate(_contextMock.Object, reference);
-        }
-
-#if !NO_REMOTING
-        [Fact]
-        public void Deactivate_TransparentProxy_Initializable()
-        {
-            using (var server = new RemotingServer())
-            using (var client = new RemotingClient())
-            {
-                server.RegisterActivatedService(typeof(Initializable));
-
-                var initializable = client.GetService<Initializable>();
-                var reference = new InstanceReference { Instance = initializable };
-
-                _strategy.Deactivate(_contextMock.Object, reference);
-
-                Assert.Equal(0, initializable.InitializeCount);
-                Assert.Same(initializable, reference.Instance);
-            }
-        }
-
-        [Fact]
-        public void Deactivate_TransparentProxy_NotInitializable()
-        {
-            using (var server = new RemotingServer())
-            using (var client = new RemotingClient())
-            {
-                server.RegisterActivatedService(typeof(Monk));
-
-                var notInitializable = client.GetService<Monk>();
-                var reference = new InstanceReference { Instance = notInitializable };
-
-                _strategy.Deactivate(_contextMock.Object, reference);
+                _strategy.Initialize(_contextMock.Object, reference);
 
                 Assert.Same(notInitializable, reference.Instance);
             }

@@ -41,42 +41,13 @@ namespace Ninject.Tests.Unit.StartableStrategyTests
         }
     }
 
-    public class WhenDeactivateIsCalled : StartableStrategyContext
-    {
-        [Fact]
-        public void StrategyStopsInstanceIfItIsStartable()
-        {
-            var instance = new StartableObject();
-            var reference = new InstanceReference { Instance = instance };
-
-            this.strategy.Deactivate(this.contextMock.Object, reference);
-
-            instance.WasStopped.Should().BeTrue();
-        }
-
-        [Fact]
-        public void StrategyDoesNotAttemptToInitializeInstanceIfItIsNotInitializable()
-        {
-            var instance = new object();
-            var reference = new InstanceReference { Instance = instance };
-
-            this.strategy.Deactivate(this.contextMock.Object, reference);
-        }
-    }
-
     public class StartableObject : IStartable
     {
         public bool WasStarted { get; set; }
-        public bool WasStopped { get; set; }
 
         public void Start()
         {
             this.WasStarted = true;
-        }
-
-        public void Stop()
-        {
-            this.WasStopped = true;
         }
     }
 }

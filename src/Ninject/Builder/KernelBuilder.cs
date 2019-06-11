@@ -27,6 +27,11 @@ namespace Ninject.Builder
 
     using Ninject.Activation;
     using Ninject.Activation.Caching;
+    using Ninject.Activation.Providers;
+    using Ninject.Activation.Strategies;
+    using Ninject.Builder.Bindings;
+    using Ninject.Builder.Components;
+    using Ninject.Builder.Syntax;
     using Ninject.Components;
     using Ninject.Planning;
     using Ninject.Planning.Bindings;
@@ -40,27 +45,30 @@ namespace Ninject.Builder
     public sealed class KernelBuilder : IKernelBuilder
     {
         private readonly BindingsBuilder bindingsBuilder;
-        private readonly PipelineFactory pipelineFactory;
-        private readonly Dictionary<Type, ICollection<IBinding>> bindingsByType;
+        private readonly ComponentRoot componentRoot;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KernelBuilder"/> class.
         /// </summary>
         public KernelBuilder()
         {
-            this.Components = new ComponentContainer();
-            this.bindingsBuilder = new BindingsBuilder(this);
-            this.pipelineFactory = new PipelineFactory(this.Components);
-            this.bindingsByType = new Dictionary<Type, ICollection<IBinding>>();
+            this.bindingsBuilder = new BindingsBuilder();
+            this.componentRoot = new ComponentRoot();
+
+            this.componentRoot.Bind<IPlanningStrategy>().To<ConstructorReflectionStrategy>();
+            this.componentRoot.Bind<IBindingResolver>().To<StandardBindingResolver>();
         }
 
         /// <summary>
-        /// Gets the components.
+        /// Gets the root of the component bindings.
         /// </summary>
         /// <value>
-        /// The components.
+        /// The root of the component binding.
         /// </value>
-        public ComponentContainer Components { get; }
+        public IComponentBindingRoot Components
+        {
+            get { return this.componentRoot; }
+        }
 
         /// <summary>
         /// Adds bindings to the <see cref="IKernelBuilder"/>.
@@ -103,81 +111,134 @@ namespace Ninject.Builder
                 fail if no bindings are configured, and neither SelfBinding nor DefaultValueBinding are configured?
             */
 
-            if (!this.Components.TryGet<IPlanner>(out _))
+            if (!this.Components.IsBound<IPlanner>())
             {
-                this.Components.Add<IPlanner, Planner>();
+                this.Components.Bind<IPlanner>().To<Planner>().InSingletonScope();
             }
 
-            if (!this.Components.TryGet<IActivationCache>(out _))
+            if (!this.Components.IsBound<IActivationCache>())
             {
-                this.Components.Add<IActivationCache, ActivationCache>();
+                this.Components.Bind<IActivationCache>().To<ActivationCache>().InSingletonScope();
             }
 
-            if (!this.Components.TryGet<ICachePruner>(out _))
+            if (!this.Components.IsBound<ICachePruner>())
             {
-                this.Components.Add<ICachePruner, GarbageCollectionCachePruner>();
+                this.Components.Bind<ICachePruner>()
+                               .To<GarbageCollectionCachePruner>()
+                               .InSingletonScope()
+                               .WithPropertyValue(nameof(GarbageCollectionCachePruner.PruningInterval), GarbageCollectionCachePruner.DefaultPruningInterval);
             }
 
-            if (!this.Components.TryGet<IPipeline>(out var pipeline))
+            if (!this.Components.IsBound<ICache>())
             {
-                pipeline = this.pipelineFactory.Create();
-                this.Components.Add(pipeline);
+                this.Components.Bind<ICache>().To<Cache>().InSingletonScope();
             }
 
-            if (!this.Components.TryGet<ICache>(out var cache))
+            if (!this.Components.IsBound<IExceptionFormatter>())
             {
-                this.Components.Add<ICache, Cache>();
-                cache = this.Components.Get<ICache>();
+                this.Components.Bind<IExceptionFormatter>().To<ExceptionFormatter>();
             }
 
-            if (!this.Components.TryGet<IExceptionFormatter>(out var exceptionFormatter))
+            if (!this.Components.IsBound<IBindingPrecedenceComparer>())
             {
-                this.Components.Add<IExceptionFormatter, ExceptionFormatter>();
-                exceptionFormatter = this.Components.Get<IExceptionFormatter>();
+                this.Components.Bind<IBindingPrecedenceComparer>().To<BindingPrecedenceComparer>();
             }
 
-            if (!this.Components.TryGet<IBindingPrecedenceComparer>(out var bindingPrecedenceComparer))
+            if (!this.Components.IsBound<IConstructorInjectionSelector>())
             {
-                this.Components.Add<IBindingPrecedenceComparer, BindingPrecedenceComparer>();
-                bindingPrecedenceComparer = this.Components.Get<IBindingPrecedenceComparer>();
+                this.Components.Bind<IConstructorInjectionSelector>().To<DefaultConstructorInjectionSelector>();
             }
 
-            this.Components.Add<IPlanningStrategy, ConstructorReflectionStrategy>();
-
-            if (!this.Components.TryGet<IConstructorInjectionSelector>(out _))
+            if (!this.Components.IsBound<IConstructorParameterValueProvider>())
             {
-                this.Components.Add<IConstructorInjectionSelector, DefaultConstructorInjectionSelector>();
+                this.Components.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
             }
 
-            this.Components.Add<IBindingResolver, StandardBindingResolver>();
-
-            var bindingsByType = this.bindingsBuilder.Build();
-
-            foreach (var bindingTypeEntry in bindingsByType)
+            if (!this.Components.IsBound<IPipeline>())
             {
-                var bindings = bindingTypeEntry.Value;
+                this.Components.Bind<IPipeline>().ToMethod(c => new PipelineFactory().Create(c.Kernel)).InSingletonScope();
+            }
+
+            var bindingActionAggregate = BindingActionAggregate.Create(this.bindingsBuilder.Bindings);
+            if (bindingActionAggregate.HasActivationActions)
+            {
+                this.Components.Bind<IActivationStrategy>().To<BindingActionStrategy>();
+            }
+
+            if (bindingActionAggregate.HasDeactivationActions)
+            {
+                this.Components.Bind<IDeactivationStrategy>().To<BindingActionStrategy>();
+            }
+
+            if (bindingActionAggregate.HasInitializationActions)
+            {
+                this.Components.Bind<IInitializationStrategy>().To<BindingActionStrategy>();
+            }
+
+            var resolveComponentsKernel = new BuilderKernelFactory().CreateResolveComponentBindingsKernel();
+
+            var componentBindingVisitor = new BindingBuilderVisitor();
+            this.componentRoot.Build(resolveComponentsKernel, componentBindingVisitor);
+            var componentBindings = componentBindingVisitor.Bindings;
+
+            var componentContainer = new BuilderKernelFactory().CreateComponentsKernel(resolveComponentsKernel, componentBindings);
+            var p = componentContainer.Get<IPipeline>();
+
+            var bindingBuilderVisitor = new BindingBuilderVisitor();
+            this.bindingsBuilder.Build(resolveComponentsKernel, bindingBuilderVisitor);
+            var bindingsByType = bindingBuilderVisitor.Bindings;
+
+            return new ReadOnlyKernel5(
+                    bindingsByType,
+                    componentContainer.Get<ICache>(),
+                    componentContainer.Get<IPlanner>(),
+                    componentContainer.Get<IPipeline>(),
+                    componentContainer.Get<IExceptionFormatter>(),
+                    componentContainer.Get<IBindingPrecedenceComparer>(),
+                    componentContainer.GetAll<IBindingResolver>().ToList(),
+                    componentContainer.GetAll<IMissingBindingResolver>().ToList());
+        }
+
+        private class BindingActionAggregate
+        {
+            private BindingActionAggregate()
+            {
+            }
+
+            public bool HasActivationActions { get; private set; }
+            public bool HasDeactivationActions { get; private set; }
+            public bool HasInitializationActions { get; private set; }
+
+            public static BindingActionAggregate Create(IReadOnlyList<BindingBuilder> bindings)
+            {
+                var aggregate = new BindingActionAggregate();
+
                 foreach (var binding in bindings)
                 {
-                    if (binding.ActivationActions.Count > 0)
+                    var bindingConfiguration = binding.BindingConfigurationBuilder;
+                    if (bindingConfiguration == null)
                     {
+                        continue;
                     }
 
-                    if (binding.DeactivationActions.Count > 0)
+                    if (bindingConfiguration.HasActivationActions)
                     {
+                        aggregate.HasActivationActions = true;
+                    }
+
+                    if (bindingConfiguration.HasDeactivationActions)
+                    {
+                        aggregate.HasDeactivationActions = true;
+                    }
+
+                    if (bindingConfiguration.HasInitializationActions)
+                    {
+                        aggregate.HasInitializationActions = true;
                     }
                 }
+
+                return aggregate;
             }
-
-            var kernel = new ReadOnlyKernel5(
-                    bindingsByType,
-                    cache,
-                    pipeline,
-                    exceptionFormatter,
-                    bindingPrecedenceComparer,
-                    this.Components.GetAll<IBindingResolver>().ToList(),
-                    this.Components.GetAll<IMissingBindingResolver>().ToList());
-
-            return kernel;
         }
     }
 }

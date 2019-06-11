@@ -21,18 +21,19 @@
 
 namespace Ninject.Activation.Strategies
 {
+    using System;
+
     /// <summary>
-    /// Starts instances that implement <see cref="IStartable"/> during activation,
-    /// and stops them during deactivation.
+    /// Starts instances that implement <see cref="IStartable"/> during activation.
     /// </summary>
-    public class StartableStrategy : ActivationStrategy
+    public class StartableStrategy : IActivationStrategy
     {
         /// <summary>
         /// Starts the specified instance.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="reference">A reference to the instance being activated.</param>
-        public override void Activate(IContext context, InstanceReference reference)
+        public void Activate(IContext context, InstanceReference reference)
         {
             if (reference.IsInstanceOf<IStartable>(out var startable))
             {
@@ -41,16 +42,10 @@ namespace Ninject.Activation.Strategies
         }
 
         /// <summary>
-        /// Stops the specified instance.
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="reference">A reference to the instance being deactivated.</param>
-        public override void Deactivate(IContext context, InstanceReference reference)
+        void IDisposable.Dispose()
         {
-            if (reference.IsInstanceOf<IStartable>(out var startable))
-            {
-                startable.Stop();
-            }
         }
     }
 }

@@ -65,11 +65,12 @@ namespace Ninject.Activation
         {
             /*
             Ensure.ArgumentNotNull(kernel, nameof(kernel));
-            Ensure.ArgumentNotNull(request, nameof(request));
-            Ensure.ArgumentNotNull(binding, nameof(binding));
             Ensure.ArgumentNotNull(cache, nameof(cache));
             Ensure.ArgumentNotNull(exceptionFormatter, nameof(exceptionFormatter));
             */
+
+            Ensure.ArgumentNotNull(request, nameof(request));
+            Ensure.ArgumentNotNull(binding, nameof(binding));
 
             this.Kernel = kernel;
             this.Request = request;
@@ -174,21 +175,16 @@ namespace Ninject.Activation
         /// </returns>
         public object Resolve()
         {
-            /*
             if (this.Request.ActiveBindings.Contains(this.Binding) &&
                 IsCyclical(this.Request.ParentRequest, this.Request.Target))
             {
                 throw new ActivationException(this.exceptionFormatter.CyclicalDependenciesDetected(this));
             }
-            */
 
-            /*
             try
             {
-            */
-                // this.cachedScope = this.Request.GetScope() ?? this.Binding.GetScope(this);
-                this.cachedScope = this.Binding.GetScope(this);
-
+                 this.cachedScope = this.Request.GetScope() ?? this.Binding.GetScope(this);
+                // this.cachedScope = this.Binding.GetScope(this);
                 if (this.cachedScope != null)
                 {
                     return this.ResolveInScope(this.cachedScope);
@@ -197,14 +193,11 @@ namespace Ninject.Activation
                 {
                     return this.ResolveWithoutScope();
                 }
-
-                /*
             }
             finally
             {
                 this.cachedScope = null;
             }
-            */
         }
 
         private static bool IsCyclical(IRequest request, ITarget target)
@@ -224,11 +217,11 @@ namespace Ninject.Activation
 
         private object ResolveWithoutScope()
         {
-            /* this.Request.ActiveBindings.Push(this.Binding);*/
+            this.Request.ActiveBindings.Push(this.Binding);
 
             var instance = this.Provider.Create(this);
 
-            /*this.Request.ActiveBindings.Pop();*/
+            this.Request.ActiveBindings.Pop();
 
             /*
             if (instance == null)
@@ -272,11 +265,11 @@ namespace Ninject.Activation
                     return cachedInstance;
                 }
 
-                /*this.Request.ActiveBindings.Push(this.Binding);*/
+                this.Request.ActiveBindings.Push(this.Binding);
 
                 var reference = new InstanceReference { Instance = this.Provider.Create(this) };
 
-                /*this.Request.ActiveBindings.Pop();*/
+                this.Request.ActiveBindings.Pop();
 
                 /*
                 if (reference.Instance == null)

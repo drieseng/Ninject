@@ -73,5 +73,15 @@ namespace Ninject.Planning.Targets
         {
             get { return this.HasDefaultValue ? this.Site.DefaultValue : base.DefaultValue; }
         }
+
+        public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+        {
+            return this.Site.GetCustomAttributes(attributeType, inherit);
+        }
+
+        public override bool IsDefined(Type attributeType, bool inherit)
+        {
+            return this.Site.IsDefined(attributeType, inherit);
+        }
     }
 }

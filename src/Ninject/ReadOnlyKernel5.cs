@@ -27,6 +27,8 @@ namespace Ninject
 
     using Ninject.Activation;
     using Ninject.Activation.Caching;
+    using Ninject.Builder;
+    using Ninject.Builder.Bindings;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Disposal;
@@ -36,7 +38,6 @@ namespace Ninject
     using Ninject.Planning;
     using Ninject.Planning.Bindings;
     using Ninject.Planning.Bindings.Resolvers;
-    using Ninject.Selection.Heuristics;
     using Ninject.Syntax;
 
     /// <summary>
@@ -46,6 +47,7 @@ namespace Ninject
     {
         private readonly ICache cache;
         private readonly IPipeline pipeline;
+        private readonly IPlanner planner;
         private readonly IBindingPrecedenceComparer bindingPrecedenceComparer;
         private readonly IExceptionFormatter exceptionFormatter;
         private readonly List<IBindingResolver> bindingResolvers;
@@ -53,13 +55,14 @@ namespace Ninject
         private readonly object missingBindingCacheLock = new object();
 
         private Dictionary<Type, IBinding[]> bindingCache = new Dictionary<Type, IBinding[]>(new ReferenceEqualityTypeComparer());
-        private Dictionary<Type, ICollection<IBinding>> bindings = new Dictionary<Type, ICollection<IBinding>>(new ReferenceEqualityTypeComparer());
+        private Dictionary<Type, ICollection<IBinding>> bindings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOnlyKernel5"/> class.
         /// </summary>
         /// <param name="bindings">The preconfigured bindings.</param>
         /// <param name="cache">The <see cref="ICache"/> component.</param>
+        /// <param name="planner">The <see cref="IPlanner"/> component.</param>
         /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         /// <param name="bindingPrecedenceComparer">The <see cref="IBindingPrecedenceComparer"/> component.</param>
@@ -68,6 +71,7 @@ namespace Ninject
         internal ReadOnlyKernel5(
             Dictionary<Type, ICollection<IBinding>> bindings,
             ICache cache,
+            IPlanner planner,
             IPipeline pipeline,
             IExceptionFormatter exceptionFormatter,
             IBindingPrecedenceComparer bindingPrecedenceComparer,
@@ -78,9 +82,55 @@ namespace Ninject
             this.bindingResolvers = bindingResolvers;
             this.missingBindingResolvers = missingBindingResolvers;
             this.cache = cache;
+            this.planner = planner;
             this.pipeline = pipeline;
             this.exceptionFormatter = exceptionFormatter;
             this.bindingPrecedenceComparer = bindingPrecedenceComparer;
+
+            /*
+            this.AddReadOnlyKernelBinding<IReadOnlyKernel>(this, this.bindings);
+            this.AddReadOnlyKernelBinding<IResolutionRoot>(this, this.bindings);
+            */
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReadOnlyKernel5"/> class.
+        /// </summary>
+        /// <param name="bindings">The preconfigured bindings.</param>
+        /// <param name="cache">The <see cref="ICache"/> component.</param>
+        /// <param name="planner">The <see cref="IPlanner"/> component.</param>
+        /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
+        /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        /// <param name="bindingPrecedenceComparer">The <see cref="IBindingPrecedenceComparer"/> component.</param>
+        /// <param name="bindingResolvers">The binding resolvers.</param>
+        /// <param name="missingBindingResolvers">The missing binding resolvers.</param>
+        internal ReadOnlyKernel5(
+            BindingsBuilder bindings,
+            ICache cache,
+            IPlanner planner,
+            IPipeline pipeline,
+            IExceptionFormatter exceptionFormatter,
+            IBindingPrecedenceComparer bindingPrecedenceComparer,
+            List<IBindingResolver> bindingResolvers,
+            List<IMissingBindingResolver> missingBindingResolvers)
+        {
+            this.bindingResolvers = bindingResolvers;
+            this.missingBindingResolvers = missingBindingResolvers;
+            this.cache = cache;
+            this.planner = planner;
+            this.pipeline = pipeline;
+            this.exceptionFormatter = exceptionFormatter;
+            this.bindingPrecedenceComparer = bindingPrecedenceComparer;
+
+            this.bindings = new Dictionary<Type, ICollection<IBinding>>(new ReferenceEqualityTypeComparer());
+
+            BindingBuilderVisitor visitor = new BindingBuilderVisitor(this.bindings);
+            bindings.Build(this, visitor);
+
+            /*
+            this.AddReadOnlyKernelBinding<IReadOnlyKernel>(this, this.bindings);
+            this.AddReadOnlyKernelBinding<IResolutionRoot>(this, this.bindings);
+            */
         }
 
         /// <summary>
@@ -114,6 +164,8 @@ namespace Ninject
             var context = this.CreateContext(request, binding);
 
             var reference = new InstanceReference { Instance = instance };
+
+            // TODO REPLACE BY INITIALIZE
             this.pipeline.Activate(context, reference);
         }
 
@@ -604,7 +656,7 @@ namespace Ninject
         private void AddReadOnlyKernelBinding<T>(T readonlyKernel, Dictionary<Type, ICollection<IBinding>> bindings)
         {
             var binding = new Binding(typeof(T));
-            new BindingBuilder<T>(binding, null, null, typeof(T).Format()).ToConstant(readonlyKernel);
+            new Planning.Bindings.BindingBuilder<T>(binding, this.pipeline, this.planner, null, typeof(T).Format()).ToConstant(readonlyKernel);
             bindings[typeof(T)] = new[] { binding };
         }
 

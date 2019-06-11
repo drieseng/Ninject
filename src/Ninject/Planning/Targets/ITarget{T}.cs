@@ -21,65 +21,15 @@
 
 namespace Ninject.Planning.Targets
 {
-    using System;
-    using System.Reflection;
-
-    using Ninject.Activation;
-    using Ninject.Planning.Bindings;
-
     /// <summary>
     /// Represents a site on a type where a value will be injected.
     /// </summary>
+    /// <typeparam name="T">The type of the the site represented by the target.</typeparam>
     public interface ITarget<T> : ITarget
     {
-        /// <summary>
-        /// Gets the type of the target.
-        /// </summary>
-        Type Type { get; }
-
-        /// <summary>
-        /// Gets the name of the target.
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
-        /// Gets the member that contains the target.
-        /// </summary>
-        MemberInfo Member { get; }
-
         /// <summary>
         /// Gets the site (property, parameter, etc.) represented by the target.
         /// </summary>
         T Site { get; }
-
-        /// <summary>
-        /// Gets the constraint defined on the target.
-        /// </summary>
-        Func<IBindingMetadata, bool> Constraint { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the target represents an optional dependency.
-        /// </summary>
-        bool IsOptional { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the target has a default value.
-        /// </summary>
-        bool HasDefaultValue { get; }
-
-        /// <summary>
-        /// Gets the default value for the target.
-        /// </summary>
-        /// <exception cref="InvalidOperationException">The <see cref="ITarget"/> does not have a default value.</exception>
-        object DefaultValue { get; }
-
-        /// <summary>
-        /// Resolves a value for the target within the specified parent context.
-        /// </summary>
-        /// <param name="parent">The parent context.</param>
-        /// <returns>
-        /// The resolved value.
-        /// </returns>
-        object ResolveWithin(IContext parent);
     }
 }

@@ -24,7 +24,7 @@ namespace Ninject.Builder
     using System;
     using System.ComponentModel;
 
-    using Ninject.Components;
+    using Ninject.Builder.Syntax;
     using Ninject.Syntax;
 
     /// <summary>
@@ -33,13 +33,13 @@ namespace Ninject.Builder
     public interface IKernelBuilder : IFluentSyntax
     {
         /// <summary>
-        /// Gets the components.
+        /// Gets the root of the component bindings.
         /// </summary>
         /// <value>
-        /// The components.
+        /// The root of the component binding.
         /// </value>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        ComponentContainer Components { get; }
+        IComponentBindingRoot Components { get; }
 
         /// <summary>
         /// Adds bindings to the <see cref="IKernelBuilder"/>.

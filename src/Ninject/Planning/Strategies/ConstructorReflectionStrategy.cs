@@ -35,7 +35,7 @@ namespace Ninject.Planning.Strategies
     public class ConstructorReflectionStrategy : NinjectComponent, IPlanningStrategy
     {
         /// <summary>
-        /// the <see cref="ISelector"/> component.
+        /// the <see cref="IConstructorReflectionSelector"/> component.
         /// </summary>
         private readonly IConstructorReflectionSelector selector;
 

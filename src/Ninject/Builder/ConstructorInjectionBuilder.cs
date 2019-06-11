@@ -24,24 +24,15 @@ namespace Ninject.Builder
     using System;
     using System.ComponentModel;
 
-    using Ninject.Components;
+    using Ninject.Builder.Components;
+    using Ninject.Builder.Syntax;
 
     /// <summary>
     /// Enables and configures constructor injection.
     /// </summary>
     internal sealed class ConstructorInjectionBuilder : IConstructorInjectionBuilder
     {
-        private readonly ComponentContainer components;
-        private IConstructorInjectionSelectorBuilder constructorInjectionSelectorBuilder;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConstructorInjectionBuilder"/> class.
-        /// </summary>
-        /// <param name="components">The components.</param>
-        public ConstructorInjectionBuilder(ComponentContainer components)
-        {
-            this.components = components;
-        }
+        private IComponentBuilder constructorInjectionSelectorBuilder;
 
         /// <summary>
         /// Configure constructor injection to select the best matching constructor from the list of constructors
@@ -50,7 +41,7 @@ namespace Ninject.Builder
         /// <param name="bestMatchingConstructorBuilder">A callback to configure the best matching constructor mechanism.</param>
         public void BestMatch(Action<IBestMatchConstructorInjectionSelectorBuilder> bestMatchingConstructorBuilder)
         {
-            var builder = new BestMatchConstructorInjectionSelectorBuilder(this.components);
+            var builder = new BestMatchConstructorInjectionSelectorBuilder();
             bestMatchingConstructorBuilder(builder);
             this.constructorInjectionSelectorBuilder = builder;
         }
@@ -60,16 +51,16 @@ namespace Ninject.Builder
         /// </summary>
         public void Unique()
         {
-            this.constructorInjectionSelectorBuilder = new UniqueConstructorInjectionSelectorBuilder(this.components);
+            this.constructorInjectionSelectorBuilder = new UniqueConstructorInjectionSelectorBuilder();
         }
 
         /// <summary>
         /// Builds the constructor injection components.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void Build()
+        public void Build(IComponentBindingRoot root)
         {
-            this.constructorInjectionSelectorBuilder.Build();
+            this.constructorInjectionSelectorBuilder.Build(root);
         }
     }
 }

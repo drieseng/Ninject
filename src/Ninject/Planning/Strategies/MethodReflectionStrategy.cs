@@ -38,11 +38,11 @@ namespace Ninject.Planning.Strategies
         /// <summary>
         /// Initializes a new instance of the <see cref="MethodReflectionStrategy"/> class.
         /// </summary>
-        /// <param name="selector">The selector component.</param>
+        /// <param name="selector">The <see cref="IMethodReflectionSelector"/> component.</param>
         /// <param name="injectorFactory">The injector factory component.</param>
         /// <exception cref="ArgumentNullException"><paramref name="selector"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="injectorFactory"/> is <see langword="null"/>.</exception>
-        public MethodReflectionStrategy(ISelector selector, IInjectorFactory injectorFactory)
+        public MethodReflectionStrategy(IMethodReflectionSelector selector, IInjectorFactory injectorFactory)
         {
             Ensure.ArgumentNotNull(selector, nameof(selector));
             Ensure.ArgumentNotNull(injectorFactory, nameof(injectorFactory));
@@ -52,9 +52,9 @@ namespace Ninject.Planning.Strategies
         }
 
         /// <summary>
-        /// Gets the selector component.
+        /// Gets the <see cref="IMethodReflectionSelector"/> component.
         /// </summary>
-        public ISelector Selector { get; private set; }
+        public IMethodReflectionSelector Selector { get; private set; }
 
         /// <summary>
         /// Gets or sets the injector factory component.
@@ -71,7 +71,7 @@ namespace Ninject.Planning.Strategies
         {
             Ensure.ArgumentNotNull(plan, nameof(plan));
 
-            foreach (MethodInfo method in this.Selector.SelectMethodsForInjection(plan.Type))
+            foreach (MethodInfo method in this.Selector.Select(plan.Type))
             {
                 plan.Add(new MethodInjectionDirective(method, this.InjectorFactory.Create(method)));
             }

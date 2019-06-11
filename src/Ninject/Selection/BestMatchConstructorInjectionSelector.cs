@@ -69,7 +69,7 @@ namespace Ninject.Selection
         /// The selected constructor.
         /// </returns>
         /// <exception cref="ActivationException">No constructors is available to create an instance of the implementation type, or more than one constructor has the highest score.</exception>
-        public ConstructorInjectionDirective Select(IPlan plan, IContext context)
+        public IConstructorInjectionDirective Select(IPlan plan, IContext context)
         {
             var constructors = plan.GetConstructors();
             if (constructors.Count == 0)

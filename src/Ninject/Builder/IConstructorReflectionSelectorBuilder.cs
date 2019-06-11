@@ -21,22 +21,14 @@
 
 namespace Ninject.Builder
 {
-    using System.ComponentModel;
-
-    using Ninject.Syntax;
+    using Ninject.Builder.Components;
 
     /// <summary>
     /// Builds a component that composes a list of constructors that serve as candidates for instantiating a given
     /// service.
     /// </summary>
-    public interface IConstructorReflectionSelectorBuilder : IFluentSyntax
+    public interface IConstructorReflectionSelectorBuilder : IComponentBuilder
     {
-        /// <summary>
-        /// Builds the component.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        void Build();
-
         /// <summary>
         /// Configures whether non-public constructors should also be inclused in the list of constructors.
         /// </summary>

@@ -36,6 +36,6 @@ namespace Ninject.Activation.Providers
         /// <returns>
         /// The values.
         /// </returns>
-        object[] GetValues(MethodInjectionDirective method, IContext context);
+        object[] GetValues(IMethodInjectionDirective method, IContext context);
     }
 }

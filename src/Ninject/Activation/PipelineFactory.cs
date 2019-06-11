@@ -25,35 +25,25 @@ namespace Ninject.Activation
     using System.Linq;
 
     using Ninject.Activation.Strategies;
-    using Ninject.Components;
+    using Ninject.Syntax;
 
     /// <summary>
     /// Factory for creating a minimal <see cref="IPipeline"/> based on the configured strategies.
     /// </summary>
     internal sealed class PipelineFactory
     {
-        private readonly ComponentContainer components;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PipelineFactory"/> class.
-        /// </summary>
-        /// <param name="components">The configured components.</param>
-        public PipelineFactory(ComponentContainer components)
-        {
-            this.components = components;
-        }
-
         /// <summary>
         /// Creates a minimal <see cref="IPipeline"/>.
         /// </summary>
+        /// <param name="root">The resolution root.</param>
         /// <returns>
         /// An <see cref="IPipeline"/>.
         /// </returns>
-        public IPipeline Create()
+        public IPipeline Create(IResolutionRoot root)
         {
-            var initializationStrategies = this.components.GetAll<IInitializationStrategy>().ToList();
-            var activationStrategies = this.components.GetAll<IActivationStrategy>().ToList();
-            var deactivationStrategies = this.components.GetAll<IDeactivationStrategy>().ToList();
+            var initializationStrategies = root.GetAll<IInitializationStrategy>().ToList();
+            var activationStrategies = root.GetAll<IActivationStrategy>().ToList();
+            var deactivationStrategies = root.GetAll<IDeactivationStrategy>().ToList();
 
             if (initializationStrategies.Count == 0 && activationStrategies.Count == 0 && deactivationStrategies.Count == 0)
             {

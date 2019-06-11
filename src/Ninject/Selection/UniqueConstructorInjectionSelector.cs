@@ -42,7 +42,7 @@ namespace Ninject.Selection
         /// The selected constructor.
         /// </returns>
         /// <exception cref="ActivationException"><paramref name="plan"/> defines zero or more than one constructor.</exception>
-        public ConstructorInjectionDirective Select(IPlan plan, IContext context)
+        public IConstructorInjectionDirective Select(IPlan plan, IContext context)
         {
             var constructors = plan.GetConstructors();
             return CreateConstructorInjectionDirective(constructors);
@@ -55,7 +55,7 @@ namespace Ninject.Selection
         {
         }
 
-        private static ConstructorInjectionDirective CreateConstructorInjectionDirective(IReadOnlyList<ConstructorInjectionDirective> constructors)
+        private static IConstructorInjectionDirective CreateConstructorInjectionDirective(IReadOnlyList<IConstructorInjectionDirective> constructors)
         {
             if (constructors.Count == 0)
             {

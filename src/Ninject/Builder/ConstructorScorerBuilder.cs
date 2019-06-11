@@ -23,8 +23,7 @@ namespace Ninject.Builder
 {
     using System;
 
-    using Ninject.Components;
-    using Ninject.Parameters;
+    using Ninject.Builder.Syntax;
     using Ninject.Selection.Heuristics;
 
     /// <summary>
@@ -32,30 +31,19 @@ namespace Ninject.Builder
     /// </summary>
     internal sealed class ConstructorScorerBuilder : IConstructorScorerBuilder
     {
-        private readonly ComponentContainer components;
         private Type lowestScoreAttribute;
         private Type highestScoreAttribute;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConstructorScorerBuilder"/> class.
-        /// </summary>
-        /// <param name="components">The components.</param>
-        public ConstructorScorerBuilder(ComponentContainer components)
-        {
-            this.components = components;
-        }
-
-        /// <summary>
         /// Builds the component for assigning a score to a given constructor.
         /// </summary>
-        public void Build()
+        public void Build(IComponentBindingRoot root)
         {
-            var parameters = new IParameter[]
-                {
-                    new PropertyValue(nameof(StandardConstructorScorer.HighestScoreAttribute), this.highestScoreAttribute),
-                    new PropertyValue(nameof(StandardConstructorScorer.LowestScoreAttribute), this.lowestScoreAttribute),
-                };
-            this.components.Add<IConstructorInjectionScorer, StandardConstructorScorer>(parameters);
+            root.Bind<IConstructorInjectionScorer>()
+                .To<StandardConstructorScorer>()
+                .InSingletonScope()
+                .WithPropertyValue(nameof(StandardConstructorScorer.HighestScoreAttribute), this.highestScoreAttribute)
+                .WithPropertyValue(nameof(StandardConstructorScorer.LowestScoreAttribute), this.lowestScoreAttribute);
         }
 
         /// <summary>

@@ -38,7 +38,7 @@ namespace Ninject.Activation.Providers
         /// <returns>
         /// The value.
         /// </returns>
-        public object GetValue(PropertyInjectionDirective property, IContext context)
+        public object GetValue(IPropertyInjectionDirective property, IContext context)
         {
             return property.Target.ResolveWithin(context);
         }

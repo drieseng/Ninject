@@ -25,7 +25,6 @@ namespace Ninject.Planning.Bindings.Resolvers
     using System.Collections.Generic;
 
     using Ninject.Components;
-    using Ninject.Infrastructure;
 
     /// <summary>
     /// Resolves bindings that have been registered directly for the service.

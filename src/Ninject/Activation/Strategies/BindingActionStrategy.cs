@@ -29,7 +29,7 @@ namespace Ninject.Activation.Strategies
     /// <summary>
     /// Executes actions defined on the binding during activation and deactivation.
     /// </summary>
-    public class BindingActionStrategy : ActivationStrategy
+    public class BindingActionStrategy : IActivationStrategy, IDeactivationStrategy, IInitializationStrategy
     {
         /// <summary>
         /// Calls the activation actions defined on the binding.
@@ -37,7 +37,7 @@ namespace Ninject.Activation.Strategies
         /// <param name="context">The context.</param>
         /// <param name="reference">A reference to the instance being activated.</param>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public override void Activate(IContext context, InstanceReference reference)
+        public void Activate(IContext context, InstanceReference reference)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
 
@@ -50,11 +50,32 @@ namespace Ninject.Activation.Strategies
         /// <param name="context">The context.</param>
         /// <param name="reference">A reference to the instance being deactivated.</param>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public override void Deactivate(IContext context, InstanceReference reference)
+        public void Deactivate(IContext context, InstanceReference reference)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
 
             context.Binding.DeactivationActions.Map(action => action(context, reference.Instance));
+        }
+
+        /// <summary>
+        /// Contributes to the initialization of the instance in the specified context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="instance">The instance being initialized.</param>
+        /// <returns>
+        /// The initialized instance.
+        /// </returns>
+        public object Initialize(IContext context, object instance)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        void IDisposable.Dispose()
+        {
         }
     }
 }

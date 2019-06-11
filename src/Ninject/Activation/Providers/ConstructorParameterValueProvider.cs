@@ -41,7 +41,7 @@ namespace Ninject.Activation.Providers
         /// <returns>
         /// The values.
         /// </returns>
-        public object[] GetValues(ConstructorInjectionDirective constructor, IContext context)
+        public object[] GetValues(IConstructorInjectionDirective constructor, IContext context)
         {
             var targets = constructor.Targets;
 

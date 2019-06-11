@@ -32,7 +32,7 @@ namespace Ninject.Syntax
                                                             IBindingInSyntax<T>,
                                                             IBindingNamedSyntax<T>,
                                                             IBindingWithSyntax<T>,
-                                                            IBindingOnSyntax<T>
+                                                            IBindingOnActivationSyntax<T>
     {
     }
 }

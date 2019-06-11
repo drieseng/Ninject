@@ -43,9 +43,9 @@ namespace Ninject.Builder
         /// </returns>
         public static IKernelBuilder ConstructorInjection(this IKernelBuilder kernelBuilder, Action<IConstructorInjectionBuilder> ctor)
         {
-            var constructorInjectionBuilder = new ConstructorInjectionBuilder(kernelBuilder.Components);
+            var constructorInjectionBuilder = new ConstructorInjectionBuilder();
             ctor(constructorInjectionBuilder);
-            constructorInjectionBuilder.Build();
+            constructorInjectionBuilder.Build(kernelBuilder.Components);
             return kernelBuilder;
         }
 
@@ -58,9 +58,21 @@ namespace Ninject.Builder
         /// </returns>
         public static IKernelBuilder PropertyInjection(this IKernelBuilder kernelBuilder)
         {
-            kernelBuilder.Components.Add<IPropertyValueProvider, PropertyValueProvider>();
-            kernelBuilder.Components.Add<IPropertyReflectionSelector, PropertyReflectionSelector>();
-            kernelBuilder.Components.Add<IInitializationStrategy, PropertyInjectionStrategy>();
+            kernelBuilder.Components.Bind<IPropertyValueProvider>().To<PropertyValueProvider>();
+            kernelBuilder.Components.Bind<IPropertyReflectionSelector>().To<PropertyReflectionSelector>();
+            kernelBuilder.Components.Bind<IInitializationStrategy>().To<PropertyInjectionStrategy>();
+            return kernelBuilder;
+        }
+
+        /// <summary>
+        /// Enables and configures property injection.
+        /// </summary>
+        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <returns>
+        /// The <see cref="IKernelBuilder"/> instance.
+        /// </returns>
+        public static IKernelBuilder PropertyInjection(this IKernelBuilder kernelBuilder, Action<IPropertyInjectionBuilder> property)
+        {
             return kernelBuilder;
         }
 
@@ -85,7 +97,7 @@ namespace Ninject.Builder
         /// </returns>
         public static IKernelBuilder ExpressionBasedInjection(this IKernelBuilder kernelBuilder)
         {
-            kernelBuilder.Components.Add<IInjectorFactory, ExpressionInjectorFactory>();
+            kernelBuilder.Components.Bind<IInjectorFactory>().To<ExpressionInjectorFactory>();
             return kernelBuilder;
         }
 
@@ -98,7 +110,7 @@ namespace Ninject.Builder
         /// </returns>
         public static IKernelBuilder ReflectionBasedInjection(this IKernelBuilder kernelBuilder)
         {
-            kernelBuilder.Components.Add<IInjectorFactory, ReflectionInjectorFactory>();
+            kernelBuilder.Components.Bind<IInjectorFactory>().To<ReflectionInjectorFactory>();
             return kernelBuilder;
         }
 

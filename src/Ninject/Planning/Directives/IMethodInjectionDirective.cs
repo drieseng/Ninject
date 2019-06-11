@@ -26,7 +26,10 @@ namespace Ninject.Planning.Directives
     using Ninject.Injection;
     using Ninject.Planning.Targets;
 
-    class IMethodInjectionDirective
+    /// <summary>
+    /// Describes the injection of a method.
+    /// </summary>
+    public interface IMethodInjectionDirective : IDirective
     {
         /// <summary>
         /// Gets the method definition.

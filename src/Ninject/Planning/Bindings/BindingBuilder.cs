@@ -40,6 +40,7 @@ namespace Ninject.Planning.Bindings
         /// Initializes a new instance of the <see cref="BindingBuilder"/> class.
         /// </summary>
         /// <param name="bindingConfiguration">The binding to build.</param>
+        /// <param name="pipeline">The <see cref="Pipeline"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
         /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
         /// <param name="serviceNames">The names of the services.</param>
@@ -49,16 +50,19 @@ namespace Ninject.Planning.Bindings
         /// <exception cref="ArgumentNullException"><paramref name="serviceNames"/> is <see langword="null"/>.</exception>
         public BindingBuilder(
             IBindingConfiguration bindingConfiguration,
+            IPipeline pipeline,
             IPlanner planner,
             IConstructorInjectionScorer constructorScorer,
             string serviceNames)
         {
             Ensure.ArgumentNotNull(bindingConfiguration, nameof(bindingConfiguration));
+            Ensure.ArgumentNotNull(pipeline, nameof(pipeline));
             Ensure.ArgumentNotNull(planner, nameof(planner));
             Ensure.ArgumentNotNull(constructorScorer, nameof(constructorScorer));
             Ensure.ArgumentNotNull(serviceNames, nameof(serviceNames));
 
             this.BindingConfiguration = bindingConfiguration;
+            this.Pipeline = pipeline;
             this.Planner = planner;
             this.ConstructorScorer = constructorScorer;
             this.ServiceNames = serviceNames;
@@ -68,6 +72,11 @@ namespace Ninject.Planning.Bindings
         /// Gets the binding being built.
         /// </summary>
         public IBindingConfiguration BindingConfiguration { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="IPipeline"/> component.
+        /// </summary>
+        public IPipeline Pipeline { get; }
 
         /// <summary>
         /// Gets the <see cref="IPlanner"/> component.
@@ -103,7 +112,7 @@ namespace Ninject.Planning.Bindings
         /// <returns>The fluent syntax.</returns>
         protected IBindingWhenInNamedWithOrOnSyntax<T> InternalTo<T>(Type implementation)
         {
-            this.BindingConfiguration.Provider = new StandardProvider(implementation, this.Planner, this.ConstructorScorer);
+            this.BindingConfiguration.Provider = new StandardProvider(implementation, this.Planner.GetPlan(implementation), this.Pipeline, this.ConstructorScorer);
             this.BindingConfiguration.Target = BindingTarget.Type;
 
             return new BindingConfigurationBuilder<T>(this.BindingConfiguration, this.ServiceNames);
@@ -162,7 +171,7 @@ namespace Ninject.Planning.Bindings
         protected IBindingWhenInNamedWithOrOnSyntax<TImplementation> ToProviderInternal<TProvider, TImplementation>()
             where TProvider : IProvider
         {
-            this.BindingConfiguration.Provider = null; // TODO
+            this.BindingConfiguration.Provider = new ResolveProviderWrapper(typeof(TProvider), typeof(TImplementation));
             this.BindingConfiguration.Target = BindingTarget.Provider;
 
             return new BindingConfigurationBuilder<TImplementation>(this.BindingConfiguration, this.ServiceNames);
@@ -177,7 +186,7 @@ namespace Ninject.Planning.Bindings
         /// <returns>The fluent syntax.</returns>
         protected IBindingWhenInNamedWithOrOnSyntax<T> ToProviderInternal<T>(Type providerType)
         {
-            this.BindingConfiguration.Provider = null; // TODO
+            this.BindingConfiguration.Provider = new ResolveProviderWrapper(providerType, typeof(T));
             this.BindingConfiguration.Target = BindingTarget.Provider;
 
             return new BindingConfigurationBuilder<T>(this.BindingConfiguration, this.ServiceNames);
@@ -197,7 +206,7 @@ namespace Ninject.Planning.Bindings
                 throw new ArgumentException("The expression must be a constructor call.", nameof(newExpression));
             }
 
-            this.BindingConfiguration.Provider = new StandardProvider(ctorExpression.Type, this.Planner, new SpecificConstructorSelector(ctorExpression.Constructor));
+            this.BindingConfiguration.Provider = new StandardProvider(ctorExpression.Type, this.Planner.GetPlan(ctorExpression.Type), this.Pipeline, new SpecificConstructorSelector(ctorExpression.Constructor));
             this.BindingConfiguration.Target = BindingTarget.Type;
             this.AddConstructorArguments(ctorExpression, newExpression.Parameters[0]);
 

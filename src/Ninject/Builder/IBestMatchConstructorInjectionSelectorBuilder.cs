@@ -23,6 +23,7 @@ namespace Ninject.Builder
 {
     using System;
 
+    using Ninject.Builder.Components;
     using Ninject.Selection;
     using Ninject.Selection.Heuristics;
 
@@ -31,7 +32,7 @@ namespace Ninject.Builder
     /// a given <see cref="IConstructorReflectionSelector"/>, and an <see cref="IConstructorInjectionScorer"/> to select
     /// the best matching constructor.
     /// </summary>
-    public interface IBestMatchConstructorInjectionSelectorBuilder : IConstructorInjectionSelectorBuilder
+    public interface IBestMatchConstructorInjectionSelectorBuilder : IComponentBuilder
     {
         /// <summary>
         /// Configures an <see cref="IConstructorInjectionScorer"/> to use for selecting the best matching constructor.

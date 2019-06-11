@@ -25,6 +25,7 @@ namespace Ninject.Builder
 
     using Ninject.Activation;
     using Ninject.Parameters;
+    using Ninject.Syntax;
 
     internal class ProviderBuilderAdapter : IProviderFactory
     {
@@ -35,7 +36,7 @@ namespace Ninject.Builder
             this.provider = provider;
         }
 
-        public IProvider Create(IReadOnlyList<IParameter> parameters)
+        public IProvider Create(IResolutionRoot root, IReadOnlyList<IParameter> parameters)
         {
             return this.provider;
         }

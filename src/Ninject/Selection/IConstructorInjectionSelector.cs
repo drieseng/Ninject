@@ -40,6 +40,6 @@ namespace Ninject.Selection
         /// <returns>
         /// The selected constructor.
         /// </returns>
-        ConstructorInjectionDirective Select(IPlan plan, IContext context);
+        IConstructorInjectionDirective Select(IPlan plan, IContext context);
     }
 }

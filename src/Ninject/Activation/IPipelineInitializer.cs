@@ -27,10 +27,10 @@ namespace Ninject.Activation
     internal interface IPipelineInitializer
     {
         /// <summary>
-        /// Initializes the instance in the specified context.
+        /// Initializes an instance using the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="instance">The instance.</param>
+        /// <param name="instance">The instance being initialized.</param>
         /// <returns>
         /// The initialized instance.
         /// </returns>

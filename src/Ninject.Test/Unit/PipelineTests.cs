@@ -12,17 +12,37 @@
 
     public class PipelineContext
     {
-        protected readonly List<Mock<IActivationStrategy>> StrategyMocks = new List<Mock<IActivationStrategy>>();
+        protected readonly List<Mock<IInitializationStrategy>> InitializationStrategyMocks;
+        protected readonly List<Mock<IActivationStrategy>> ActivationStrategyMocks;
+        protected readonly List<Mock<IDeactivationStrategy>> DeactivationStrategyMocks;
         protected readonly Mock<IActivationCache> ActivationCacheMock;
         protected readonly Pipeline Pipeline;
 
         public PipelineContext()
         {
-            this.StrategyMocks.Add(new Mock<IActivationStrategy>());
-            this.StrategyMocks.Add(new Mock<IActivationStrategy>());
-            this.StrategyMocks.Add(new Mock<IActivationStrategy>());
+            this.InitializationStrategyMocks = new List<Mock<IInitializationStrategy>>
+                {
+                    new Mock<IInitializationStrategy>(),
+                    new Mock<IInitializationStrategy>(),
+                    new Mock<IInitializationStrategy>()
+                };
+            this.ActivationStrategyMocks = new List<Mock<IActivationStrategy>>
+                {
+                    new Mock<IActivationStrategy>(),
+                    new Mock<IActivationStrategy>(),
+                    new Mock<IActivationStrategy>()
+                };
+            this.DeactivationStrategyMocks = new List<Mock<IDeactivationStrategy>>
+                {
+                    new Mock<IDeactivationStrategy>(),
+                    new Mock<IDeactivationStrategy>(),
+                    new Mock<IDeactivationStrategy>()
+                };
             this.ActivationCacheMock = new Mock<IActivationCache>();
-            this.Pipeline = new Pipeline(this.StrategyMocks.Select(mock => mock.Object), this.ActivationCacheMock.Object);
+            this.Pipeline = new Pipeline(this.InitializationStrategyMocks.Select(mock => mock.Object),
+                                         this.ActivationStrategyMocks.Select(mock => mock.Object),
+                                         this.DeactivationStrategyMocks.Select(mock => mock.Object),
+                                         this.ActivationCacheMock.Object);
         }
     }
 
@@ -33,9 +53,9 @@
         {
             this.Pipeline.Strategies.Should().NotBeNull();
 
-            for (int idx = 0; idx < this.StrategyMocks.Count; idx++)
+            for (int idx = 0; idx < this.ActivationStrategyMocks.Count; idx++)
             {
-                this.Pipeline.Strategies[idx].Should().BeSameAs(this.StrategyMocks[idx].Object);
+                this.Pipeline.Strategies[idx].Should().BeSameAs(this.ActivationStrategyMocks[idx].Object);
             }
         }
     }
@@ -50,7 +70,7 @@
 
             this.Pipeline.Activate(contextMock.Object, reference);
 
-            this.StrategyMocks.Map(mock => mock.Verify(x => x.Activate(contextMock.Object, reference)));
+            this.ActivationStrategyMocks.Map(mock => mock.Verify(x => x.Activate(contextMock.Object, reference)));
         }
 
         [Fact]
@@ -62,7 +82,7 @@
 
             this.Pipeline.Activate(contextMock.Object, reference);
 
-            this.StrategyMocks.Map(mock => mock.Verify(x => x.Activate(contextMock.Object, reference), Times.Never()));
+            this.ActivationStrategyMocks.Map(mock => mock.Verify(x => x.Activate(contextMock.Object, reference), Times.Never));
         }
     }
 
@@ -76,7 +96,7 @@
 
             this.Pipeline.Deactivate(contextMock.Object, reference);
 
-            this.StrategyMocks.Map(mock => mock.Verify(x => x.Deactivate(contextMock.Object, reference)));
+            this.DeactivationStrategyMocks.Map(mock => mock.Verify(x => x.Deactivate(contextMock.Object, reference)));
         }
 
         [Fact]
@@ -88,7 +108,7 @@
 
             this.Pipeline.Deactivate(contextMock.Object, reference);
 
-            this.StrategyMocks.Map(mock => mock.Verify(x => x.Deactivate(contextMock.Object, reference), Times.Never()));
+            this.DeactivationStrategyMocks.Map(mock => mock.Verify(x => x.Deactivate(contextMock.Object, reference), Times.Never));
         }
     }
 }

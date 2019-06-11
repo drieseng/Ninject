@@ -21,22 +21,36 @@
 
 namespace Ninject.Activation.Strategies
 {
+    using System;
+
     /// <summary>
-    /// During activation, initializes instances that implement <see cref="IInitializable"/>.
+    /// Completes initialization of instances that implement <see cref="IInitializable"/>.
     /// </summary>
-    public class InitializableStrategy : ActivationStrategy
+    public class InitializableStrategy : IInitializationStrategy
     {
         /// <summary>
         /// Initializes the specified instance.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="reference">A reference to the instance being activated.</param>
-        public override void Activate(IContext context, InstanceReference reference)
+        /// <param name="instance">The instance being initialized.</param>
+        /// <returns>
+        /// The initialized instance.
+        /// </returns>
+        public object Initialize(IContext context, object instance)
         {
-            if (reference.IsInstanceOf<IInitializable>(out var initializable))
+            if (instance is IInitializable initializable)
             {
                 initializable.Initialize();
             }
+
+            return instance;
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        void IDisposable.Dispose()
+        {
         }
     }
 }

@@ -24,8 +24,7 @@ namespace Ninject.Activation.Strategies
     using Ninject.Components;
 
     /// <summary>
-    /// Contributes to a <see cref="IPipeline"/>, and is called during the activation
-    /// and deactivation of an instance.
+    /// Contributes to a <see cref="IPipeline"/>, and is called during the deactivation of an instance.
     /// </summary>
     public interface IDeactivationStrategy : INinjectComponent
     {

@@ -46,7 +46,7 @@
             var scope = new TestObject(42);
             var context = CreateContext(scope, this.bindingConfiguration);
 
-            var instance = this.cache.TryGet(context);
+            var instance = this.cache.TryGet(context, scope);
 
             instance.Should().BeNull();
         }
@@ -54,13 +54,13 @@
         [Fact]
         public void ReturnsCachedInstanceIfOneHasBeenAddedWithinSpecifiedScope()
         {
-            var scope = new TestObject(42);
             var reference = new InstanceReference { Instance = new Sword() };
+            var scope = new TestObject(42);
             var context1 = CreateContext(scope, this.bindingConfiguration);
             var context2 = CreateContext(scope, this.bindingConfiguration);
 
-            this.cache.Remember(context1, reference);
-            object instance = this.cache.TryGet(context2);
+            this.cache.Remember(context1, scope, reference);
+            object instance = this.cache.TryGet(context2, scope);
 
             instance.Should().BeSameAs(reference.Instance);
         }
@@ -69,24 +69,13 @@
         public void ReturnsNullIfNoInstancesHaveBeenAddedWithinSpecifiedScope()
         {
             var reference = new InstanceReference { Instance = new Sword() };
-            var context1 = CreateContext(new TestObject(42), this.bindingConfiguration);
-            var context2 = CreateContext(new TestObject(42), this.bindingConfiguration);
+            var scope1 = new TestObject(42);
+            var scope2 = new TestObject(42);
+            var context1 = CreateContext(scope1, this.bindingConfiguration);
+            var context2 = CreateContext(scope2, this.bindingConfiguration);
 
-            this.cache.Remember(context1, reference);
-            object instance = this.cache.TryGet(context2);
-
-            instance.Should().BeNull();
-        }
-
-        [Fact]
-        public void ReturnsNullIfScopeIsNull()
-        {
-            var reference = new InstanceReference { Instance = new Sword() };
-            var context1 = CreateContext(new TestObject(42), this.bindingConfiguration);
-            var context2 = CreateContext(null, this.bindingConfiguration);
-
-            this.cache.Remember(context1, reference);
-            object instance = this.cache.TryGet(context2);
+            this.cache.Remember(context1, scope1, reference);
+            object instance = this.cache.TryGet(context2, scope2);
 
             instance.Should().BeNull();
         }
@@ -102,8 +91,8 @@
             var context1 = CreateContext(scope, this.bindingConfiguration, typeof(int));
             var context2 = CreateContext(scope, this.bindingConfiguration, typeof(int));
 
-            this.cache.Remember(context1, reference);
-            object instance = this.cache.TryGet(context2);
+            this.cache.Remember(context1, scope, reference);
+            object instance = this.cache.TryGet(context2, scope);
 
             instance.Should().BeSameAs(reference.Instance);
         }
@@ -116,8 +105,8 @@
             var context1 = CreateContext(scope, this.bindingConfiguration, typeof(int));
             var context2 = CreateContext(scope, this.bindingConfiguration, typeof(double));
 
-            this.cache.Remember(context1, reference);
-            object instance = this.cache.TryGet(context2);
+            this.cache.Remember(context1, scope, reference);
+            object instance = this.cache.TryGet(context2, scope);
 
             instance.Should().BeNull();
         }
@@ -140,7 +129,7 @@
             var reference = new InstanceReference { Instance = instance };
             var writeContext = CreateContext(scope, this.bindingConfiguration, typeof(int));
 
-            this.cache.Remember(writeContext, reference);
+            this.cache.Remember(writeContext, scope, reference);
             bool result = this.cache.Release(instance);
 
             result.Should().BeTrue();
@@ -155,10 +144,10 @@
             var writeContext = CreateContext(scope, this.bindingConfiguration, typeof(int));
             var readContext = CreateContext(scope, this.bindingConfiguration, typeof(int));
 
-            this.cache.Remember(writeContext, reference);
-            object instance1 = this.cache.TryGet(readContext);
+            this.cache.Remember(writeContext, scope, reference);
+            object instance1 = this.cache.TryGet(readContext, scope);
             bool result = this.cache.Release(instance1);
-            object instance2 = this.cache.TryGet(readContext);
+            object instance2 = this.cache.TryGet(readContext, scope);
 
             instance1.Should().BeSameAs(reference.Instance);
             result.Should().BeTrue();
@@ -171,17 +160,18 @@
         [Fact]
         public void WhenScopeIsDefinedItsEntriesAreReleased()
         {
-            var scope = new TestObject(42);
             var sword = new Sword();
             var reference = new InstanceReference { Instance = sword };
-            var context1 = CreateContext(scope, this.bindingConfiguration);
-            var context2 = CreateContext(new TestObject(42), this.bindingConfiguration);
+            var scope1 = new TestObject(42);
+            var scope2 = new TestObject(42);
+            var context1 = CreateContext(scope1, this.bindingConfiguration);
+            var context2 = CreateContext(scope2, this.bindingConfiguration);
 
-            this.cache.Remember(context1, reference);
-            this.cache.Remember(context2, reference);
-            this.cache.Clear(scope);
-            var instance1 = this.cache.TryGet(context1);
-            var instance2 = this.cache.TryGet(context2);
+            this.cache.Remember(context1, scope1, reference);
+            this.cache.Remember(context2, scope2, reference);
+            this.cache.Clear(scope1);
+            var instance1 = this.cache.TryGet(context1, scope1);
+            var instance2 = this.cache.TryGet(context2, scope2);
 
             instance1.Should().BeNull();
             instance2.Should().NotBeNull();
@@ -192,14 +182,16 @@
          {
             var sword = new Sword();
             var reference = new InstanceReference { Instance = sword };
-            var context1 = CreateContext(new TestObject(42), this.bindingConfiguration);
-            var context2 = CreateContext(new TestObject(42), this.bindingConfiguration);
+            var scope1 = new TestObject(42);
+            var scope2 = new TestObject(42);
+            var context1 = CreateContext(scope1, this.bindingConfiguration);
+            var context2 = CreateContext(scope2, this.bindingConfiguration);
 
-            this.cache.Remember(context1, reference);
-            this.cache.Remember(context2, reference);
+            this.cache.Remember(context1, scope1, reference);
+            this.cache.Remember(context2, scope2, reference);
             this.cache.Clear();
-            var instance1 = this.cache.TryGet(context1);
-            var instance2 = this.cache.TryGet(context2);
+            var instance1 = this.cache.TryGet(context1, scope1);
+            var instance2 = this.cache.TryGet(context2, scope2);
 
             instance1.Should().BeNull();
             instance2.Should().BeNull();
@@ -216,9 +208,9 @@
             var reference = new InstanceReference { Instance = sword };
             var context = CreateContext(scopeMock.Object, this.bindingConfiguration);
 
-            this.cache.Remember(context, reference);
+            this.cache.Remember(context, scopeMock.Object, reference);
             scopeMock.Raise(scope => scope.Disposed += null, EventArgs.Empty);
-            object instance = this.cache.TryGet(context);
+            object instance = this.cache.TryGet(context, scopeMock.Object);
 
             instance.Should().BeNull();
 
@@ -235,10 +227,10 @@
             var sword = new Sword();
             var context = CreateContext(scope, this.bindingConfiguration);
 
-            this.cache.Remember(context, new InstanceReference { Instance = sword });
-            this.cache.Remember(CreateContext(scopeOfScope, this.bindingConfiguration), new InstanceReference { Instance = scope });
+            this.cache.Remember(context, scope, new InstanceReference { Instance = sword });
+            this.cache.Remember(CreateContext(scopeOfScope, this.bindingConfiguration), scopeOfScope, new InstanceReference { Instance = scope });
             this.cache.Clear(scopeOfScope);
-            var instance = this.cache.TryGet(context);
+            var instance = this.cache.TryGet(context, scope);
 
             instance.Should().BeNull();
         }

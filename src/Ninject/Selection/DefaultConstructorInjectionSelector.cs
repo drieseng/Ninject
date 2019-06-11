@@ -41,11 +41,11 @@ namespace Ninject.Selection
         /// The selected constructor.
         /// </returns>
         /// <exception cref="ActivationException"><paramref name="plan"/> defines zero or more than one parameterless constructor.</exception>
-        public ConstructorInjectionDirective Select(IPlan plan, IContext context)
+        public IConstructorInjectionDirective Select(IPlan plan, IContext context)
         {
             var constructors = plan.GetConstructors();
 
-            ConstructorInjectionDirective defaultCtor = null;
+            IConstructorInjectionDirective defaultCtor = null;
 
             foreach (var constructor in constructors)
             {

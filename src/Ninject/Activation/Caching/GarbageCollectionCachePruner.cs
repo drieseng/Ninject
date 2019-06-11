@@ -35,6 +35,11 @@ namespace Ninject.Activation.Caching
     public class GarbageCollectionCachePruner : NinjectComponent, ICachePruner
     {
         /// <summary>
+        /// The default pruning interval, which is <c>30</c> seconds.
+        /// </summary>
+        internal static readonly TimeSpan DefaultPruningInterval = TimeSpan.FromSeconds(30);
+
+        /// <summary>
         /// indicator for if GC has been run.
         /// </summary>
         private readonly WeakReference indicator = new WeakReference(new object());
@@ -59,7 +64,7 @@ namespace Ninject.Activation.Caching
         /// </summary>
         public GarbageCollectionCachePruner()
         {
-            this.PruningInterval = TimeSpan.FromSeconds(30);
+            this.PruningInterval = DefaultPruningInterval;
         }
 
         /// <summary>

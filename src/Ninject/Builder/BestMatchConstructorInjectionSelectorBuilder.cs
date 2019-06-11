@@ -24,7 +24,7 @@ namespace Ninject.Builder
     using System;
 
     using Ninject.Activation.Providers;
-    using Ninject.Components;
+    using Ninject.Builder.Syntax;
     using Ninject.Selection;
     using Ninject.Selection.Heuristics;
 
@@ -35,27 +35,17 @@ namespace Ninject.Builder
     /// </summary>
     internal sealed class BestMatchConstructorInjectionSelectorBuilder : IBestMatchConstructorInjectionSelectorBuilder
     {
-        private readonly ComponentContainer components;
         private ConstructorScorerBuilder scorerBuilder;
         private ConstructorReflectionSelectorBuilder selectorBuilder;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BestMatchConstructorInjectionSelectorBuilder"/> class.
-        /// </summary>
-        /// <param name="components">The components.</param>
-        public BestMatchConstructorInjectionSelectorBuilder(ComponentContainer components)
-        {
-            this.components = components;
-        }
-
-        /// <summary>
         /// Builds the constructor injection components.
         /// </summary>
-        public void Build()
+        public void Build(IComponentBindingRoot root)
         {
             if (this.scorerBuilder != null)
             {
-                this.scorerBuilder.Build();
+                this.scorerBuilder.Build(root);
             }
             else
             {
@@ -64,17 +54,17 @@ namespace Ninject.Builder
 
             if (this.selectorBuilder != null)
             {
-                this.selectorBuilder.Build();
+                this.selectorBuilder.Build(root);
             }
             else
             {
                 throw new Exception("TODO");
             }
 
-            this.components.Add<IConstructorInjectionSelector, BestMatchConstructorInjectionSelector>();
+            root.Bind<IConstructorInjectionSelector>().To<BestMatchConstructorInjectionSelector>();
 
             /* TODO, MAKE configurable */
-            this.components.Add<IConstructorParameterValueProvider, ConstructorParameterValueProvider>();
+            root.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
             /* END TODO */
         }
 
@@ -84,7 +74,7 @@ namespace Ninject.Builder
         /// <param name="scorerBuilder">A callback to configure an <see cref="IConstructorInjectionScorer"/>.</param>
         public void Scorer(Action<IConstructorScorerBuilder> scorerBuilder)
         {
-            this.scorerBuilder = new ConstructorScorerBuilder(this.components);
+            this.scorerBuilder = new ConstructorScorerBuilder();
             scorerBuilder(this.scorerBuilder);
         }
 
@@ -95,7 +85,7 @@ namespace Ninject.Builder
         /// <param name="selectorBuilder">A callback to configure an <see cref="IConstructorReflectionSelector"/>.</param>
         public void Selector(Action<IConstructorReflectionSelectorBuilder> selectorBuilder)
         {
-            this.selectorBuilder = new ConstructorReflectionSelectorBuilder(this.components);
+            this.selectorBuilder = new ConstructorReflectionSelectorBuilder();
             selectorBuilder(this.selectorBuilder);
         }
     }

@@ -28,7 +28,6 @@ namespace Ninject.Selection.Heuristics
     using Ninject.Activation;
     using Ninject.Components;
     using Ninject.Infrastructure;
-    using Ninject.Infrastructure.Language;
     using Ninject.Parameters;
     using Ninject.Planning.Directives;
     using Ninject.Planning.Targets;
@@ -69,17 +68,17 @@ namespace Ninject.Selection.Heuristics
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="directive"/> is <see langword="null"/>.</exception>
-        public virtual int Score(IContext context, ConstructorInjectionDirective directive)
+        public virtual int Score(IContext context, IConstructorInjectionDirective directive)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
             Ensure.ArgumentNotNull(directive, nameof(directive));
 
-            if (this.HighestScoreAttribute != null & directive.Constructor.HasAttribute(this.HighestScoreAttribute))
+            if (this.HighestScoreAttribute != null && directive.Constructor.IsDefined(this.HighestScoreAttribute, true))
             {
                 return int.MaxValue;
             }
 
-            if (this.LowestScoreAttribute != null && directive.Constructor.HasAttribute(this.LowestScoreAttribute))
+            if (this.LowestScoreAttribute != null && directive.Constructor.IsDefined(this.LowestScoreAttribute, true))
             {
                 return int.MinValue;
             }

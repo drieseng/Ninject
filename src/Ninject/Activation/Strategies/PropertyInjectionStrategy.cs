@@ -78,9 +78,10 @@ namespace Ninject.Activation.Strategies
             Ensure.ArgumentNotNull(instance, nameof(instance));
 
             var properties = context.Plan.GetProperties();
+            var propertyParameters = GetPropertyParameters(context);
+
             if (properties.Count > 0)
             {
-                var propertyParameters = GetPropertyParameters(context);
                 if (propertyParameters.Count > 0)
                 {
                     foreach (var directive in properties)
@@ -93,16 +94,32 @@ namespace Ninject.Activation.Strategies
                             {
                                 if (match != null)
                                 {
-                                    // TODO Report an exception because two property values apply to the same
-                                    // TODO property.
+                                    throw new ActivationException(this.exceptionFormatter.MoreThanOnePropertyValueForTarget(context, directive.Target));
                                 }
 
                                 match = propertyParameter;
                             }
                         }
 
-                        var value = (match == null) ? this.propertyValueProvider.GetValue(directive, context) : match.GetValue(context, directive.Target);
+                        object value;
+
+                        if (match != null)
+                        {
+                            value = match.GetValue(context, directive.Target);
+                            propertyParameters.Remove(match);
+                        }
+                        else
+                        {
+                            value = this.propertyValueProvider.GetValue(directive, context);
+                        }
+
                         directive.Injector(instance, value);
+                    }
+
+                    // Check if there are any property parameters for which we have no found a corresponding property
+                    if (propertyParameters.Count > 0)
+                    {
+                        throw new ActivationException(this.exceptionFormatter.CouldNotResolvePropertyForValueInjection(context.Request, propertyParameters[0].Name));
                     }
                 }
                 else
@@ -116,12 +133,11 @@ namespace Ninject.Activation.Strategies
             }
             else
             {
-                // TODO Do we want to report an exception when property parameters were specified for a service
-                // TODO that does not define any injectable properties?
-
-                /*
-                throw new ActivationException(this.exceptionFormatter.CouldNotResolvePropertyForValueInjection(context.Request, propertyParameters[0].Name));
-                */
+                // Check if there are any property parameters (for which we have not found a corresponding property)
+                if (propertyParameters.Count > 0)
+                {
+                    throw new ActivationException(this.exceptionFormatter.CouldNotResolvePropertyForValueInjection(context.Request, propertyParameters[0].Name));
+                }
             }
 
             return instance;

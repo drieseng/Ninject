@@ -22,9 +22,10 @@
 namespace Ninject.Components
 {
     using System;
-
+    using System.Reflection;
     using Ninject.Activation;
     using Ninject.Parameters;
+    using Ninject.Planning.Targets;
 
     /// <summary>
     /// Provides meaningful exception messages.
@@ -52,6 +53,17 @@ namespace Ninject.Components
         /// <param name="context">The context.</param>
         /// <returns>The exception message.</returns>
         string CyclicalDependenciesDetected(IContext context);
+
+        /// <summary>
+        /// Generates a message saying that more than one <see cref="PropertyValue"/> is defined for the specified
+        /// <see cref="ITarget{PropertyInfo}"/>.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="target">The property target for which more than one <see cref="PropertyValue"/> is defined.</param>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        string MoreThanOnePropertyValueForTarget(IContext context, ITarget<PropertyInfo> target);
 
         /// <summary>
         /// Generates a message saying that no constructors are available on the specified context.

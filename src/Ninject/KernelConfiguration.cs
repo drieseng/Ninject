@@ -28,6 +28,7 @@ namespace Ninject
 
     using Ninject.Activation;
     using Ninject.Activation.Caching;
+    using Ninject.Activation.Providers;
     using Ninject.Activation.Strategies;
     using Ninject.Components;
     using Ninject.Infrastructure;
@@ -75,7 +76,7 @@ namespace Ninject
         /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
         public KernelConfiguration(INinjectSettings settings, params INinjectModule[] modules)
-            : this(new ComponentContainer(settings, new ExceptionFormatter()), settings, modules)
+            : this(CreateComponentContainer(settings), settings, modules)
         {
         }
 
@@ -95,17 +96,14 @@ namespace Ninject
             Ensure.ArgumentNotNull(modules, nameof(modules));
 
             this.Settings = settings;
-
             this.Components = components;
 
-            components.KernelConfiguration = this;
-
-            this.AddComponents();
-
+            /*
             if (this.Settings.LoadExtensions)
             {
                 this.Load(this.Settings.ExtensionSearchPatterns);
             }
+            */
 
             this.Load(modules);
         }
@@ -302,65 +300,78 @@ namespace Ninject
         /// <summary>
         /// Adds components to the kernel during startup.
         /// </summary>
-        protected virtual void AddComponents()
+        private static ComponentContainer CreateComponentContainer(INinjectSettings settings)
         {
-            this.Components.Add<IPlanner, Planner>();
-            this.Components.Add<IPlanningStrategy, ConstructorReflectionStrategy>();
+            var components = new ComponentContainer(settings, new ExceptionFormatter());
 
-            if (this.Settings.PropertyInjection)
+            components.Add<IPlanner, Planner>();
+
+            if (settings.PropertyInjection)
             {
-                /*
-                this.Components.Add<IPlanningStrategy, PropertyReflectionStrategy>();
-                this.Components.Add<IActivationStrategy, PropertyInjectionStrategy>();
-                */
+                components.Add<IPlanningStrategy, PropertyReflectionStrategy>();
+                // TODO Setting InjectNonPublic
+                components.Add<IPropertyReflectionSelector, PropertyReflectionSelector>();
+                components.Add<IInitializationStrategy, PropertyInjectionStrategy>();
+                components.Add<IPropertyValueProvider, PropertyValueProvider>();
             }
 
-            if (this.Settings.MethodInjection)
+            if (settings.MethodInjection)
             {
-                this.Components.Add<IPlanningStrategy, MethodReflectionStrategy>();
-                this.Components.Add<IActivationStrategy, MethodInjectionStrategy>();
+                components.Add<IPlanningStrategy, MethodReflectionStrategy>();
+                // TODO Setting InjectNonPublic
+                components.Add<IMethodReflectionSelector, MethodReflectionSelector>();
+                components.Add<IInitializationStrategy, MethodInjectionStrategy>();
             }
 
-            this.Components.Add<ISelector, Selector>();
-            this.Components.Add<IConstructorInjectionScorer, StandardConstructorScorer>();
-            this.Components.Add<IInjectionHeuristic, StandardInjectionHeuristic>();
+            components.Add<IPlanningStrategy, ConstructorReflectionStrategy>();
+            // TODO Setting InjectNonPublic
+            components.Add<IConstructorReflectionSelector, ConstructorReflectionSelector>();
+            components.Add<IConstructorInjectionScorer, StandardConstructorScorer>();
 
-            this.Components.Add<IPipeline, Pipeline>();
+            /*components.Add<IInjectionHeuristic, StandardInjectionHeuristic>();*/
 
-            if (!this.Settings.ActivationCacheDisabled)
+            components.Add<IPipeline, Pipeline>();
+
+            if (!settings.ActivationCacheDisabled)
             {
-                this.Components.Add<IActivationStrategy, ActivationCacheStrategy>();
+                components.Add<IActivationStrategy, ActivationCacheStrategy>();
             }
 
-            this.Components.Add<IActivationStrategy, InitializableStrategy>();
-            this.Components.Add<IActivationStrategy, StartableStrategy>();
-            this.Components.Add<IActivationStrategy, BindingActionStrategy>();
-            this.Components.Add<IActivationStrategy, DisposableStrategy>();
+            components.Add<IInitializationStrategy, InitializableStrategy>();
+            components.Add<IActivationStrategy, StartableStrategy>();
+            components.Add<IDeactivationStrategy, StoppableStrategy>();
+            components.Add<IActivationStrategy, BindingActionStrategy>();
+            components.Add<IDeactivationStrategy, BindingActionStrategy>();
 
-            this.Components.Add<IBindingPrecedenceComparer, BindingPrecedenceComparer>();
+            // Should be added as last deactivation strategy
+            components.Add<IDeactivationStrategy, DisposableStrategy>();
 
-            this.Components.Add<IBindingResolver, StandardBindingResolver>();
-            this.Components.Add<IBindingResolver, OpenGenericBindingResolver>();
+            components.Add<IBindingPrecedenceComparer, BindingPrecedenceComparer>();
 
-            this.Components.Add<IMissingBindingResolver, DefaultValueBindingResolver>();
-            this.Components.Add<IMissingBindingResolver, SelfBindingResolver>();
+            components.Add<IBindingResolver, StandardBindingResolver>();
+            components.Add<IBindingResolver, OpenGenericBindingResolver>();
 
-            if (!this.Settings.UseReflectionBasedInjection)
+            components.Add<IMissingBindingResolver, DefaultValueBindingResolver>();
+            components.Add<IMissingBindingResolver, SelfBindingResolver>();
+
+            if (!settings.UseReflectionBasedInjection)
             {
-                this.Components.Add<IInjectorFactory, ExpressionInjectorFactory>();
+                components.Add<IInjectorFactory, ExpressionInjectorFactory>();
             }
             else
             {
-                this.Components.Add<IInjectorFactory, ReflectionInjectorFactory>();
+                components.Add<IInjectorFactory, ReflectionInjectorFactory>();
             }
 
-            this.Components.Add<ICache, Cache>();
-            this.Components.Add<IActivationCache, ActivationCache>();
-            this.Components.Add<ICachePruner, GarbageCollectionCachePruner>();
+            components.Add<ICache, Cache>();
+            components.Add<IActivationCache, ActivationCache>();
+            components.Add<ICachePruner, GarbageCollectionCachePruner>();
 
-            this.Components.Add<IModuleLoader, ModuleLoader>();
-            this.Components.Add<IModuleLoaderPlugin, CompiledModuleLoaderPlugin>();
-            this.Components.Add<IAssemblyNameRetriever, AssemblyNameRetriever>();
+            components.Add<IModuleLoader, ModuleLoader>();
+            components.Add<IModuleLoaderPlugin, CompiledModuleLoaderPlugin>();
+            components.Add<IAssemblyNameRetriever, AssemblyNameRetriever>();
+
+            return components;
         }
     }
 }

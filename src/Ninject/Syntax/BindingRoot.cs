@@ -24,6 +24,7 @@ namespace Ninject.Syntax
     using System;
     using System.Linq;
 
+    using Ninject.Activation;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Disposal;
@@ -61,7 +62,7 @@ namespace Ninject.Syntax
 
             this.AddBinding(binding);
 
-            return new BindingBuilder<T>(binding, this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), service.Format());
+            return new BindingBuilder<T>(binding, this.Components.Get<IPipeline>(), this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), service.Format());
         }
 
         /// <summary>
@@ -79,7 +80,7 @@ namespace Ninject.Syntax
             this.AddBinding(new Binding(typeof(T2), firstBinding.BindingConfiguration));
             var serviceNames = new[] { typeof(T1).Format(), typeof(T2).Format() };
 
-            return new BindingBuilder<T1, T2>(firstBinding.BindingConfiguration, this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", serviceNames));
+            return new BindingBuilder<T1, T2>(firstBinding.BindingConfiguration, this.Components.Get<IPipeline>(), this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", serviceNames));
         }
 
         /// <summary>
@@ -99,7 +100,7 @@ namespace Ninject.Syntax
             this.AddBinding(new Binding(typeof(T3), firstBinding.BindingConfiguration));
             var serviceNames = new[] { typeof(T1).Format(), typeof(T2).Format(), typeof(T3).Format() };
 
-            return new BindingBuilder<T1, T2, T3>(firstBinding.BindingConfiguration, this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", serviceNames));
+            return new BindingBuilder<T1, T2, T3>(firstBinding.BindingConfiguration, this.Components.Get<IPipeline>(), this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", serviceNames));
         }
 
         /// <summary>
@@ -121,7 +122,7 @@ namespace Ninject.Syntax
             this.AddBinding(new Binding(typeof(T4), firstBinding.BindingConfiguration));
             var serviceNames = new[] { typeof(T1).Format(), typeof(T2).Format(), typeof(T3).Format(), typeof(T4).Format() };
 
-            return new BindingBuilder<T1, T2, T3, T4>(firstBinding.BindingConfiguration, this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", serviceNames));
+            return new BindingBuilder<T1, T2, T3, T4>(firstBinding.BindingConfiguration, this.Components.Get<IPipeline>(), this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", serviceNames));
         }
 
         /// <summary>
@@ -150,7 +151,7 @@ namespace Ninject.Syntax
                 this.AddBinding(new Binding(service, firstBinding.BindingConfiguration));
             }
 
-            return new BindingBuilder<object>(firstBinding, this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", services.Select(service => service.Format()).ToArray()));
+            return new BindingBuilder<object>(firstBinding, this.Components.Get<IPipeline>(), this.Components.Get<IPlanner>(), this.Components.Get<IConstructorInjectionScorer>(), string.Join(", ", services.Select(service => service.Format()).ToArray()));
         }
 
         /// <summary>

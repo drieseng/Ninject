@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="BindingConfigurationBuilder.cs" company="Ninject Project Contributors">
+// <copyright file="IStartable.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,21 +19,16 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder
+namespace Ninject
 {
-    using Ninject.Planning.Bindings;
-
     /// <summary>
-    /// Builds a binding configurating.
+    /// A service that is stopped when deactivated.
     /// </summary>
-    internal abstract class BindingConfigurationBuilder
+    public interface IStoppable
     {
         /// <summary>
-        /// Builds the binding configuration.
+        /// Stops this instance. Called during deactivation.
         /// </summary>
-        /// <returns>
-        /// The binding configuration.
-        /// </returns>
-        public abstract IBindingConfiguration Build();
+        void Stop();
     }
 }

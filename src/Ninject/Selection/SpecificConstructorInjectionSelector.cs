@@ -56,7 +56,7 @@ namespace Ninject.Selection
         /// <returns>
         /// The selected constructor.
         /// </returns>
-        public ConstructorInjectionDirective Select(IPlan plan, IContext context)
+        public IConstructorInjectionDirective Select(IPlan plan, IContext context)
         {
             return this.constructor;
         }

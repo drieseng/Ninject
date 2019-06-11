@@ -1,5 +1,5 @@
-// -------------------------------------------------------------------------------------------------
-// <copyright file="ActivationStrategy.cs" company="Ninject Project Contributors">
+﻿// -------------------------------------------------------------------------------------------------
+// <copyright file="StoppableStrategy.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -21,30 +21,31 @@
 
 namespace Ninject.Activation.Strategies
 {
-    using Ninject.Components;
+    using System;
 
     /// <summary>
-    /// Contributes to a <see cref="IPipeline"/>, and is called during the activation
-    /// and deactivation of an instance.
+    /// Stops instances that implement <see cref="IStoppable"/> during deactivation.
     /// </summary>
-    public abstract class ActivationStrategy : NinjectComponent, IActivationStrategy
+    public class StoppableStrategy : IDeactivationStrategy
     {
         /// <summary>
-        /// Contributes to the activation of the instance in the specified context.
+        /// Starts the specified instance.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="reference">A reference to the instance being activated.</param>
-        public virtual void Activate(IContext context, InstanceReference reference)
+        public void Deactivate(IContext context, InstanceReference reference)
         {
+            if (reference.IsInstanceOf<IStoppable>(out var startable))
+            {
+                startable.Stop();
+            }
         }
 
         /// <summary>
-        /// Contributes to the deactivation of the instance in the specified context.
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="reference">A reference to the instance being deactivated.</param>
-        public virtual void Deactivate(IContext context, InstanceReference reference)
+        void IDisposable.Dispose()
         {
         }
-    }
+   }
 }

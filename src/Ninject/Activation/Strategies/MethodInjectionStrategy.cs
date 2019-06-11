@@ -22,7 +22,7 @@
 namespace Ninject.Activation.Strategies
 {
     using System;
-
+    using System.Reflection;
     using Ninject.Infrastructure;
     using Ninject.Planning.Directives;
     using Ninject.Planning.Targets;
@@ -30,28 +30,37 @@ namespace Ninject.Activation.Strategies
     /// <summary>
     /// Injects methods on an instance during activation.
     /// </summary>
-    public class MethodInjectionStrategy : ActivationStrategy
+    public class MethodInjectionStrategy : IInitializationStrategy
     {
         /// <summary>
         /// Injects values into the properties as described by <see cref="MethodInjectionDirective"/>s
         /// contained in the plan.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="reference">A reference to the instance being activated.</param>
+        /// <param name="instance">The instance being initialized.</param>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="reference"/> is <see langword="null"/>.</exception>
-        public override void Activate(IContext context, InstanceReference reference)
+        /// <exception cref="ArgumentNullException"><paramref name="instance"/> is <see langword="null"/>.</exception>
+        public object Initialize(IContext context, object instance)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
-            Ensure.ArgumentNotNull(reference, nameof(reference));
+            Ensure.ArgumentNotNull(instance, nameof(instance));
 
-            foreach (var directive in context.Plan.GetAll<MethodInjectionDirective>())
+            foreach (var directive in context.Plan.GetMethods())
             {
-                directive.Injector(reference.Instance, GetMethodArguments(directive.Targets, context));
+                directive.Injector(instance, GetMethodArguments(directive.Targets, context));
             }
+
+            return instance;
         }
 
-        private static object[] GetMethodArguments(ITarget[] targets, IContext context)
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        void IDisposable.Dispose()
+        {
+        }
+
+        private static object[] GetMethodArguments(ITarget<ParameterInfo>[] targets, IContext context)
         {
             var arguments = new object[targets.Length];
 

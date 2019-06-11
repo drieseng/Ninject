@@ -41,20 +41,24 @@ namespace Ninject.Planning.Bindings
         /// Initializes a new instance of the <see cref="BindingBuilder{T1, T2, T3, T4}"/> class.
         /// </summary>
         /// <param name="bindingConfiguration">The binding to build.</param>
+        /// <param name="pipeline">The <see cref="Pipeline"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
         /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
         /// <param name="serviceNames">The names of the services.</param>
         /// <exception cref="ArgumentNullException"><paramref name="bindingConfiguration"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="pipeline"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="planner"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="constructorScorer"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="serviceNames"/> is <see langword="null"/>.</exception>
         public BindingBuilder(
             IBindingConfiguration bindingConfiguration,
+            IPipeline pipeline,
             IPlanner planner,
             IConstructorInjectionScorer constructorScorer,
             string serviceNames)
             : base(
                  bindingConfiguration,
+                 pipeline,
                  planner,
                  constructorScorer,
                  serviceNames)

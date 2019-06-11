@@ -31,7 +31,7 @@ namespace Ninject.Activation.Providers
     /// </summary>
     internal sealed class ParameterlessConstructorProvider : StandardProviderBase
     {
-        private readonly ConstructorInjectionDirective constructor;
+        private readonly IConstructorInjectionDirective constructor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ParameterlessConstructorProvider"/> class.
@@ -40,7 +40,7 @@ namespace Ninject.Activation.Providers
         /// <param name="constructor">The parameterless constructor.</param>
         /// <param name="plan">The plan.</param>
         /// <param name="pipeline">The pipeline.</param>
-        public ParameterlessConstructorProvider(Type type, ConstructorInjectionDirective constructor, IPlan plan, IPipeline pipeline)
+        public ParameterlessConstructorProvider(Type type, IConstructorInjectionDirective constructor, IPlan plan, IPipeline pipeline)
             : base(plan, pipeline)
         {
             this.Type = type;

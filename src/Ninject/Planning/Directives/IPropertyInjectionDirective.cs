@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IConstructorInjectionSelectorBuilder.cs" company="Ninject Project Contributors">
+// <copyright file="IPropertyInjectionDirective.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,22 +19,26 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder
+namespace Ninject.Planning.Directives
 {
-    using System.ComponentModel;
+    using System.Reflection;
 
-    using Ninject.Selection;
-    using Ninject.Syntax;
+    using Ninject.Injection;
+    using Ninject.Planning.Targets;
 
     /// <summary>
-    /// An <see cref="IConstructorInjectionSelector"/> builder.
+    /// Describes the injection of a property.
     /// </summary>
-    public interface IConstructorInjectionSelectorBuilder : IFluentSyntax
+    public interface IPropertyInjectionDirective : IDirective
     {
         /// <summary>
-        /// Builds an <see cref="IConstructorInjectionSelector"/>.
+        /// Gets the injector that will be triggered.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        void Build();
+        PropertyInjector Injector { get; }
+
+        /// <summary>
+        /// Gets the injection target for the directive.
+        /// </summary>
+        ITarget<PropertyInfo> Target { get; }
     }
 }

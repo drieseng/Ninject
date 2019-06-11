@@ -40,7 +40,9 @@ namespace Ninject.Activation
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The created instance.</returns>
+        /// <returns>
+        /// The created instance.
+        /// </returns>
         object Create(IContext context);
     }
 }

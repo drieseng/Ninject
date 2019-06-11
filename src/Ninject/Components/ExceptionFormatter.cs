@@ -29,6 +29,7 @@ namespace Ninject.Components
     using Ninject.Activation;
     using Ninject.Infrastructure.Introspection;
     using Ninject.Modules;
+    using Ninject.Parameters;
     using Ninject.Planning.Directives;
     using Ninject.Planning.Targets;
 
@@ -203,7 +204,7 @@ namespace Ninject.Components
         /// <param name="context">The context.</param>
         /// <param name="bestDirectives">The best constructor directives.</param>
         /// <returns>The exception message.</returns>
-        public static string ConstructorsAmbiguous(IContext context, IEnumerable<ConstructorInjectionDirective> bestDirectives)
+        public static string ConstructorsAmbiguous(IContext context, IEnumerable<IConstructorInjectionDirective> bestDirectives)
         {
             using (var sw = new StringWriter())
             {
@@ -251,6 +252,34 @@ namespace Ninject.Components
                 sw.WriteLine("  3) Ensure you have not accidentally created more than one kernel.");
                 sw.WriteLine("  4) If you are using constructor arguments, ensure that the parameter name matches the constructors parameter name.");
                 sw.WriteLine("  5) If you are using automatic module loading, ensure the search path and filters are correct.");
+
+                return sw.ToString();
+            }
+        }
+
+        /// <summary>
+        /// Generates a message saying that more than one <see cref="PropertyValue"/> is defined for the specified
+        /// <see cref="ITarget{PropertyInfo}"/>.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="target">The property target for which more than one <see cref="PropertyValue"/> is defined.</param>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        public string MoreThanOnePropertyValueForTarget(IContext context, ITarget<PropertyInfo> target)
+        {
+            using (var sw = new StringWriter())
+            {
+                sw.WriteLine("Error activating {0} using {1}", context.Request.Service.Format(), context.Binding.Format(context));
+                sw.WriteLine("More than one property value defined for property {0}.", target.Name);
+
+                sw.WriteLine("Activation path:");
+                sw.WriteLine(context.Request.FormatActivationPath());
+
+                sw.WriteLine("Suggestions:");
+                sw.WriteLine("  1) Ensure that you define only a single {0} with a given name for a binding.", typeof(PropertyValue));
+                sw.WriteLine("  2) If you pass a {0} for a given property when you get instance of a service, ensure that", typeof(PropertyValue));
+                sw.WriteLine("     the binding for that service doesn't also a {0} for the same property.", typeof(PropertyValue));
 
                 return sw.ToString();
             }

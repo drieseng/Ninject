@@ -26,6 +26,9 @@ namespace Ninject.Planning.Directives
     using Ninject.Injection;
     using Ninject.Planning.Targets;
 
+    /// <summary>
+    /// Describes the injection of a constructor.
+    /// </summary>
     public interface IConstructorInjectionDirective : IDirective
     {
         /// <summary>

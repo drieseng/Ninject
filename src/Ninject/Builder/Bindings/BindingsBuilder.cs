@@ -24,6 +24,7 @@ namespace Ninject.Builder
     using System;
     using System.Collections.Generic;
 
+    using Ninject.Infrastructure;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
@@ -33,16 +34,18 @@ namespace Ninject.Builder
     internal sealed class BindingsBuilder : IBindingsBuilder
     {
         private readonly List<BindingBuilder> bindingBuilders;
-        private readonly KernelBuilder kernelBuilder;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BindingsBuilder"/> class.
         /// </summary>
-        /// <param name="kernelBuilder">The kernel builder.</param>
-        public BindingsBuilder(KernelBuilder kernelBuilder)
+        public BindingsBuilder()
         {
             this.bindingBuilders = new List<BindingBuilder>();
-            this.kernelBuilder = kernelBuilder;
+        }
+
+        public IReadOnlyList<BindingBuilder> Bindings
+        {
+            get { return this.bindingBuilders; }
         }
 
         /// <summary>
@@ -52,9 +55,9 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public IBindingToSyntax<T> Bind<T>()
+        public INewBindingToSyntax<T> Bind<T>()
         {
-            var bindingBuilder = new BindingBuilder<T>(this.kernelBuilder.Components);
+            var bindingBuilder = new BindingBuilder<T>();
             this.bindingBuilders.Add(bindingBuilder);
             return bindingBuilder;
         }
@@ -112,27 +115,14 @@ namespace Ninject.Builder
         /// <summary>
         /// Builds the bindings.
         /// </summary>
-        /// <returns>
-        /// The bindings.
-        /// </returns>
-        public Dictionary<Type, ICollection<IBinding>> Build()
+        /// <param name="root">The resolution root.</param>
+        /// <param name="bindingVisitor">Gathers built bindings.</param>
+        public void Build(IResolutionRoot root, IVisitor<IBinding> bindingVisitor)
         {
-            Dictionary<Type, ICollection<IBinding>> bindingsByType = new Dictionary<Type, ICollection<IBinding>>();
-
             foreach (var bindingBuilder in this.bindingBuilders)
             {
-                var binding = bindingBuilder.Build();
-
-                if (!bindingsByType.TryGetValue(binding.Service, out var bindingsForType))
-                {
-                    bindingsForType = new List<IBinding>();
-                    bindingsByType.Add(binding.Service, bindingsForType);
-                }
-
-                bindingsForType.Add(binding);
+                bindingBuilder.Build(root, bindingVisitor);
             }
-
-            return bindingsByType;
         }
     }
 }

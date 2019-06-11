@@ -22,21 +22,13 @@
 namespace Ninject.Builder
 {
     using System;
-    using System.ComponentModel;
-
-    using Ninject.Syntax;
+    using Ninject.Builder.Components;
 
     /// <summary>
     /// Builds a component for assigning a score to a given constructor.
     /// </summary>
-    public interface IConstructorScorerBuilder : IFluentSyntax
+    public interface IConstructorScorerBuilder : IComponentBuilder
     {
-        /// <summary>
-        /// Builds the component for assigning a score to a given constructor.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        void Build();
-
         /// <summary>
         /// Specifies the type of a custom attribute that can be applied to a constructor to give it the lowest score.
         /// </summary>

@@ -25,6 +25,7 @@ namespace Ninject.Planning.Bindings
     using System.Linq;
 
     using Ninject.Activation;
+    using Ninject.Builder.Syntax;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Language;
@@ -624,7 +625,7 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnActivation(Action<T> action)
+        public IBindingOnActivationSyntax<T> OnActivation(Action<T> action)
         {
             return this.OnActivation<T>(action);
         }
@@ -635,7 +636,7 @@ namespace Ninject.Planning.Bindings
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnActivation<TImplementation>(Action<TImplementation> action)
+        public IBindingOnActivationSyntax<T> OnActivation<TImplementation>(Action<TImplementation> action)
         {
             this.BindingConfiguration.ActivationActions.Add((context, instance) => action((TImplementation)instance));
             return this;
@@ -646,7 +647,7 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnActivation(Action<IContext, T> action)
+        public IBindingOnActivationSyntax<T> OnActivation(Action<IContext, T> action)
         {
             return this.OnActivation<T>(action);
         }
@@ -657,7 +658,7 @@ namespace Ninject.Planning.Bindings
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnActivation<TImplementation>(Action<IContext, TImplementation> action)
+        public IBindingOnActivationSyntax<T> OnActivation<TImplementation>(Action<IContext, TImplementation> action)
         {
             this.BindingConfiguration.ActivationActions.Add((context, instance) => action(context, (TImplementation)instance));
             return this;
@@ -668,7 +669,7 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnDeactivation(Action<T> action)
+        public IBindingOnActivationSyntax<T> OnDeactivation(Action<T> action)
         {
             return this.OnDeactivation<T>(action);
         }
@@ -679,7 +680,7 @@ namespace Ninject.Planning.Bindings
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnDeactivation<TImplementation>(Action<TImplementation> action)
+        public IBindingOnActivationSyntax<T> OnDeactivation<TImplementation>(Action<TImplementation> action)
         {
             this.BindingConfiguration.DeactivationActions.Add((context, instance) => action((TImplementation)instance));
             return this;
@@ -690,7 +691,7 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnDeactivation(Action<IContext, T> action)
+        public IBindingOnActivationSyntax<T> OnDeactivation(Action<IContext, T> action)
         {
             return this.OnDeactivation<T>(action);
         }
@@ -701,7 +702,7 @@ namespace Ninject.Planning.Bindings
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="action">The action callback.</param>
         /// <returns>The fluent syntax.</returns>
-        public IBindingOnSyntax<T> OnDeactivation<TImplementation>(Action<IContext, TImplementation> action)
+        public IBindingOnActivationSyntax<T> OnDeactivation<TImplementation>(Action<IContext, TImplementation> action)
         {
             this.BindingConfiguration.DeactivationActions.Add((context, instance) => action(context, (TImplementation)instance));
             return this;

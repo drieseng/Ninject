@@ -28,7 +28,6 @@ namespace Ninject.Selection
 
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Language;
-    using Ninject.Selection.Heuristics;
 
     /// <summary>
     /// Selects properties to inject services into.
@@ -40,7 +39,10 @@ namespace Ninject.Selection
         /// </summary>
         private const BindingFlags DefaultBindingFlags = BindingFlags.Public | BindingFlags.Instance;
 
-        private readonly List<IInjectionHeuristic> injectionHeuristics;
+        /// <summary>
+        /// The injection heuristics.
+        /// </summary>
+        private readonly List<IPropertyInjectionHeuristic> injectionHeuristics;
 
         /// <summary>
         /// The binding flags.
@@ -52,7 +54,7 @@ namespace Ninject.Selection
         /// </summary>
         /// <param name="injectionHeuristics">The injection heuristics.</param>
         /// <exception cref="ArgumentNullException"><paramref name="injectionHeuristics"/> is <see langword="null"/>.</exception>
-        public PropertyReflectionSelector(IEnumerable<IInjectionHeuristic> injectionHeuristics)
+        public PropertyReflectionSelector(IEnumerable<IPropertyInjectionHeuristic> injectionHeuristics)
         {
             Ensure.ArgumentNotNull(injectionHeuristics, nameof(injectionHeuristics));
 
@@ -94,7 +96,7 @@ namespace Ninject.Selection
 
             return type.GetProperties(this.bindingFlags)
                        .Select(p => p.GetPropertyFromDeclaredType(p, this.bindingFlags))
-                       .Where(p => p != null && p.GetSetMethod(this.InjectNonPublic) != null && ShouldInject(this.injectionHeuristics, p));
+                       .Where(p => p != null && p.GetSetMethod(this.InjectNonPublic) != null && ShouldInject(this.injectionHeuristics, type, p));
         }
 
         /// <summary>
@@ -104,13 +106,13 @@ namespace Ninject.Selection
         {
         }
 
-        private static bool ShouldInject(List<IInjectionHeuristic> injectionHeuristics, PropertyInfo property)
+        private static bool ShouldInject(List<IPropertyInjectionHeuristic> injectionHeuristics, Type type, PropertyInfo property)
         {
             var shouldInject = false;
 
             foreach (var injectionHeuristic in injectionHeuristics)
             {
-                if (injectionHeuristic.ShouldInject(property))
+                if (injectionHeuristic.ShouldInject(type, property))
                 {
                     shouldInject = true;
                     break;

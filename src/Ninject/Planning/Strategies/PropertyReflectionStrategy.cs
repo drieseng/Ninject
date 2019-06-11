@@ -38,7 +38,7 @@ namespace Ninject.Planning.Strategies
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyReflectionStrategy"/> class.
         /// </summary>
-        /// <param name="selector">The selector component.</param>
+        /// <param name="selector">The <see cref="IPropertyReflectionSelector"/> component.</param>
         /// <param name="injectorFactory">The injector factory component.</param>
         /// <exception cref="ArgumentNullException"><paramref name="selector"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="injectorFactory"/> is <see langword="null"/>.</exception>
@@ -52,14 +52,14 @@ namespace Ninject.Planning.Strategies
         }
 
         /// <summary>
-        /// Gets the selector component.
+        /// Gets the <see cref="IPropertyReflectionSelector"/> component.
         /// </summary>
-        public IPropertyReflectionSelector Selector { get; private set; }
+        public IPropertyReflectionSelector Selector { get; }
 
         /// <summary>
         /// Gets or sets the injector factory component.
         /// </summary>
-        public IInjectorFactory InjectorFactory { get; set; }
+        public IInjectorFactory InjectorFactory { get; }
 
         /// <summary>
         /// Adds a <see cref="PropertyInjectionDirective"/> to the plan for each property

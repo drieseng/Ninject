@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="BindingBuilder.cs" company="Ninject Project Contributors">
+// <copyright file="IPropertyInjectionSelector.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,21 +19,26 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder
+namespace Ninject.Selection
 {
-    using Ninject.Planning.Bindings;
+    using Ninject.Components;
+    using System;
+    using System.Reflection;
 
     /// <summary>
-    /// Provides a root for the fluent syntax associated with an <see cref="Binding"/>.
+    /// Defines whether a given property should effectively be injected during the initialization of a type.
     /// </summary>
-    internal abstract class BindingBuilder
+    public interface IPropertyInjectionHeuristic : INinjectComponent
     {
         /// <summary>
-        /// Builds a binding.
+        /// Returns a value indicating whether a property should be injected during the initialization
+        /// of a type.
         /// </summary>
+        /// <param name="type">The type being initialized, and for which the property should be injected.</param>
+        /// <param name="property">The property to take a decision for.</param>
         /// <returns>
-        /// A binding.
+        /// <see langword="true"/> if the property should be injected; otherwise, <see langword="false"/>.
         /// </returns>
-        public abstract Binding Build();
+        bool ShouldInject(Type type, PropertyInfo property);
     }
 }

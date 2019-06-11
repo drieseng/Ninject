@@ -27,6 +27,8 @@ namespace Ninject.Components
 
     using Ninject.Activation;
     using Ninject.Activation.Caching;
+    using Ninject.Activation.Providers;
+    using Ninject.Activation.Strategies;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Disposal;
     using Ninject.Infrastructure.Language;
@@ -84,18 +86,15 @@ namespace Ninject.Components
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         public ComponentContainer(INinjectSettings settings, IExceptionFormatter exceptionFormatter)
         {
-            this.cache = new Cache(new NoOpPipeline(), new NoOpCachePruner());
+            var pipeline = CreatePipeline(exceptionFormatter);
+
+            this.cache = new Cache(pipeline, new NoOpCachePruner());
             this.mappings = new Multimap<Type, IContext>(new ReferenceEqualityTypeComparer());
             this.settings = settings;
             this.exceptionFormatter = exceptionFormatter;
-            this.contextFactory = this.CreateContextFactory();
+            /*this.contextFactory = this.CreateContextFactory(pipeline);*/
             this.Add(exceptionFormatter);
         }
-
-        /// <summary>
-        /// Gets or sets the kernel configuration that owns the component container.
-        /// </summary>
-        public IKernelConfiguration KernelConfiguration { get; set; }
 
         /// <summary>
         /// Releases resources held by the object.
@@ -106,6 +105,7 @@ namespace Ninject.Components
             if (disposing && !this.IsDisposed)
             {
                 this.mappings.Clear();
+                this.cache.Dispose();
             }
 
             base.Dispose(disposing);
@@ -322,7 +322,7 @@ namespace Ninject.Components
             var implementations = this.mappings[component];
             if (implementations.Count == 0)
             {
-                instance = default;
+                instance = default(T);
                 return false;
             }
 
@@ -330,10 +330,13 @@ namespace Ninject.Components
             return true;
         }
 
-        private ComponentContextFactory CreateContextFactory()
+        private static IPipeline CreatePipeline(IExceptionFormatter exceptionFormatter)
         {
-            var constructorInjectionSelector = new BestMatchConstructorInjectionSelector(new ComponentConstructurScorer(), this.exceptionFormatter);
-            return new ComponentContextFactory(this.cache, constructorInjectionSelector, new ComponentParameterValueProvider(this), this.exceptionFormatter);
+            var propertyInjectionStrategy = new PropertyInjectionStrategy(new PropertyValueProvider(), exceptionFormatter);
+            var pipelineInitializer = new PipelineInitializer(new List<IInitializationStrategy> { propertyInjectionStrategy });
+            var pipelineDeactivator = new PipelineDeactivator(new List<IDeactivationStrategy> { new DisposableStrategy() });
+
+            return new DefaultPipeline(pipelineInitializer, new NoOpPipelineActivator(), pipelineDeactivator);
         }
 
         private object ResolveInstance(IContext context)

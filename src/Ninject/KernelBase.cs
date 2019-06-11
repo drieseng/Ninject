@@ -51,28 +51,6 @@ namespace Ninject
         /// <summary>
         /// Initializes a new instance of the <see cref="KernelBase"/> class.
         /// </summary>
-        /// <param name="modules">The modules to load into the kernel.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
-        protected KernelBase(params INinjectModule[] modules)
-            : this(new NinjectSettings(), modules)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="KernelBase"/> class.
-        /// </summary>
-        /// <param name="settings">The configuration to use.</param>
-        /// <param name="modules">The modules to load into the kernel.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
-        protected KernelBase(INinjectSettings settings, params INinjectModule[] modules)
-            : this(new ComponentContainer(settings, new ExceptionFormatter()), settings, modules)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="KernelBase"/> class.
-        /// </summary>
         /// <param name="components">The component container to use.</param>
         /// <param name="settings">The configuration to use.</param>
         /// <param name="modules">The modules to load into the kernel.</param>

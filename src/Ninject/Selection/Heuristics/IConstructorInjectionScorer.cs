@@ -36,6 +36,6 @@ namespace Ninject.Selection.Heuristics
         /// <param name="context">The injection context.</param>
         /// <param name="directive">The constructor injection directive.</param>
         /// <returns>The constructor's score.</returns>
-        int Score(IContext context, ConstructorInjectionDirective directive);
+        int Score(IContext context, IConstructorInjectionDirective directive);
     }
 }

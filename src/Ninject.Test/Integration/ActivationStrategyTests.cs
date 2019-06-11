@@ -138,7 +138,7 @@
             testActivationStrategy.ActivationCount.Should().Be(1);
         }
 
-        public class TestActivationStrategy : ActivationStrategy
+        public class TestActivationStrategy : IActivationStrategy
         {
             private int activationCount = 0;
 
@@ -150,10 +150,13 @@
                 }
             }
 
-            public override void Activate(Activation.IContext context, Activation.InstanceReference reference)
+            public void Activate(Activation.IContext context, Activation.InstanceReference reference)
             {
                 this.activationCount++;
-                base.Activate(context, reference);
+            }
+
+            public void Dispose()
+            {
             }
         }
     }

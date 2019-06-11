@@ -942,8 +942,6 @@ namespace Ninject.Tests.Integration
             {
                 int StartCount { get; }
 
-                int StopCount { get; }
-
                 [Inject]
                 IWeapon Weapon { get; set; }
             }

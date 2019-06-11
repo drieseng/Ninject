@@ -29,7 +29,7 @@ namespace Ninject.Planning.Directives
     /// <summary>
     /// Describes the injection of a method.
     /// </summary>
-    public sealed class MethodInjectionDirective : MethodInjectionDirectiveBase<MethodInfo, MethodInjector>
+    public sealed class MethodInjectionDirective : MethodInjectionDirectiveBase<MethodInfo, MethodInjector>, IMethodInjectionDirective
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MethodInjectionDirective"/> class.
@@ -41,6 +41,12 @@ namespace Ninject.Planning.Directives
         public MethodInjectionDirective(MethodInfo method, MethodInjector injector)
             : base(method, injector)
         {
+            this.Method = method;
         }
+
+        /// <summary>
+        /// Gets the base .ctor definition.
+        /// </summary>
+        public MethodInfo Method { get; }
     }
 }

@@ -48,21 +48,21 @@ namespace Ninject.Planning
         /// </summary>
         /// <param name="constructor">The constructor directive.</param>
         /// <exception cref="ArgumentNullException"><paramref name="constructor"/> is <see langword="null"/>.</exception>
-        void Add(ConstructorInjectionDirective constructor);
+        void Add(IConstructorInjectionDirective constructor);
 
         /// <summary>
         /// Adds the specified property directive to the plan.
         /// </summary>
         /// <param name="property">The property directive.</param>
         /// <exception cref="ArgumentNullException"><paramref name="property"/> is <see langword="null"/>.</exception>
-        void Add(PropertyInjectionDirective property);
+        void Add(IPropertyInjectionDirective property);
 
         /// <summary>
         /// Adds the specified method directive to the plan.
         /// </summary>
         /// <param name="method">The method directive.</param>
         /// <exception cref="ArgumentNullException"><paramref name="method"/> is <see langword="null"/>.</exception>
-        void Add(MethodInjectionDirective method);
+        void Add(IMethodInjectionDirective method);
 
         /// <summary>
         /// Returns the constructors for the current plan.
@@ -70,7 +70,7 @@ namespace Ninject.Planning
         /// <returns>
         /// The constructors for the current plan.
         /// </returns>
-        IReadOnlyList<ConstructorInjectionDirective> GetConstructors();
+        IReadOnlyList<IConstructorInjectionDirective> GetConstructors();
 
         /// <summary>
         /// Returns the properties for the current plan.
@@ -78,7 +78,15 @@ namespace Ninject.Planning
         /// <returns>
         /// The properties for the current plan.
         /// </returns>
-        IReadOnlyList<PropertyInjectionDirective> GetProperties();
+        IReadOnlyList<IPropertyInjectionDirective> GetProperties();
+
+        /// <summary>
+        /// Returns the methods for the current plan.
+        /// </summary>
+        /// <returns>
+        /// The methods for the current plan.
+        /// </returns>
+        IReadOnlyList<IMethodInjectionDirective> GetMethods();
 
         /// <summary>
         /// Determines whether the plan contains one or more directives of the specified type.

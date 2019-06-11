@@ -26,19 +26,26 @@ namespace Ninject.Activation.Strategies
     /// <summary>
     /// During deactivation, disposes instances that implement <see cref="IDisposable"/>.
     /// </summary>
-    public class DisposableStrategy : ActivationStrategy
+    public sealed class DisposableStrategy : IDeactivationStrategy
     {
         /// <summary>
         /// Disposes the specified instance.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="reference">A reference to the instance being deactivated.</param>
-        public override void Deactivate(IContext context, InstanceReference reference)
+        public void Deactivate(IContext context, InstanceReference reference)
         {
             if (reference.IsInstanceOf<IDisposable>(out var disposable))
             {
                 disposable.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        void IDisposable.Dispose()
+        {
         }
     }
 }

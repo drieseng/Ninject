@@ -35,7 +35,7 @@ namespace Ninject.Builder
         /// </summary>
         /// <typeparam name="T">The service to bind.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        IBindingToSyntax<T> Bind<T>();
+        INewBindingToSyntax<T> Bind<T>();
 
         /// <summary>
         /// Declares a binding for the specified service.

@@ -22,7 +22,7 @@
 namespace Ninject
 {
     /// <summary>
-    /// A service that is started when activated, and stopped when deactivated.
+    /// A service that is started when activated.
     /// </summary>
     public interface IStartable
     {
@@ -30,10 +30,5 @@ namespace Ninject
         /// Starts this instance. Called during activation.
         /// </summary>
         void Start();
-
-        /// <summary>
-        /// Stops this instance. Called during deactivation.
-        /// </summary>
-        void Stop();
     }
 }

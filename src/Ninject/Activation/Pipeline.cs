@@ -45,6 +45,8 @@ namespace Ninject.Activation
         /// </summary>
         private readonly List<IActivationStrategy> strategies;
 
+        private readonly List<IDeactivationStrategy> deactivationStrategies;
+
         /// <summary>
         /// The strategies that contribute to the initialization process.
         /// </summary>
@@ -56,17 +58,20 @@ namespace Ninject.Activation
         /// <param name="strategies">The strategies to execute during activation and deactivation.</param>
         /// <param name="initializationStrategies">The strategies to execute during initialization.</param>
         /// <param name="activationCache">The activation cache.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="strategies"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="activationStrategies"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="deactivationStrategies"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="initializationStrategies"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="activationCache"/> is <see langword="null"/>.</exception>
-        public Pipeline(IEnumerable<IActivationStrategy> strategies, IEnumerable<IInitializationStrategy> initializationStrategies, IActivationCache activationCache)
+        public Pipeline(IEnumerable<IInitializationStrategy> initializationStrategies, IEnumerable<IActivationStrategy> activationStrategies, IEnumerable<IDeactivationStrategy> deactivationStrategies, IActivationCache activationCache)
         {
-            Ensure.ArgumentNotNull(strategies, nameof(strategies));
             Ensure.ArgumentNotNull(initializationStrategies, nameof(initializationStrategies));
+            Ensure.ArgumentNotNull(activationStrategies, nameof(activationStrategies));
+            Ensure.ArgumentNotNull(deactivationStrategies, nameof(deactivationStrategies));
             Ensure.ArgumentNotNull(activationCache, nameof(activationCache));
 
-            this.strategies = strategies.ToList();
             this.initializationStrategies = initializationStrategies.ToList();
+            this.strategies = activationStrategies.ToList();
+            this.deactivationStrategies = deactivationStrategies.ToList();
             this.activationCache = activationCache;
         }
 
@@ -87,15 +92,12 @@ namespace Ninject.Activation
         }
 
         /// <summary>
-        /// Initializes the instance in the specified context.
+        /// Initializes an instance in the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="instance">The instance.</param>
+        /// <param name="instance">The instance being initialized.</param>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="instance"/> is <see langword="null"/>.</exception>
-        /// <returns>
-        /// The initialized instance.
-        /// </returns>
         public object Initialize(IContext context, object instance)
         {
             if (context == null)
@@ -168,8 +170,7 @@ namespace Ninject.Activation
 
             if (!this.activationCache.IsDeactivated(reference.Instance))
             {
-                Console.WriteLine("DEACTIVATE " + this.strategies.Count);
-                this.strategies.ForEach(s => s.Deactivate(context, reference));
+                this.deactivationStrategies.ForEach(s => s.Deactivate(context, reference));
             }
         }
     }

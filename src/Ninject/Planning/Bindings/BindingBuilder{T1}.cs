@@ -40,6 +40,7 @@ namespace Ninject.Planning.Bindings
         /// Initializes a new instance of the <see cref="BindingBuilder{T1}"/> class.
         /// </summary>
         /// <param name="binding">The binding to build.</param>
+        /// <param name="pipeline">The <see cref="Pipeline"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
         /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
         /// <param name="serviceNames">The names of the services.</param>
@@ -49,11 +50,13 @@ namespace Ninject.Planning.Bindings
         /// <exception cref="ArgumentNullException"><paramref name="serviceNames"/> is <see langword="null"/>.</exception>
         public BindingBuilder(
             IBinding binding,
+            IPipeline pipeline,
             IPlanner planner,
             IConstructorInjectionScorer constructorScorer,
             string serviceNames)
             : base(
                   binding.BindingConfiguration,
+                  pipeline,
                   planner,
                   constructorScorer,
                   serviceNames)
@@ -71,10 +74,12 @@ namespace Ninject.Planning.Bindings
         /// <summary>
         /// Indicates that the service should be self-bound.
         /// </summary>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<T1> ToSelf()
         {
-            this.Binding.Provider = new StandardProvider(this.Binding.Service, this.Planner, this.ConstructorScorer);
+            this.Binding.Provider = new StandardProvider(this.Binding.Service, this.Planner.GetPlan(this.Binding.Service), this.Pipeline, this.ConstructorScorer);
             this.Binding.Target = BindingTarget.Self;
 
             return new BindingConfigurationBuilder<T1>(this.Binding.BindingConfiguration, this.ServiceNames);
@@ -84,7 +89,9 @@ namespace Ninject.Planning.Bindings
         /// Indicates that the service should be bound to the specified implementation type.
         /// </summary>
         /// <typeparam name="TImplementation">The implementation type.</typeparam>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<TImplementation> To<TImplementation>()
             where TImplementation : T1
         {
@@ -95,7 +102,9 @@ namespace Ninject.Planning.Bindings
         /// Indicates that the service should be bound to the specified implementation type.
         /// </summary>
         /// <param name="implementation">The implementation type.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<T1> To(Type implementation)
         {
             return this.InternalTo<T1>(implementation);
@@ -106,7 +115,9 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="newExpression">The expression that specifies the constructor.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<TImplementation> ToConstructor<TImplementation>(
             Expression<Func<IConstructorArgumentSyntax, TImplementation>> newExpression)
             where TImplementation : T1
@@ -119,7 +130,9 @@ namespace Ninject.Planning.Bindings
         /// The instance will be activated via the kernel when an instance of the service is activated.
         /// </summary>
         /// <typeparam name="TProvider">The type of provider to activate.</typeparam>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<T1> ToProvider<TProvider>()
             where TProvider : IProvider
         {
@@ -131,7 +144,9 @@ namespace Ninject.Planning.Bindings
         /// The instance will be activated via the kernel when an instance of the service is activated.
         /// </summary>
         /// <param name="providerType">The type of provider to activate.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<T1> ToProvider(Type providerType)
         {
             return this.ToProviderInternal<T1>(providerType);
@@ -142,7 +157,9 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="provider">The provider.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<TImplementation> ToProvider<TImplementation>(IProvider<TImplementation> provider)
             where TImplementation : T1
         {
@@ -153,7 +170,9 @@ namespace Ninject.Planning.Bindings
         /// Indicates that the service should be bound to the specified callback method.
         /// </summary>
         /// <param name="method">The method.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<T1> ToMethod(Func<IContext, T1> method)
         {
             return this.InternalToMethod(method);
@@ -164,7 +183,9 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="method">The method.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<TImplementation> ToMethod<TImplementation>(Func<IContext, TImplementation> method)
             where TImplementation : T1
         {
@@ -176,7 +197,9 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="value">The constant value.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWhenInNamedWithOrOnSyntax<TImplementation> ToConstant<TImplementation>(TImplementation value)
             where TImplementation : T1
         {

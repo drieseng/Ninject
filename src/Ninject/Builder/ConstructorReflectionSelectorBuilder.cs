@@ -21,10 +21,7 @@
 
 namespace Ninject.Builder
 {
-    using System.ComponentModel;
-
-    using Ninject.Components;
-    using Ninject.Parameters;
+    using Ninject.Builder.Syntax;
     using Ninject.Selection;
 
     /// <summary>
@@ -33,25 +30,17 @@ namespace Ninject.Builder
     /// </summary>
     internal sealed class ConstructorReflectionSelectorBuilder : IConstructorReflectionSelectorBuilder
     {
-        private readonly ComponentContainer components;
         private bool injectNonPublic;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConstructorReflectionSelectorBuilder"/> class.
-        /// </summary>
-        /// <param name="components">The components.</param>
-        public ConstructorReflectionSelectorBuilder(ComponentContainer components)
-        {
-            this.components = components;
-        }
 
         /// <summary>
         /// Builds the component.
         /// </summary>
-        public void Build()
+        public void Build(IComponentBindingRoot root)
         {
-            var injectNonPublicParameter = new PropertyValue(nameof(ConstructorReflectionSelector.InjectNonPublic), this.injectNonPublic);
-            this.components.Add<IConstructorReflectionSelector, ConstructorReflectionSelector>(injectNonPublicParameter);
+            root.Bind<IConstructorReflectionSelector>()
+                .To<ConstructorReflectionSelector>()
+                .InSingletonScope()
+                .WithPropertyValue(nameof(ConstructorReflectionSelector.InjectNonPublic), this.injectNonPublic);
         }
 
         /// <summary>

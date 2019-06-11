@@ -31,7 +31,7 @@ namespace Ninject.Activation.Providers
     /// </summary>
     internal sealed class FixedConstructorProvider : StandardProviderBase
     {
-        private readonly ConstructorInjectionDirective constructor;
+        private readonly IConstructorInjectionDirective constructor;
         private readonly IConstructorParameterValueProvider constructorParameterValueProvider;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Ninject.Activation.Providers
         /// <param name="constructorParameterValueProvider">The value provider.</param>
         public FixedConstructorProvider(
             Type type,
-            ConstructorInjectionDirective constructor,
+            IConstructorInjectionDirective constructor,
             IPlan plan,
             IPipeline pipeline,
             IConstructorParameterValueProvider constructorParameterValueProvider)

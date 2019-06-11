@@ -126,6 +126,16 @@ namespace Ninject.Benchmarks.Planning.Targets
             public override string Name => _name;
 
             public override Type Type => _type;
+
+            public override object[] GetCustomAttributes(Type attributeType, bool inherit)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool IsDefined(Type attributeType, bool inherit)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public class MyService

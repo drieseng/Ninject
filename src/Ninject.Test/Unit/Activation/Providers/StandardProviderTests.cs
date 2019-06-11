@@ -26,6 +26,7 @@ namespace Ninject.Test.Unit.Activation.Providers
         private Mock<IRequest> _requestMock;
         private Mock<IPlanner> _plannerMock;
         private Mock<IPlan> _planMock;
+        private Mock<IPipeline> _pipelineMock;
         private Mock<Func<IContext, IProvider>> _providerCallbackMock;
         private Mock<IProvider> _providerMock;
         private Mock<IConstructorInjectionScorer> _constructorScorerMock;
@@ -45,22 +46,24 @@ namespace Ninject.Test.Unit.Activation.Providers
             _contextMock = new Mock<IContext>(MockBehavior.Strict);
             _plannerMock = new Mock<IPlanner>(MockBehavior.Strict);
             _planMock = new Mock<IPlan>(MockBehavior.Strict);
+            _pipelineMock = new Mock<IPipeline>(MockBehavior.Strict);
             _providerCallbackMock = new Mock<Func<IContext, IProvider>>(MockBehavior.Strict);
             _providerMock = new Mock<IProvider>(MockBehavior.Strict);
             _constructorScorerMock = new Mock<IConstructorInjectionScorer>(MockBehavior.Strict);
             _targetMock = new Mock<ITarget>(MockBehavior.Strict);
 
-            _standardProvider = new StandardProvider(typeof(Monk), _plannerMock.Object, _constructorScorerMock.Object);
+            _standardProvider = new StandardProvider(typeof(Monk), _planMock.Object, _pipelineMock.Object, _constructorScorerMock.Object);
         }
 
         [Fact]
         public void Constructor_ShouldThrowArgumentNullExceptionWhenTypeIsNull()
         {
             const Type type = null;
-            var planner = _plannerMock.Object;
+            var plan = _planMock.Object;
+            var pipeline = _pipelineMock.Object;
             var constructorScorer = _constructorScorerMock.Object;
 
-            var actual = Assert.Throws<ArgumentNullException>(() => new StandardProvider(type, planner, constructorScorer));
+            var actual = Assert.Throws<ArgumentNullException>(() => new StandardProvider(type, plan, pipeline, constructorScorer));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(type), actual.ParamName);
@@ -70,23 +73,39 @@ namespace Ninject.Test.Unit.Activation.Providers
         public void Constructor_ShouldThrowArgumentNullExceptionWhenPlannerIsNull()
         {
             var type = typeof(Monk);
-            const IPlanner planner = null;
+            const IPlan plan = null;
+            var pipeline = _pipelineMock.Object;
             var constructorScorer = _constructorScorerMock.Object;
 
-            var actual = Assert.Throws<ArgumentNullException>(() => new StandardProvider(type, planner, constructorScorer));
+            var actual = Assert.Throws<ArgumentNullException>(() => new StandardProvider(type, plan, pipeline, constructorScorer));
 
             Assert.Null(actual.InnerException);
-            Assert.Equal(nameof(planner), actual.ParamName);
+            Assert.Equal(nameof(plan), actual.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_ShouldThrowArgumentNullExceptionWhenPipelineIsNull()
+        {
+            var type = typeof(Monk);
+            var plan = _planMock.Object;
+            const IPipeline pipeline = null;
+            var constructorScorer = _constructorScorerMock.Object;
+
+            var actual = Assert.Throws<ArgumentNullException>(() => new StandardProvider(type, plan, pipeline, constructorScorer));
+
+            Assert.Null(actual.InnerException);
+            Assert.Equal(nameof(constructorScorer), actual.ParamName);
         }
 
         [Fact]
         public void Constructor_ShouldThrowArgumentNullExceptionWhenConstructorScorerIsNull()
         {
             var type = typeof(Monk);
-            var planner = _plannerMock.Object;
+            var plan = _planMock.Object;
+            var pipeline = _pipelineMock.Object;
             IConstructorInjectionScorer constructorScorer = null;
 
-            var actual = Assert.Throws<ArgumentNullException>(() => new StandardProvider(type, planner, constructorScorer));
+            var actual = Assert.Throws<ArgumentNullException>(() => new StandardProvider(type, plan, pipeline, constructorScorer));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(constructorScorer), actual.ParamName);
@@ -97,10 +116,11 @@ namespace Ninject.Test.Unit.Activation.Providers
         {
             var type = typeof(Ninja);
 
-            var actual = new StandardProvider(type, _plannerMock.Object, _constructorScorerMock.Object);
+            var actual = new StandardProvider(type, _planMock.Object, _pipelineMock.Object, _constructorScorerMock.Object);
 
             Assert.Same(type, actual.Type);
-            Assert.Same(_plannerMock.Object, actual.Planner);
+            Assert.Same(_planMock.Object, actual.Plan);
+            Assert.Same(_pipelineMock.Object, actual.Pipeline);
             Assert.Same(_constructorScorerMock.Object, actual.ConstructorScorer);
         }
 
@@ -354,41 +374,6 @@ namespace Ninject.Test.Unit.Activation.Providers
 
             Assert.Null(actualException.InnerException);
             Assert.Equal("Sequence contains more than one matching element", actualException.Message);
-        }
-
-        [Fact]
-        public void GetImplementationType_ShouldThrowArgumentNullExceptionWhenServiceIsNull()
-        {
-            const Type service = null;
-
-            var actualException = Assert.Throws<ArgumentNullException>(() => _standardProvider.GetImplementationType(service));
-
-            Assert.Null(actualException.InnerException);
-            Assert.Equal(nameof(service), actualException.ParamName);
-        }
-
-        [Fact]
-        public void GetValue_ShouldThrowArgumentNullExceptionWhenContextIsNull()
-        {
-            const IContext context = null;
-            var target = _targetMock.Object;
-
-            var actualException = Assert.Throws<ArgumentNullException>(() => _standardProvider.GetValue(context, target));
-
-            Assert.Null(actualException.InnerException);
-            Assert.Equal(nameof(context), actualException.ParamName);
-        }
-
-        [Fact]
-        public void GetValue_ShouldThrowArgumentNullExceptionWhenTargetIsNull()
-        {
-            var context = _contextMock.Object;
-            const ITarget target = null;
-
-            var actualException = Assert.Throws<ArgumentNullException>(() => _standardProvider.GetValue(context, target));
-
-            Assert.Null(actualException.InnerException);
-            Assert.Equal(nameof(target), actualException.ParamName);
         }
 
         private static ConstructorInfo GetWeaponAndWarriorConstructor()

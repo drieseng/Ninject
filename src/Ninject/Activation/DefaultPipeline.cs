@@ -46,10 +46,10 @@ namespace Ninject.Activation
         }
 
         /// <summary>
-        /// Initializes the instance using the specified context.
+        /// Initializes an instance using the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <param name="instance">The instance.</param>
+        /// <param name="instance">The instance being initialized.</param>
         /// <returns>
         /// The initialized instance.
         /// </returns>

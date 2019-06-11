@@ -22,7 +22,8 @@
 namespace Ninject.Builder
 {
     using Ninject.Activation.Providers;
-    using Ninject.Components;
+    using Ninject.Builder.Components;
+    using Ninject.Builder.Syntax;
     using Ninject.Selection;
 
     /// <summary>
@@ -30,30 +31,19 @@ namespace Ninject.Builder
     /// a given <see cref="IConstructorReflectionSelector"/>, and an <see cref="IConstructorInjectionSelector"/> that
     /// expects only a single candidate and returns this candidate.
     /// </summary>
-    internal sealed class UniqueConstructorInjectionSelectorBuilder : IConstructorInjectionSelectorBuilder
+    internal sealed class UniqueConstructorInjectionSelectorBuilder : IComponentBuilder
     {
-        private readonly ComponentContainer components;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UniqueConstructorInjectionSelectorBuilder"/> class.
-        /// </summary>
-        /// <param name="components">The components.</param>
-        public UniqueConstructorInjectionSelectorBuilder(ComponentContainer components)
-        {
-            this.components = components;
-        }
-
         /// <summary>
         /// Builds the constructor injection components.
         /// </summary>
-        public void Build()
+        public void Build(IComponentBindingRoot root)
         {
             /* TODO, MAKE configurable */
-            this.components.Add<IConstructorParameterValueProvider, ConstructorParameterValueProvider>();
-            this.components.Add<IConstructorReflectionSelector, ConstructorReflectionSelector>();
+            root.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
+            root.Bind<IConstructorReflectionSelector>().To<ConstructorReflectionSelector>();
             /* END TODO */
 
-            this.components.Add<IConstructorInjectionSelector, UniqueConstructorInjectionSelector>();
+            root.Bind<IConstructorInjectionSelector>().To<UniqueConstructorInjectionSelector>();
         }
     }
 }

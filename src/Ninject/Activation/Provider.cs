@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // <copyright file="Provider.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
@@ -24,42 +24,72 @@ namespace Ninject.Activation
     using System;
 
     using Ninject.Infrastructure;
+    using Ninject.Planning;
 
     /// <summary>
-    /// A simple abstract provider for instances of a specific type.
+    /// Creates instances of services.
     /// </summary>
-    /// <typeparam name="T">The type of instances the provider creates.</typeparam>
-    public abstract class Provider<T> : IProvider<T>
+    public abstract class Provider : IProvider
     {
         /// <summary>
-        /// Gets the type of instances the provider creates.
+        /// Initializes a new instance of the <see cref="Provider"/> class.
         /// </summary>
-        /// <value>
-        /// The type of instances the provider creates.
-        /// </value>
-        public virtual Type Type
+        /// <param name="type">The type (or prototype) of instances the provider creates.</param>
+        /// <param name="plan">The <see cref="IPlan"/> component.</param>
+        /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
+        protected Provider(Type type, IPlan plan, IPipeline pipeline)
         {
-            get { return typeof(T); }
+            this.Type = type;
+            this.Plan = plan;
+            this.Pipeline = pipeline;
         }
+
+        /// <summary>
+        /// Gets the type (or prototype) of instances the provider creates.
+        /// </summary>
+        public Type Type { get; }
+
+        /// <summary>
+        /// Gets the <see cref="IPlan"/> for <see cref="Type"/>.
+        /// </summary>
+        public IPlan Plan { get; }
+
+        /// <summary>
+        /// Gets the <see cref="IPipeline"/> component.
+        /// </summary>
+        public IPipeline Pipeline { get; }
 
         /// <summary>
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The created instance.</returns>
-        /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
+        /// <returns>
+        /// The created instance.
+        /// </returns>
         public object Create(IContext context)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
 
-            return this.CreateInstance(context);
+            // Assign the initial plan for the implementation type that we'll be creating an instance for.
+            context.Plan = this.Plan;
+
+            // Create an instance of the implementation type.
+            var instance = this.CreateInstance(context);
+
+            // Pass the instance through the initialization pipeline which may alter both the instance
+            // and the plan in the context.
+            //
+            // Note that this will not be reflected in the Plan and Type of the standard provider.
+            return this.Pipeline.Initialize(context, instance);
         }
 
         /// <summary>
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The created instance.</returns>
-        protected abstract T CreateInstance(IContext context);
+        /// <returns>
+        /// The created instance.
+        /// </returns>
+        protected abstract object CreateInstance(IContext context);
     }
 }

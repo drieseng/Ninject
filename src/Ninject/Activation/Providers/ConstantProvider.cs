@@ -39,7 +39,7 @@ namespace Ninject.Activation.Providers
         /// <summary>
         /// Gets the value that the provider will return.
         /// </summary>
-        public T Value { get; private set; }
+        public T Value { get; }
 
         /// <summary>
         /// Creates an instance within the specified context.

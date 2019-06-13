@@ -19,7 +19,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Syntax
+namespace Ninject.Builder
 {
     using Ninject.Syntax;
 

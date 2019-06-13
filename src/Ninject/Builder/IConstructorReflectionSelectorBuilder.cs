@@ -21,8 +21,6 @@
 
 namespace Ninject.Builder
 {
-    using Ninject.Builder.Components;
-
     /// <summary>
     /// Builds a component that composes a list of constructors that serve as candidates for instantiating a given
     /// service.

@@ -23,7 +23,6 @@ namespace Ninject.Builder
 {
     using System;
 
-    using Ninject.Builder.Components;
     using Ninject.Selection;
     using Ninject.Selection.Heuristics;
 

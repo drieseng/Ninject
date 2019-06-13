@@ -24,7 +24,6 @@ namespace Ninject.Builder
     using System;
     using System.ComponentModel;
 
-    using Ninject.Builder.Syntax;
     using Ninject.Syntax;
 
     /// <summary>

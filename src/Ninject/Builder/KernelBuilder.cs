@@ -29,9 +29,6 @@ namespace Ninject.Builder
     using Ninject.Activation.Caching;
     using Ninject.Activation.Providers;
     using Ninject.Activation.Strategies;
-    using Ninject.Builder.Bindings;
-    using Ninject.Builder.Components;
-    using Ninject.Builder.Syntax;
     using Ninject.Components;
     using Ninject.Planning;
     using Ninject.Planning.Bindings;
@@ -45,7 +42,7 @@ namespace Ninject.Builder
     public sealed class KernelBuilder : IKernelBuilder
     {
         private readonly BindingsBuilder bindingsBuilder;
-        private readonly ComponentRoot componentRoot;
+        private readonly ComponentBindingRoot componentRoot;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KernelBuilder"/> class.
@@ -53,7 +50,7 @@ namespace Ninject.Builder
         public KernelBuilder()
         {
             this.bindingsBuilder = new BindingsBuilder();
-            this.componentRoot = new ComponentRoot();
+            this.componentRoot = new ComponentBindingRoot();
 
             this.componentRoot.Bind<IPlanningStrategy>().To<ConstructorReflectionStrategy>();
             this.componentRoot.Bind<IBindingResolver>().To<StandardBindingResolver>();
@@ -206,7 +203,9 @@ namespace Ninject.Builder
             }
 
             public bool HasActivationActions { get; private set; }
+
             public bool HasDeactivationActions { get; private set; }
+
             public bool HasInitializationActions { get; private set; }
 
             public static BindingActionAggregate Create(IReadOnlyList<BindingBuilder> bindings)

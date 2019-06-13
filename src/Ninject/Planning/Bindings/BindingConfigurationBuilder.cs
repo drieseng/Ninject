@@ -25,7 +25,6 @@ namespace Ninject.Planning.Bindings
     using System.Linq;
 
     using Ninject.Activation;
-    using Ninject.Builder.Syntax;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Language;

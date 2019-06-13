@@ -1,8 +1,7 @@
-﻿namespace Ninject.Builder.Components
+﻿namespace Ninject.Builder
 {
     using System.ComponentModel;
 
-    using Ninject.Builder.Syntax;
     using Ninject.Syntax;
 
     public interface IComponentBuilder : IFluentSyntax

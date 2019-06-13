@@ -22,7 +22,6 @@
 namespace Ninject.Builder
 {
     using System;
-    using Ninject.Builder.Components;
 
     /// <summary>
     /// Builds a component for assigning a score to a given constructor.

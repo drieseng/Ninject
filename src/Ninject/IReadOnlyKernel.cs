@@ -23,7 +23,6 @@ namespace Ninject
 {
     using System;
 
-    using Ninject.Activation;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 

@@ -1,4 +1,4 @@
-﻿namespace Ninject.Builder.Syntax
+﻿namespace Ninject.Builder
 {
     using System;
 

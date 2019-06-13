@@ -25,7 +25,6 @@ namespace Ninject.Builder
     using System.Collections.Generic;
 
     using Ninject.Activation;
-    using Ninject.Builder.Syntax;
     using Ninject.Infrastructure;
     using Ninject.Parameters;
     using Ninject.Planning.Bindings;

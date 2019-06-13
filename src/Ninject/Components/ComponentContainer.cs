@@ -24,16 +24,11 @@ namespace Ninject.Components
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
 
-    using Ninject.Activation;
-    using Ninject.Activation.Caching;
-    using Ninject.Activation.Providers;
-    using Ninject.Activation.Strategies;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Disposal;
     using Ninject.Infrastructure.Language;
-    using Ninject.Parameters;
-    using Ninject.Selection;
 
     /// <summary>
     /// An internal container that manages and resolves components that contribute to Ninject.
@@ -43,12 +38,17 @@ namespace Ninject.Components
         /// <summary>
         /// The mappings for ninject components.
         /// </summary>
-        private readonly Multimap<Type, IContext> mappings;
+        private readonly Multimap<Type, Type> mappings = new Multimap<Type, Type>(new ReferenceEqualityTypeComparer());
 
         /// <summary>
-        /// The factory to create <see cref="IContext"/> instances.
+        /// The mappings for ninject components with transient scope.
         /// </summary>
-        private readonly ComponentContextFactory contextFactory;
+        private readonly HashSet<KeyValuePair<Type, Type>> transients = new HashSet<KeyValuePair<Type, Type>>();
+
+        /// <summary>
+        /// The ninject component instances.
+        /// </summary>
+        private readonly Dictionary<Type, INinjectComponent> instances = new Dictionary<Type, INinjectComponent>(new ReferenceEqualityTypeComparer());
 
         /// <summary>
         /// The ninject settings.
@@ -59,8 +59,6 @@ namespace Ninject.Components
         /// The <see cref="IExceptionFormatter"/> component.
         /// </summary>
         private readonly IExceptionFormatter exceptionFormatter;
-
-        private readonly ICache cache;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComponentContainer"/> class.
@@ -86,15 +84,15 @@ namespace Ninject.Components
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         public ComponentContainer(INinjectSettings settings, IExceptionFormatter exceptionFormatter)
         {
-            var pipeline = CreatePipeline(exceptionFormatter);
-
-            this.cache = new Cache(pipeline, new NoOpCachePruner());
-            this.mappings = new Multimap<Type, IContext>(new ReferenceEqualityTypeComparer());
             this.settings = settings;
             this.exceptionFormatter = exceptionFormatter;
-            /*this.contextFactory = this.CreateContextFactory(pipeline);*/
-            this.Add(exceptionFormatter);
+            this.Add<IExceptionFormatter, IExceptionFormatter>(exceptionFormatter);
         }
+
+        /// <summary>
+        /// Gets or sets the kernel configuration that owns the component container.
+        /// </summary>
+        public IKernelConfiguration KernelConfiguration { get; set; }
 
         /// <summary>
         /// Releases resources held by the object.
@@ -104,8 +102,13 @@ namespace Ninject.Components
         {
             if (disposing && !this.IsDisposed)
             {
+                foreach (INinjectComponent instance in this.instances.Values)
+                {
+                    instance.Dispose();
+                }
+
                 this.mappings.Clear();
-                this.cache.Dispose();
+                this.instances.Clear();
             }
 
             base.Dispose(disposing);
@@ -120,23 +123,7 @@ namespace Ninject.Components
             where TComponent : INinjectComponent
             where TImplementation : TComponent, INinjectComponent
         {
-            this.Add<TComponent, TImplementation>(Array.Empty<IParameter>());
-        }
-
-        /// <summary>
-        /// Registers a component in the container.
-        /// </summary>
-        /// <typeparam name="TComponent">The component type.</typeparam>
-        /// <typeparam name="TImplementation">The component's implementation type.</typeparam>
-        /// <param name="parameters">The parameters to apply when creating the implementation.</param>
-        public void Add<TComponent, TImplementation>(params IParameter[] parameters)
-            where TComponent : INinjectComponent
-            where TImplementation : TComponent, INinjectComponent
-        {
-            var componentType = typeof(TComponent);
-            var implementationType = typeof(TImplementation);
-            var context = this.contextFactory.Create(componentType, (ctx) => implementationType, implementationType, parameters);
-            this.mappings.Add(componentType, context);
+            this.mappings.Add(typeof(TComponent), typeof(TImplementation));
         }
 
         /// <summary>
@@ -149,6 +136,7 @@ namespace Ninject.Components
             where TImplementation : TComponent, INinjectComponent
         {
             this.Add<TComponent, TImplementation>();
+            this.transients.Add(new KeyValuePair<Type, Type>(typeof(TComponent), typeof(TImplementation)));
         }
 
         /// <summary>
@@ -172,21 +160,13 @@ namespace Ninject.Components
         {
             var implementation = typeof(TImplementation);
 
-            if (this.mappings.TryGetValue(typeof(T), out var contexts))
+            if (this.instances.TryGetValue(implementation, out var instance))
             {
-                for (var i = contexts.Count - 1; i >= 0; i--)
-                {
-                    if (object.ReferenceEquals(contexts[i].Binding.Service, implementation))
-                    {
-                        contexts.RemoveAt(i);
-                    }
-                }
-
-                if (contexts.Count == 0)
-                {
-                    this.mappings.RemoveAll(typeof(T));
-                }
+                instance.Dispose();
+                this.instances.Remove(implementation);
             }
+
+            this.mappings.Remove(typeof(T), typeof(TImplementation));
         }
 
         /// <summary>
@@ -198,12 +178,12 @@ namespace Ninject.Components
         {
             Ensure.ArgumentNotNull(component, nameof(component));
 
-            foreach (var context in this.mappings[component])
+            foreach (Type implementation in this.mappings[component])
             {
-                var scope = context.GetScope();
-                if (scope != null)
+                if (this.instances.TryGetValue(implementation, out var instance))
                 {
-                    this.cache.Clear(scope);
+                    instance.Dispose();
+                    this.instances.Remove(implementation);
                 }
             }
 
@@ -226,7 +206,7 @@ namespace Ninject.Components
                 throw new InvalidOperationException(this.exceptionFormatter.NoSuchComponentRegistered(component));
             }
 
-            return (T)this.ResolveInstance(implementations[0]);
+            return (T)this.ResolveInstance(component, implementations[0]);
         }
 
         /// <summary>
@@ -254,17 +234,24 @@ namespace Ninject.Components
         {
             Ensure.ArgumentNotNull(component, nameof(component));
 
+            if (component == typeof(IKernelConfiguration))
+            {
+                return this.KernelConfiguration;
+            }
+
+            if (component == typeof(INinjectSettings))
+            {
+                return this.settings;
+            }
+
             if (component.IsGenericType)
             {
                 var gtd = component.GetGenericTypeDefinition();
                 var argument = component.GenericTypeArguments[0];
 
-                if (gtd.IsInterface)
+                if (gtd.IsInterface && typeof(IEnumerable<>).IsAssignableFrom(gtd))
                 {
-                    if (typeof(IEnumerable<>).IsAssignableFrom(gtd))
-                    {
-                        return this.GetAll(argument).CastSlow(argument);
-                    }
+                    return this.GetAll(argument).CastSlow(argument);
                 }
             }
 
@@ -274,7 +261,7 @@ namespace Ninject.Components
                 throw new InvalidOperationException(this.exceptionFormatter.NoSuchComponentRegistered(component));
             }
 
-            return this.ResolveInstance(implementations[0]);
+            return this.ResolveInstance(component, implementations[0]);
         }
 
         /// <summary>
@@ -290,73 +277,83 @@ namespace Ninject.Components
             Ensure.ArgumentNotNull(component, nameof(component));
 
             return this.mappings[component]
-                .Select(implementation => this.ResolveInstance(implementation));
+                .Select(implementation => this.ResolveInstance(component, implementation));
+        }
+
+        private static ConstructorInfo SelectConstructor(Type component, Type implementation)
+        {
+            return implementation.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
+        }
+
+        private object ResolveInstance(Type component, Type implementation)
+        {
+            lock (this.instances)
+            {
+                if (this.instances.TryGetValue(implementation, out var instance))
+                {
+                    return instance;
+                }
+
+                return this.CreateNewInstance(component, implementation);
+            }
+        }
+
+        private object CreateNewInstance(Type component, Type implementation)
+        {
+            var constructor = SelectConstructor(component, implementation);
+            if (constructor == null)
+            {
+                throw new InvalidOperationException(this.exceptionFormatter.NoConstructorsAvailableForComponent(component, implementation));
+            }
+
+            var arguments = this.GetConstructorArguments(constructor.GetParameters());
+
+            try
+            {
+                var instance = constructor.Invoke(arguments) as INinjectComponent;
+
+                if (!this.transients.Contains(new KeyValuePair<Type, Type>(component, implementation)))
+                {
+                    this.instances.Add(implementation, instance);
+                }
+
+                return instance;
+            }
+            catch (TargetInvocationException ex)
+            {
+                ex.RethrowInnerException();
+                return null;
+            }
+        }
+
+        private object[] GetConstructorArguments(ParameterInfo[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                return Array.Empty<object>();
+            }
+
+            var arguments = new object[parameters.Length];
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                arguments[i] = this.Get(parameters[i].ParameterType);
+            }
+
+            return arguments;
         }
 
         /// <summary>
         /// Registers an instance of a component in the container.
         /// </summary>
         /// <typeparam name="TComponent">The component type.</typeparam>
-        /// <param name="instance">THe instance of <typeparamref name="TComponent"/> to register.</param>
-        public void Add<TComponent>(TComponent instance)
+        /// <typeparam name="TImplementation">The component's implementation type.</typeparam>
+        /// <param name="instance">THe instance of <typeparamref name="TImplementation"/> to register.</param>
+        private void Add<TComponent, TImplementation>(TImplementation instance)
             where TComponent : INinjectComponent
+            where TImplementation : TComponent, INinjectComponent
         {
-            var componentType = typeof(TComponent);
-            var context = this.contextFactory.Create(componentType, (ctx) => null, instance);
-            this.mappings.Add(componentType, context);
-        }
-
-        /// <summary>
-        /// Attempts to xxxx.
-        /// </summary>
-        /// <typeparam name="T">xxxxxx.</typeparam>
-        /// <param name="instance">yyyyy.</param>
-        /// <returns>
-        /// <see langword="true"/> if an instance of <typeparamref name="T"/> was found; otherwise, <see langword="false"/>.
-        /// </returns>
-        internal bool TryGet<T>(out T instance)
-            where T : INinjectComponent
-        {
-            var component = typeof(T);
-
-            var implementations = this.mappings[component];
-            if (implementations.Count == 0)
-            {
-                instance = default(T);
-                return false;
-            }
-
-            instance = (T)this.ResolveInstance(implementations[0]);
-            return true;
-        }
-
-        private static IPipeline CreatePipeline(IExceptionFormatter exceptionFormatter)
-        {
-            var propertyInjectionStrategy = new PropertyInjectionStrategy(new PropertyValueProvider(), exceptionFormatter);
-            var pipelineInitializer = new PipelineInitializer(new List<IInitializationStrategy> { propertyInjectionStrategy });
-            var pipelineDeactivator = new PipelineDeactivator(new List<IDeactivationStrategy> { new DisposableStrategy() });
-
-            return new DefaultPipeline(pipelineInitializer, new NoOpPipelineActivator(), pipelineDeactivator);
-        }
-
-        private object ResolveInstance(IContext context)
-        {
-            return context.Resolve();
-        }
-
-        private class NoOpCachePruner : ICachePruner
-        {
-            public void Dispose()
-            {
-            }
-
-            public void Start(IPruneable cache)
-            {
-            }
-
-            public void Stop()
-            {
-            }
+            this.mappings.Add(typeof(TComponent), typeof(TImplementation));
+            this.instances.Add(typeof(TImplementation), instance);
         }
     }
 }

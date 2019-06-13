@@ -30,6 +30,8 @@ namespace Ninject.Builder
     /// </summary>
     public interface IConstructorInjectionBuilder : IFluentSyntax
     {
+
+
         /// <summary>
         /// Configure constructor injection to expect a given service to expose only a single constructor.
         /// </summary>

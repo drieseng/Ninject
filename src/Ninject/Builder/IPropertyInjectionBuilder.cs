@@ -19,12 +19,10 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-using Ninject.Components;
-using Ninject.Selection;
-using System;
-
 namespace Ninject.Builder
 {
+    using System;
+
     public interface IPropertyInjectionBuilder
     {
         IPropertyInjectionBuilder Selector(Action<IPropertyReflectionSelectorBuilder> selector);

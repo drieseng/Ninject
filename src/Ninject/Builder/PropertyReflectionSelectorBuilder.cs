@@ -19,8 +19,6 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-using Ninject.Builder.Syntax;
-
 namespace Ninject.Builder
 {
     internal class PropertyReflectionSelectorBuilder : IPropertyReflectionSelectorBuilder

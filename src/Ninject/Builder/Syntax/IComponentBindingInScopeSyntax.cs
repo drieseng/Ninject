@@ -19,7 +19,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Syntax
+namespace Ninject.Builder
 {
     /// <summary>
     /// Used to define the scope in which instances activated via a binding should be re-used.

@@ -21,7 +21,6 @@
 
 namespace Ninject.Builder
 {
-    using Ninject.Builder.Syntax;
     using Ninject.Selection;
 
     /// <summary>

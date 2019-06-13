@@ -23,8 +23,6 @@ namespace Ninject.Builder
 {
     using System;
 
-    using Ninject.Builder.Components;
-
     public interface IDefaultPropertyInjectionHeuristicBuilder : IComponentBuilder
     {
         IDefaultPropertyInjectionHeuristicBuilder InjectAttribute<T>()

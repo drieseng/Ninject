@@ -19,26 +19,31 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Components
+namespace Ninject.Builder
 {
     using System.Collections.Generic;
 
-    using Ninject.Builder.Syntax;
     using Ninject.Infrastructure;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
-    internal class ComponentRoot : IComponentBindingRoot
+    internal class ComponentBindingRoot : IComponentBindingRoot
     {
         private readonly List<ComponentBindingBuilder> bindingBuilders;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ComponentRoot"/> class.
+        /// Initializes a new instance of the <see cref="ComponentBindingRoot"/> class.
         /// </summary>
-        public ComponentRoot()
+        public ComponentBindingRoot()
         {
             this.bindingBuilders = new List<ComponentBindingBuilder>();
         }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        public IDictionary<string, object> Properties { get; }
+
 
         /// <inheritdoc/>
         public IComponentBindingToSyntax<T> Bind<T>()

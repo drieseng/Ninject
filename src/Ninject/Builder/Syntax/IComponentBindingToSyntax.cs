@@ -19,10 +19,11 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Syntax
+namespace Ninject.Builder
 {
-    using Ninject.Activation;
     using System;
+
+    using Ninject.Activation;
 
     /// <summary>
     /// Used to define the target of a binding.
@@ -57,17 +58,16 @@ namespace Ninject.Builder.Syntax
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="value">The constant value.</param>
         /// <returns>The fluent syntax.</returns>
-        IComponentBindingInScopeSyntax<TImplementation> ToConstant<TImplementation>(TImplementation value)
+        IComponentBindingWithOrOnActivationSyntax<TImplementation> ToConstant<TImplementation>(TImplementation value)
             where TImplementation : T;
 
         /// <summary>
         /// Indicates that the service should be bound to the specified callback method.
         /// </summary>
-        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="method">The method.</param>
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        IComponentBindingInScopeSyntax<TImplementation> ToMethod<TImplementation>(Func<IContext, TImplementation> method);
+        IComponentBindingInScopeSyntax<T> ToMethod(Func<IContext, T> method);
     }
 }

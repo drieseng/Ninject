@@ -28,7 +28,6 @@ namespace Ninject
     using Ninject.Activation;
     using Ninject.Activation.Caching;
     using Ninject.Builder;
-    using Ninject.Builder.Bindings;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Disposal;

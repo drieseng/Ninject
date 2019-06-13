@@ -22,8 +22,6 @@
 namespace Ninject.Builder
 {
     using Ninject.Activation.Providers;
-    using Ninject.Builder.Components;
-    using Ninject.Builder.Syntax;
     using Ninject.Selection;
 
     /// <summary>

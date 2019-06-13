@@ -24,7 +24,6 @@ namespace Ninject.Builder
     using System;
 
     using Ninject.Activation.Providers;
-    using Ninject.Builder.Syntax;
     using Ninject.Selection;
     using Ninject.Selection.Heuristics;
 

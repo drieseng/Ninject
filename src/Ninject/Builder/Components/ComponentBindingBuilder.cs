@@ -19,7 +19,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Components
+namespace Ninject.Builder
 {
     using System;
 

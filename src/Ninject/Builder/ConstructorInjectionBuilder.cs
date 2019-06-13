@@ -24,9 +24,6 @@ namespace Ninject.Builder
     using System;
     using System.ComponentModel;
 
-    using Ninject.Builder.Components;
-    using Ninject.Builder.Syntax;
-
     /// <summary>
     /// Enables and configures constructor injection.
     /// </summary>

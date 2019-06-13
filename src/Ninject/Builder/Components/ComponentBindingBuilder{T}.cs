@@ -19,15 +19,20 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Components
+namespace Ninject.Builder
 {
     using System;
+
     using Ninject.Activation;
     using Ninject.Activation.Providers;
-    using Ninject.Builder.Syntax;
     using Ninject.Infrastructure;
+    using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
+    /// <summary>
+    /// Provides a root for the fluent syntax associated with an <see cref="Binding"/>.
+    /// </summary>
+    /// <typeparam name="T">The service type.</typeparam>
     internal class ComponentBindingBuilder<T> : ComponentBindingBuilder, IComponentBindingToSyntax<T>
     {
         private BindingConfigurationBuilder bindingConfigurationBuilder;
@@ -45,43 +50,84 @@ namespace Ninject.Builder.Components
         /// </summary>
         /// <param name="root">The resolution root.</param>
         /// <param name="bindingVisitor">Gathers built bindings.</param>
-        public override void Build(IResolutionRoot root, IVisitor<Planning.Bindings.IBinding> bindingVisitor)
+        public override void Build(IResolutionRoot root, IVisitor<IBinding> bindingVisitor)
         {
-            bindingVisitor.Visit(new Planning.Bindings.Binding(this.Service, this.bindingConfigurationBuilder.Build(root)));
+            bindingVisitor.Visit(new Binding(this.Service, this.bindingConfigurationBuilder.Build(root)));
         }
 
+        /// <summary>
+        /// Indicates that the service should be bound to the specified implementation type.
+        /// </summary>
+        /// <typeparam name="TImplementation">The implementation type.</typeparam>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IComponentBindingInScopeSyntax<TImplementation> To<TImplementation>()
             where TImplementation : T
         {
             var providerBuilder = new StandardProviderFactory(typeof(TImplementation));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, Planning.Bindings.BindingTarget.Type);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Type);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
 
+        /// <summary>
+        /// Indicates that the service should be bound to the specified implementation type.
+        /// </summary>
+        /// <param name="implementation">The implementation type.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IComponentBindingInScopeSyntax<T> To(Type implementation)
         {
-            throw new NotImplementedException();
-        }
-
-        public IComponentBindingInScopeSyntax<TImplementation> ToMethod<TImplementation>(Func<IContext, TImplementation> method)
-        {
-            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<TImplementation>(method));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, Planning.Bindings.BindingTarget.Method);
+            var providerBuilder = new StandardProviderFactory(implementation);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Type);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
 
-        public IComponentBindingInScopeSyntax<TImplementation> ToConstant<TImplementation>(TImplementation value)
-            where TImplementation : T
+        /// <summary>
+        /// Indicates that the service should be bound to the specified callback method.
+        /// </summary>
+        /// <param name="method">The method.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        public IComponentBindingInScopeSyntax<T> ToMethod(Func<IContext, T> method)
         {
-            throw new NotImplementedException();
+            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<T>(method));
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Method);
+            this.bindingConfigurationBuilder = bindingConfigurationBuilder;
+            return bindingConfigurationBuilder;
         }
 
+        /// <summary>
+        /// Indicates that the service should be bound to the specified constant value.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="value">The constant value.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        public IComponentBindingWithOrOnActivationSyntax<TImplementation> ToConstant<TImplementation>(TImplementation value)
+            where TImplementation : T
+        {
+            var providerBuilder = new ConstantProviderFactory<TImplementation>(value);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Constant);
+            this.bindingConfigurationBuilder = bindingConfigurationBuilder;
+            return bindingConfigurationBuilder;
+        }
+
+        /// <summary>
+        /// Indicates that the service should be self-bound.
+        /// </summary>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IComponentBindingInScopeSyntax<T> ToSelf()
         {
             var providerBuilder = new StandardProviderFactory(typeof(T));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, Planning.Bindings.BindingTarget.Type);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Type);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }

@@ -21,8 +21,6 @@
 
 namespace Ninject.Builder
 {
-    using Ninject.Builder.Components;
-
     /// <summary>
     /// Builds a component that composes a list of properties that serve as candidate for initializing a given
     /// service.

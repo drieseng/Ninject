@@ -19,7 +19,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Bindings
+namespace Ninject.Builder
 {
     using System;
     using System.Collections.Generic;

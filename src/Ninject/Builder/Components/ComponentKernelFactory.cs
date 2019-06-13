@@ -19,7 +19,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder.Components
+namespace Ninject.Builder
 {
     using System;
     using System.Collections.Generic;
@@ -35,7 +35,6 @@ namespace Ninject.Builder.Components
     using Ninject.Planning.Bindings.Resolvers;
     using Ninject.Planning.Strategies;
     using Ninject.Selection;
-    using Ninject.Selection.Heuristics;
 
     internal class BuilderKernelFactory
     {
@@ -78,15 +77,8 @@ namespace Ninject.Builder.Components
             bindings.Bind<IPipeline>().ToConstant(pipeline);
             bindings.Bind<ICache>().ToConstant(cache);
             bindings.Bind<IExceptionFormatter>().ToConstant(exceptionFormatter);
-
             bindings.Bind<IConstructorInjectionSelector>().ToConstant(new UniqueConstructorInjectionSelector());
             bindings.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
-
-            /*
-            bindings.Bind<IPlanningStrategy>().To<ConstructorReflectionStrategy>();
-
-            bindings.Bind<IInjectorFactory>().To<ExpressionInjectorFactory>();
-            */
 
             return bindings;
         }

@@ -31,19 +31,12 @@ namespace Ninject.Builder
     /// a given <see cref="IConstructorReflectionSelector"/>, and an <see cref="IConstructorInjectionScorer"/> to select
     /// the best matching constructor.
     /// </summary>
-    public interface IBestMatchConstructorInjectionSelectorBuilder : IComponentBuilder
+    public interface IBestMatchConstructorInjectionSelectorBuilder : IConstructorInjectionSelectorBuilder
     {
         /// <summary>
         /// Configures an <see cref="IConstructorInjectionScorer"/> to use for selecting the best matching constructor.
         /// </summary>
         /// <param name="scorerBuilder">A callback to configure an <see cref="IConstructorInjectionScorer"/>.</param>
         void Scorer(Action<IConstructorScorerBuilder> scorerBuilder);
-
-        /// <summary>
-        /// Configures an <see cref="IConstructorReflectionSelector"/> to use for composing a list of constructors that
-        /// can be used to instantiate a given service.
-        /// </summary>
-        /// <param name="selectorBuilder">A callback to configure an <see cref="IConstructorReflectionSelector"/>.</param>
-        void Selector(Action<IConstructorReflectionSelectorBuilder> selectorBuilder);
     }
 }

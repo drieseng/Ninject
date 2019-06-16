@@ -1,6 +1,7 @@
 ﻿namespace Ninject.Syntax
 {
     using System;
+    using System.Reflection;
 
     using Ninject.Activation;
     using Ninject.Parameters;
@@ -116,7 +117,7 @@
         /// <param name="name">The name of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, Func<IContext, ITarget<IConstructorArgument>, object> callback);
+        INewBindingWhenInWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, Func<IContext, ITarget<ParameterInfo>, object> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -156,7 +157,7 @@
         /// <typeparam name="TValue">The type of the argument to override.</typeparam>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(Func<IContext, ITarget<IConstructorArgument>, TValue> callback);
+        INewBindingWhenInWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(Func<IContext, ITarget<ParameterInfo>, TValue> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -164,7 +165,7 @@
         /// <param name="type">The type of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, Func<IContext, ITarget<IConstructorArgument>, object> callback);
+        INewBindingWhenInWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> callback);
 
         /// <summary>
         /// Indicates that the specified property should be injected with the specified value.
@@ -188,7 +189,7 @@
         /// <param name="name">The name of the property to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the property.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T> WithPropertyValue(string name, Func<IContext, ITarget<IPropertyValue>, object> callback);
+        INewBindingWhenInWithOrOnInitializationSyntax<T> WithPropertyValue(string name, Func<IContext, ITarget<PropertyInfo>, object> callback);
 
         /// <summary>
         /// Adds a custom parameter to the binding.
@@ -327,14 +328,6 @@
         /// <param name="name">The name to expect.</param>
         /// <returns>The fluent syntax.</returns>
         INewBindingWhenInWithOrOnInitializationSyntax<T> WhenParentNamed(string name);
-
-        /// <summary>
-        /// Indicates that the binding should be used only when any ancestor is bound with the specified name.
-        /// </summary>
-        /// <param name="name">The name to expect.</param>
-        /// <returns>The fluent syntax.</returns>
-        [Obsolete("Use WhenAnyAncestorNamed(string name)")]
-        INewBindingWhenInWithOrOnInitializationSyntax<T> WhenAnyAnchestorNamed(string name);
 
         /// <summary>
         /// Indicates that the binding should be used only when any ancestor is bound with the specified name.

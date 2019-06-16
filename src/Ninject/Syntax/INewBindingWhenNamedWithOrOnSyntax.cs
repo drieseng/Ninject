@@ -369,14 +369,6 @@
         /// </summary>
         /// <param name="name">The name to expect.</param>
         /// <returns>The fluent syntax.</returns>
-        [Obsolete("Use WhenAnyAncestorNamed(string name)")]
-        INewBindingWhenNamedWithOrOnSyntax<T> WhenAnyAnchestorNamed(string name);
-
-        /// <summary>
-        /// Indicates that the binding should be used only when any ancestor is bound with the specified name.
-        /// </summary>
-        /// <param name="name">The name to expect.</param>
-        /// <returns>The fluent syntax.</returns>
         INewBindingWhenNamedWithOrOnSyntax<T> WhenAnyAncestorNamed(string name);
 
         /// <summary>

@@ -25,7 +25,6 @@ namespace Ninject.Planning.Bindings
     using System.Collections.Generic;
 
     using Ninject.Activation;
-    using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Parameters;
 
@@ -41,6 +40,7 @@ namespace Ninject.Planning.Bindings
         {
             this.Metadata = new BindingMetadata();
             this.Parameters = new List<IParameter>();
+            this.InitializationActions = new List<Func<IContext, object, object>>();
             this.ActivationActions = new List<Action<IContext, object>>();
             this.DeactivationActions = new List<Action<IContext, object>>();
             this.ScopeCallback = StandardScopeCallbacks.Transient;
@@ -50,13 +50,33 @@ namespace Ninject.Planning.Bindings
         /// Initializes a new instance of the <see cref="BindingConfiguration"/> class.
         /// </summary>
         /// <param name="parameters">The parameters defined for the binding.</param>
-        internal BindingConfiguration(IList<IParameter> parameters)
+        /// <param name="metadata">The binding's metadata.</param>
+        /// <param name="condition">The condition defined for the binding.</param>
+        /// <param name="provider">The provider that should be used by the binding.</param>
+        /// <param name="scopeCallback">The callback that returns the object that will act as the binding's scope.</param>
+        /// <param name="initializationActions">The actions that contribute to the initialization of instances that are initialized via the binding.</param>
+        /// <param name="activationActions">The actions that should be called after instances are activated via the binding.</param>
+        /// <param name="deactivationActions">The actions that should be called before instances are deactivated via the binding.</param>
+        /// <param name="target">The type of target for the binding.</param>
+        internal BindingConfiguration(IList<IParameter> parameters,
+                                      IBindingMetadata metadata,
+                                      Func<IRequest, bool> condition,
+                                      IProvider provider,
+                                      Func<IContext, object> scopeCallback,
+                                      List<Func<IContext, object, object>> initializationActions,
+                                      List<Action<IContext, object>> activationActions,
+                                      List<Action<IContext, object>> deactivationActions,
+                                      BindingTarget target)
         {
-            this.Metadata = new BindingMetadata();
+            this.Metadata = metadata;
             this.Parameters = parameters;
-            this.ActivationActions = new List<Action<IContext, object>>();
-            this.DeactivationActions = new List<Action<IContext, object>>();
-            this.ScopeCallback = StandardScopeCallbacks.Transient;
+            this.Condition = condition;
+            this.Provider = provider;
+            this.InitializationActions = initializationActions;
+            this.ActivationActions = activationActions;
+            this.DeactivationActions = deactivationActions;
+            this.ScopeCallback = scopeCallback;
+            this.Target = target;
         }
 
         /// <summary>
@@ -88,7 +108,7 @@ namespace Ninject.Planning.Bindings
         public Func<IRequest, bool> Condition { get; set; }
 
         /// <summary>
-        /// Gets or sets the callback that returns the provider that should be used by the binding.
+        /// Gets or sets the provider that should be used by the binding.
         /// </summary>
         public IProvider Provider { get; set; }
 
@@ -101,6 +121,11 @@ namespace Ninject.Planning.Bindings
         /// Gets the parameters defined for the binding.
         /// </summary>
         public IList<IParameter> Parameters { get; private set; }
+
+        /// <summary>
+        /// Gets the actions that contribute to the initialization of instances that are initialized via the binding.
+        /// </summary>
+        public ICollection<Func<IContext, object, object>> InitializationActions { get; private set; }
 
         /// <summary>
         /// Gets the actions that should be called after instances are activated via the binding.

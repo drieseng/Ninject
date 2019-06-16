@@ -43,7 +43,7 @@ namespace Ninject.Builder
             var exceptionFormatter = new ExceptionFormatter();
             var planner = CreatePlanner();
             var pipeline = CreatePipeline(exceptionFormatter);
-            var cache = new Cache(pipeline, new NoOpCachePruner());
+            var cache = new Cache(pipeline, new GarbageCollectionCachePruner());
 
             return new ReadOnlyKernel5(
                     CreateBindings(planner, pipeline, cache, exceptionFormatter),
@@ -101,21 +101,6 @@ namespace Ninject.Builder
             var pipelineDeactivator = new PipelineDeactivator(new List<IDeactivationStrategy> { new DisposableStrategy() });
 
             return new DefaultPipeline(pipelineInitializer, new NoOpPipelineActivator(), pipelineDeactivator);
-        }
-
-        private class NoOpCachePruner : ICachePruner
-        {
-            void IDisposable.Dispose()
-            {
-            }
-
-            public void Start(IPruneable cache)
-            {
-            }
-
-            public void Stop()
-            {
-            }
         }
 
         private class AnyPropertyInjectionHeuristic : IPropertyInjectionHeuristic

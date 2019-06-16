@@ -21,13 +21,16 @@
 
 namespace Ninject.Parameters
 {
+    using System;
+    using System.Reflection;
+
     using Ninject.Activation;
     using Ninject.Planning.Targets;
 
     /// <summary>
     /// Overrides the injected value of a property.
     /// </summary>
-    public interface IPropertyValue : IParameter
+    public interface IPropertyValue : IParameter, IEquatable<IPropertyValue>
     {
         /// <summary>
         /// Determines if the parameter applies to the given target.
@@ -41,6 +44,14 @@ namespace Ninject.Parameters
         /// <remarks>
         /// Only one parameter may return <see langword="true"/>.
         /// </remarks>
-        bool AppliesToTarget(IContext context, ITarget target);
+        bool AppliesToTarget(IContext context, ITarget<PropertyInfo> target);
+
+        /// <summary>
+        /// Gets the value for the parameter within the specified context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="target">The target.</param>
+        /// <returns>The value for the parameter.</returns>
+        object GetValue(IContext context, ITarget<PropertyInfo> target);
     }
 }

@@ -184,6 +184,17 @@ namespace Ninject.Planning.Bindings
         }
 
         /// <summary>
+        /// Gets the actions that contribute to the initialization of instances that are initialized via the binding.
+        /// </summary>
+        public ICollection<Func<IContext, object, object>> InitializationActions
+        {
+            get
+            {
+                return this.BindingConfiguration.InitializationActions;
+            }
+        }
+
+        /// <summary>
         /// Gets the actions that should be called after instances are activated via the binding.
         /// </summary>
         public ICollection<Action<IContext, object>> ActivationActions

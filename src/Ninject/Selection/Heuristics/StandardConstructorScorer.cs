@@ -24,6 +24,7 @@ namespace Ninject.Selection.Heuristics
     using System;
     using System.Collections;
     using System.Linq;
+    using System.Reflection;
 
     using Ninject.Activation;
     using Ninject.Components;
@@ -84,7 +85,7 @@ namespace Ninject.Selection.Heuristics
             }
 
             var score = 1;
-            foreach (ITarget target in directive.Targets)
+            foreach (var target in directive.Targets)
             {
                 if (this.ParameterExists(context, target))
                 {
@@ -117,7 +118,7 @@ namespace Ninject.Selection.Heuristics
         /// <see langword="true"/> if a binding exists for the target in the given context; otherwise,
         /// <see langword="false"/>.
         /// </returns>
-        protected virtual bool BindingExists(IContext context, ITarget target)
+        protected virtual bool BindingExists(IContext context, ITarget<ParameterInfo> target)
         {
             return this.BindingExists(context.Kernel, context, target);
         }
@@ -132,7 +133,7 @@ namespace Ninject.Selection.Heuristics
         /// <see langword="true"/> if a binding exists for the target in the given context; otherwise,
         /// <see langword="false"/>.
         /// </returns>
-        protected virtual bool BindingExists(IReadOnlyKernel kernel, IContext context, ITarget target)
+        protected virtual bool BindingExists(IReadOnlyKernel kernel, IContext context, ITarget<ParameterInfo> target)
         {
             if (target.HasDefaultValue)
             {
@@ -165,7 +166,7 @@ namespace Ninject.Selection.Heuristics
         /// <see langword="true"/> if a parameter exists for the target in the given context;
         /// otherwise, <see langword="false"/>.
         /// </returns>
-        protected virtual bool ParameterExists(IContext context, ITarget target)
+        protected virtual bool ParameterExists(IContext context, ITarget<ParameterInfo> target)
         {
             foreach (var parameter in context.Parameters)
             {
@@ -178,7 +179,7 @@ namespace Ninject.Selection.Heuristics
             return false;
         }
 
-        private static Type GetTargetType(ITarget target)
+        private static Type GetTargetType(ITarget<ParameterInfo> target)
         {
             var targetType = target.Type;
 

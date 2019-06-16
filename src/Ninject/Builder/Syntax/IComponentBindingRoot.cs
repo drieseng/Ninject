@@ -35,7 +35,7 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        IComponentBindingToSyntax<T> Bind<T>();
+        INewBindingToSyntax<T> Bind<T>();
 
         /// <summary>
         /// Unregisters all bindings for the specified service.

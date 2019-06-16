@@ -55,8 +55,9 @@ namespace Ninject.Activation
         /// <summary>
         /// Initializes a new instance of the <see cref="Pipeline"/> class.
         /// </summary>
-        /// <param name="strategies">The strategies to execute during activation and deactivation.</param>
         /// <param name="initializationStrategies">The strategies to execute during initialization.</param>
+        /// <param name="activationStrategies">The strategies to execute during activation.</param>
+        /// <param name="deactivationStrategies">The strategies to execute during deactivation.</param>
         /// <param name="activationCache">The activation cache.</param>
         /// <exception cref="ArgumentNullException"><paramref name="activationStrategies"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="deactivationStrategies"/> is <see langword="null"/>.</exception>
@@ -109,6 +110,8 @@ namespace Ninject.Activation
             {
                 Ensure.ThrowArgumentNotNull(nameof(instance));
             }
+
+            Console.WriteLine("INIT");
 
             if (this.initializationStrategies.Count > 0)
             {

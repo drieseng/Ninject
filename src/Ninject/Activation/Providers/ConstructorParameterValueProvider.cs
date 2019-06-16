@@ -23,6 +23,7 @@ namespace Ninject.Activation.Providers
 {
     using System;
     using System.Collections.Generic;
+    using System.Reflection;
 
     using Ninject.Parameters;
     using Ninject.Planning.Directives;
@@ -68,7 +69,7 @@ namespace Ninject.Activation.Providers
         {
         }
 
-        private static object GetConstructorValue(IContext context, ITarget target, List<IConstructorArgument> constructorArguments)
+        private static object GetConstructorValue(IContext context, ITarget<ParameterInfo> target, List<IConstructorArgument> constructorArguments)
         {
             IConstructorArgument match = null;
 

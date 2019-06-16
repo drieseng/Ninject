@@ -22,6 +22,7 @@
 namespace Ninject.Parameters
 {
     using System;
+    using System.Reflection;
 
     using Ninject.Activation;
     using Ninject.Planning.Targets;
@@ -29,7 +30,7 @@ namespace Ninject.Parameters
     /// <summary>
     /// Overrides the injected value of a constructor argument.
     /// </summary>
-    public class ConstructorArgument : Parameter, IConstructorArgument
+    public class ConstructorArgument : Parameter, IConstructorArgument, IEquatable<ConstructorArgument>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ConstructorArgument"/> class.
@@ -56,7 +57,7 @@ namespace Ninject.Parameters
         /// </summary>
         /// <param name="name">The name of the argument to override.</param>
         /// <param name="valueCallback">The callback to invoke to get the value that should be injected.</param>
-        public ConstructorArgument(string name, Func<IContext, ITarget, object> valueCallback)
+        public ConstructorArgument(string name, Func<IContext, ITarget<ParameterInfo>, object> valueCallback)
             : base(name, valueCallback, false)
         {
         }
@@ -89,7 +90,7 @@ namespace Ninject.Parameters
         /// <param name="name">The name of the argument to override.</param>
         /// <param name="valueCallback">The callback to invoke to get the value that should be injected.</param>
         /// <param name="shouldInherit">if set to <see langword="true"/> [should inherit].</param>
-        public ConstructorArgument(string name, Func<IContext, ITarget, object> valueCallback, bool shouldInherit)
+        public ConstructorArgument(string name, Func<IContext, ITarget<ParameterInfo>, object> valueCallback, bool shouldInherit)
             : base(name, valueCallback, shouldInherit)
         {
         }
@@ -106,9 +107,47 @@ namespace Ninject.Parameters
         /// <remarks>
         /// Only one parameter may return <see langword="true"/>.
         /// </remarks>
-        public bool AppliesToTarget(IContext context, ITarget target)
+        public bool AppliesToTarget(IContext context, ITarget<ParameterInfo> target)
         {
             return string.Equals(this.Name, target.Name);
+        }
+
+        /// <summary>
+        /// Determines whether the object equals the specified object.
+        /// </summary>
+        /// <param name="obj">An object to compare with this object.</param>
+        /// <returns>
+        /// <see langword="true"/> if the objects are equal; otherwise, <see langword="false"/>.
+        /// </returns>
+        public override bool Equals(object obj)
+        {
+            return obj is ConstructorArgument argument ? this.Equals(argument) : base.Equals(obj);
+        }
+
+        /// <summary>
+        /// Serves as a hash function for a particular type.
+        /// </summary>
+        /// <returns>A hash code for the object.</returns>
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode();
+        }
+
+        /// <summary>
+        /// Determines whether the object equals the specified object.
+        /// </summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>
+        /// <see langword="true"/> if the objects are equal; otherwise, <see langword="false"/>.
+        /// </returns>
+        public bool Equals(ConstructorArgument other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return other.Name.Equals(this.Name);
         }
     }
 }

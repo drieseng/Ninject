@@ -30,12 +30,16 @@ namespace Ninject.Builder
     /// </summary>
     public interface IConstructorInjectionBuilder : IFluentSyntax
     {
-
-
         /// <summary>
         /// Configure constructor injection to expect a given service to expose only a single constructor.
         /// </summary>
         void Unique();
+
+        /// <summary>
+        /// Configure constructor injection to expect a given service to expose only a single constructor.
+        /// </summary>
+        /// <param name="uniqueBuilder">A callback to configure the unique constructor mechanism.</param>
+        void Unique(Action<IConstructorInjectionSelectorBuilder> uniqueBuilder);
 
         /// <summary>
         /// Configure constructor injection to select the best matching constructor from the list of constructors

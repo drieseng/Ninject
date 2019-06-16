@@ -21,6 +21,7 @@
 
 namespace Ninject.Activation
 {
+    using System;
     using System.Collections.Generic;
 
     using Ninject.Activation.Strategies;
@@ -38,6 +39,11 @@ namespace Ninject.Activation
         /// <param name="initializationStrategies">The initialization strategies to execute.</param>
         public PipelineInitializer(List<IInitializationStrategy> initializationStrategies)
         {
+            foreach (var init in initializationStrategies)
+            {
+                Console.WriteLine("PipelineInitializer: " + init.GetType());
+            }
+
             this.initializationStrategies = initializationStrategies;
         }
 

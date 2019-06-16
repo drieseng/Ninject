@@ -22,6 +22,7 @@
 namespace Ninject.Parameters
 {
     using System;
+    using System.Reflection;
 
     using Ninject.Activation;
     using Ninject.Infrastructure;
@@ -30,7 +31,7 @@ namespace Ninject.Parameters
     /// <summary>
     /// Modifies an activation process in some way.
     /// </summary>
-    public class Parameter : IParameter
+    public abstract class Parameter : IParameter
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="Parameter"/> class.
@@ -39,7 +40,7 @@ namespace Ninject.Parameters
         /// <param name="value">The value of the parameter.</param>
         /// <param name="shouldInherit">Whether the parameter should be inherited into child requests.</param>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
-        public Parameter(string name, object value, bool shouldInherit)
+        protected Parameter(string name, object value, bool shouldInherit)
             : this(name, (ctx, target) => value, shouldInherit)
         {
         }
@@ -52,7 +53,7 @@ namespace Ninject.Parameters
         /// <param name="shouldInherit">Whether the parameter should be inherited into child requests.</param>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="valueCallback"/> is <see langword="null"/>.</exception>
-        public Parameter(string name, Func<IContext, object> valueCallback, bool shouldInherit)
+        protected Parameter(string name, Func<IContext, object> valueCallback, bool shouldInherit)
         {
             Ensure.ArgumentNotNullOrEmpty(name, nameof(name));
             Ensure.ArgumentNotNull(valueCallback, nameof(valueCallback));
@@ -70,7 +71,7 @@ namespace Ninject.Parameters
         /// <param name="shouldInherit">Whether the parameter should be inherited into child requests.</param>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="valueCallback"/> is <see langword="null"/>.</exception>
-        public Parameter(string name, Func<IContext, ITarget, object> valueCallback, bool shouldInherit)
+        protected Parameter(string name, Func<IContext, ITarget<ParameterInfo>, object> valueCallback, bool shouldInherit)
         {
             Ensure.ArgumentNotNullOrEmpty(name, nameof(name));
             Ensure.ArgumentNotNull(valueCallback, nameof(valueCallback));
@@ -93,7 +94,7 @@ namespace Ninject.Parameters
         /// <summary>
         /// Gets the callback that will be triggered to get the parameter's value.
         /// </summary>
-        public Func<IContext, ITarget, object> ValueCallback { get; internal set; }
+        public Func<IContext, ITarget<ParameterInfo>, object> ValueCallback { get; internal set; }
 
         /// <summary>
         /// Gets the value for the parameter within the specified context.
@@ -104,44 +105,11 @@ namespace Ninject.Parameters
         /// The value for the parameter.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public object GetValue(IContext context, ITarget target)
+        public object GetValue(IContext context, ITarget<ParameterInfo> target)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
 
             return this.ValueCallback(context, target);
-        }
-
-        /// <summary>
-        /// Determines whether the object equals the specified object.
-        /// </summary>
-        /// <param name="obj">An object to compare with this object.</param>
-        /// <returns>
-        /// <see langword="true"/> if the objects are equal; otherwise, <see langword="false"/>.
-        /// </returns>
-        public override bool Equals(object obj)
-        {
-            return obj is IParameter parameter ? this.Equals(parameter) : base.Equals(obj);
-        }
-
-        /// <summary>
-        /// Serves as a hash function for a particular type.
-        /// </summary>
-        /// <returns>A hash code for the object.</returns>
-        public override int GetHashCode()
-        {
-            return this.GetType().GetHashCode() ^ this.Name.GetHashCode();
-        }
-
-        /// <summary>
-        /// Indicates whether the current object is equal to another object of the same type.
-        /// </summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>
-        /// <see langword="true"/> if the objects are equal; otherwise, <see langword="false"/>.
-        /// </returns>
-        public bool Equals(IParameter other)
-        {
-            return other.GetType() == this.GetType() && other.Name.Equals(this.Name);
         }
     }
 }

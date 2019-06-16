@@ -179,10 +179,9 @@ namespace Ninject.Builder
             var componentBindings = componentBindingVisitor.Bindings;
 
             var componentContainer = new BuilderKernelFactory().CreateComponentsKernel(resolveComponentsKernel, componentBindings);
-            var p = componentContainer.Get<IPipeline>();
 
             var bindingBuilderVisitor = new BindingBuilderVisitor();
-            this.bindingsBuilder.Build(resolveComponentsKernel, bindingBuilderVisitor);
+            this.bindingsBuilder.Build(componentContainer, bindingBuilderVisitor);
             var bindingsByType = bindingBuilderVisitor.Bindings;
 
             return new ReadOnlyKernel5(

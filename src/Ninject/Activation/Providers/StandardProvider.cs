@@ -23,6 +23,7 @@ namespace Ninject.Activation.Providers
 {
     using System;
     using System.Linq;
+    using System.Reflection;
 
     using Ninject.Components;
     using Ninject.Infrastructure;
@@ -77,7 +78,7 @@ namespace Ninject.Activation.Providers
             return directive.Injector(arguments);
         }
 
-        private static object GetValueCore(IContext context, ITarget target)
+        private static object GetValueCore(IContext context, ITarget<ParameterInfo> target)
         {
             IConstructorArgument constructorArgument = null;
 
@@ -102,7 +103,7 @@ namespace Ninject.Activation.Providers
             return target.ResolveWithin(context);
         }
 
-        private static object[] GetValues(IContext context, ITarget[] targets)
+        private static object[] GetValues(IContext context, ITarget<ParameterInfo>[] targets)
         {
             if (targets.Length == 0)
             {

@@ -34,6 +34,6 @@ namespace Ninject.Builder
         /// <remarks>
         /// By default, only public constructors are included in the list of constructors.
         /// </remarks>
-        void InjectNonPublic(bool value);
+        IConstructorReflectionSelectorBuilder InjectNonPublic(bool value);
     }
 }

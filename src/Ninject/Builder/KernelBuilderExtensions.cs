@@ -68,6 +68,7 @@ namespace Ninject.Builder
         /// Enables and configures property injection.
         /// </summary>
         /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="property">A builder to configure property injection.</param>
         /// <returns>
         /// The <see cref="IKernelBuilder"/> instance.
         /// </returns>

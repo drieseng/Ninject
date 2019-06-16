@@ -24,12 +24,29 @@ namespace Ninject.Builder
     using Ninject.Infrastructure;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
+    using System;
 
     /// <summary>
     /// Provides a root for the fluent syntax associated with an <see cref="Binding"/>.
     /// </summary>
     internal abstract class BindingBuilder
     {
+        /// <summary>
+        /// Gets the <see cref="Type"/> of the service to bind.
+        /// </summary>
+        /// <value>
+        /// The <see cref="Type"/> of the service to bind.
+        /// </value>
+        public abstract Type Service { get; }
+
+        /// <summary>
+        /// Gets the names of the services that this instance builds a binding for.
+        /// </summary>
+        /// <value>
+        /// The names of the services that this instance builds a binding for.
+        /// </value>
+        public abstract string ServiceNames { get; }
+
         public abstract BindingConfigurationBuilder BindingConfigurationBuilder { get; }
 
         /// <summary>

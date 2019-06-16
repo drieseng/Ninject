@@ -27,6 +27,7 @@ namespace Ninject.Builder
     using Ninject.Activation;
     using Ninject.Activation.Providers;
     using Ninject.Infrastructure;
+    using Ninject.Infrastructure.Introspection;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
@@ -37,8 +38,36 @@ namespace Ninject.Builder
     internal sealed class BindingBuilder<T> : BindingBuilder, INewBindingToSyntax<T>
     {
         private BindingConfigurationBuilder bindingConfigurationBuilder;
+        private string serviceNames;
 
         public override BindingConfigurationBuilder BindingConfigurationBuilder => this.bindingConfigurationBuilder;
+
+        /// <summary>
+        /// Gets the names of the services that this instance builds a binding for.
+        /// </summary>
+        /// <value>
+        /// The names of the services that this instance builds a binding for.
+        /// </value>
+        public override string ServiceNames
+        {
+            get
+            {
+                if (this.serviceNames == null)
+                {
+                    this.serviceNames = typeof(T).Format();
+                }
+
+                return this.serviceNames;
+            }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="Type"/> of the service to bind.
+        /// </summary>
+        /// <value>
+        /// The <see cref="Type"/> of the service to bind.
+        /// </value>
+        public override Type Service => typeof(T);
 
         /// <summary>
         /// Builds the binding(s) of this instance.
@@ -61,7 +90,7 @@ namespace Ninject.Builder
             where TImplementation : T
         {
             var providerBuilder = new StandardProviderFactory(typeof(TImplementation));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Type);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Type, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -76,7 +105,7 @@ namespace Ninject.Builder
         public INewBindingWhenInWithOrOnInitializationSyntax<T> To(Type implementation)
         {
             var providerBuilder = new StandardProviderFactory(implementation);
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Type);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Type, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -93,7 +122,7 @@ namespace Ninject.Builder
             where TImplementation : T
         {
             var providerBuilder = new ConstantProviderFactory<TImplementation>(value);
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Constant);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Constant, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -110,7 +139,7 @@ namespace Ninject.Builder
             where TImplementation : T
         {
             var providerBuilder = new ConstructorProviderFactory<TImplementation>(newExpression);
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Type);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Type, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
 
             foreach (var constructorArgument in providerBuilder.GetConstructorArguments())
@@ -131,7 +160,7 @@ namespace Ninject.Builder
         public INewBindingWhenInNamedSyntax<T> ToMethod(Func<IContext, T> method)
         {
             var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<T>(method));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Method);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Method, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -148,7 +177,7 @@ namespace Ninject.Builder
             where TImplementation : T
         {
             var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<TImplementation>(method));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Method);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Method, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -165,7 +194,7 @@ namespace Ninject.Builder
             where TProvider : IProvider
         {
             var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<TProvider>(ctx => ctx.Kernel.Get<TProvider>()));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -181,7 +210,7 @@ namespace Ninject.Builder
         public INewBindingWhenInWithOrOnInitializationSyntax<T> ToProvider(Type providerType)
         {
             var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<IProvider>(ctx => ctx.Kernel.Get(providerType) as IProvider));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -198,7 +227,7 @@ namespace Ninject.Builder
              where TImplementation : T
         {
             var providerBuilder = new ProviderBuilderAdapter(provider);
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Provider);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }
@@ -212,7 +241,7 @@ namespace Ninject.Builder
         public INewBindingWhenInWithOrOnInitializationSyntax<T> ToSelf()
         {
             var providerBuilder = new StandardProviderFactory(typeof(T));
-            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Self);
+            var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Self, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
         }

@@ -22,7 +22,7 @@
 namespace Ninject.Parameters
 {
     using System;
-
+    using System.Reflection;
     using Ninject.Activation;
     using Ninject.Infrastructure;
     using Ninject.Planning.Targets;
@@ -30,7 +30,7 @@ namespace Ninject.Parameters
     /// <summary>
     /// Overrides the injected value of a constructor argument.
     /// </summary>
-    public class TypeMatchingConstructorArgument : IConstructorArgument
+    public class TypeMatchingConstructorArgument : IConstructorArgument, IEquatable<TypeMatchingConstructorArgument>
     {
         private readonly Type type;
 
@@ -39,7 +39,7 @@ namespace Ninject.Parameters
         /// </summary>
         /// <param name="type">The type of the argument to override.</param>
         /// <param name="valueCallback">The callback that will be triggered to get the parameter's value.</param>
-        public TypeMatchingConstructorArgument(Type type, Func<IContext, ITarget, object> valueCallback)
+        public TypeMatchingConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> valueCallback)
             : this(type, valueCallback, false)
         {
         }
@@ -52,7 +52,7 @@ namespace Ninject.Parameters
         /// <param name="shouldInherit">Whether the parameter should be inherited into child requests.</param>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="valueCallback"/> is <see langword="null"/>.</exception>
-        public TypeMatchingConstructorArgument(Type type, Func<IContext, ITarget, object> valueCallback, bool shouldInherit)
+        public TypeMatchingConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> valueCallback, bool shouldInherit)
         {
             Ensure.ArgumentNotNull(type, nameof(type));
             Ensure.ArgumentNotNull(valueCallback, nameof(valueCallback));
@@ -81,7 +81,7 @@ namespace Ninject.Parameters
         /// <summary>
         /// Gets or sets the callback that will be triggered to get the parameter's value.
         /// </summary>
-        private Func<IContext, ITarget, object> ValueCallback { get; set; }
+        private Func<IContext, ITarget<ParameterInfo>, object> ValueCallback { get; set; }
 
         /// <summary>
         /// Determines if the parameter applies to the given target.
@@ -95,7 +95,7 @@ namespace Ninject.Parameters
         /// <remarks>
         /// Only one parameter may return <see langword="true"/>.
         /// </remarks>
-        public bool AppliesToTarget(IContext context, ITarget target)
+        public bool AppliesToTarget(IContext context, ITarget<ParameterInfo> target)
         {
             return target.Type == this.type;
         }
@@ -109,7 +109,7 @@ namespace Ninject.Parameters
         /// The value for the parameter.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public object GetValue(IContext context, ITarget target)
+        public object GetValue(IContext context, ITarget<ParameterInfo> target)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
 
@@ -123,9 +123,14 @@ namespace Ninject.Parameters
         /// <returns>
         /// <see langword="true"/> if the objects are equal; otherwise, <see langword="false"/>.
         /// </returns>
-        public bool Equals(IParameter other)
+        public bool Equals(TypeMatchingConstructorArgument other)
         {
-            return other is TypeMatchingConstructorArgument argument && argument.type == this.type;
+            if (other == null)
+            {
+                return false;
+            }
+
+            return other.type == this.type;
         }
 
         /// <summary>
@@ -137,7 +142,7 @@ namespace Ninject.Parameters
         /// </returns>
         public override bool Equals(object obj)
         {
-            return obj is IParameter parameter ? this.Equals(parameter) : ReferenceEquals(this, obj);
+            return obj is TypeMatchingConstructorArgument parameter ? this.Equals(parameter) : ReferenceEquals(this, obj);
         }
 
         /// <summary>
@@ -148,7 +153,7 @@ namespace Ninject.Parameters
         /// </returns>
         public override int GetHashCode()
         {
-            return this.GetType().GetHashCode() ^ this.type.GetHashCode();
+            return this.type.GetHashCode();
         }
     }
 }

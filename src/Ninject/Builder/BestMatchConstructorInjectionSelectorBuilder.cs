@@ -32,16 +32,17 @@ namespace Ninject.Builder
     /// a given <see cref="IConstructorReflectionSelector"/>, and an <see cref="IConstructorInjectionScorer"/> to select
     /// the best matching constructor from these candidates.
     /// </summary>
-    internal sealed class BestMatchConstructorInjectionSelectorBuilder : IBestMatchConstructorInjectionSelectorBuilder
+    internal sealed class BestMatchConstructorInjectionSelectorBuilder : ConstructorInjectionSelectorBuilder, IBestMatchConstructorInjectionSelectorBuilder
     {
         private ConstructorScorerBuilder scorerBuilder;
-        private ConstructorReflectionSelectorBuilder selectorBuilder;
 
         /// <summary>
         /// Builds the constructor injection components.
         /// </summary>
-        public void Build(IComponentBindingRoot root)
+        public override void Build(IComponentBindingRoot root)
         {
+            base.Build(root);
+
             if (this.scorerBuilder != null)
             {
                 this.scorerBuilder.Build(root);
@@ -51,20 +52,9 @@ namespace Ninject.Builder
                 throw new Exception("TODO");
             }
 
-            if (this.selectorBuilder != null)
-            {
-                this.selectorBuilder.Build(root);
-            }
-            else
-            {
-                throw new Exception("TODO");
-            }
+            // THROW IF OTHER IConstructorInjectionSelector is bound?
 
             root.Bind<IConstructorInjectionSelector>().To<BestMatchConstructorInjectionSelector>();
-
-            /* TODO, MAKE configurable */
-            root.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
-            /* END TODO */
         }
 
         /// <summary>
@@ -75,17 +65,6 @@ namespace Ninject.Builder
         {
             this.scorerBuilder = new ConstructorScorerBuilder();
             scorerBuilder(this.scorerBuilder);
-        }
-
-        /// <summary>
-        /// Configures an <see cref="IConstructorReflectionSelector"/> to use for composing a list of constructors that
-        /// can be used to instantiate a given service.
-        /// </summary>
-        /// <param name="selectorBuilder">A callback to configure an <see cref="IConstructorReflectionSelector"/>.</param>
-        public void Selector(Action<IConstructorReflectionSelectorBuilder> selectorBuilder)
-        {
-            this.selectorBuilder = new ConstructorReflectionSelectorBuilder();
-            selectorBuilder(this.selectorBuilder);
         }
     }
 }

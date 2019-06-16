@@ -38,10 +38,31 @@ namespace Ninject.Builder
         /// </returns>
         public abstract IBindingConfiguration Build(IResolutionRoot root);
 
+        /// <summary>
+        /// Returns a value indicating whether any activation actions are defined for the current binding.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if at least one activation action is defined for the current binding;
+        /// otherwise, <see langword="false"/>.
+        /// </value>
         public abstract bool HasActivationActions { get; }
 
+        /// <summary>
+        /// Returns a value indicating whether any deactivation actions are defined for the current binding.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if at least one deactivation action is defined for the current binding;
+        /// otherwise, <see langword="false"/>.
+        /// </value>
         public abstract bool HasDeactivationActions { get; }
 
+        /// <summary>
+        /// Returns a value indicating whether any initialization actions are defined for the current binding.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if at least one initialization action is defined for the current binding;
+        /// otherwise, <see langword="false"/>.
+        /// </value>
         public abstract bool HasInitializationActions { get; }
     }
 }

@@ -67,8 +67,10 @@ namespace Ninject.Activation.Strategies
         /// </returns>
         public object Initialize(IContext context, object instance)
         {
-            // TODO
-            throw new NotImplementedException();
+            Ensure.ArgumentNotNull(context, nameof(context));
+
+            context.Binding.InitializationActions.Map(action => instance = action(context, instance));
+            return instance;
         }
 
         /// <summary>

@@ -52,6 +52,17 @@ namespace Ninject.Builder
         }
 
         /// <summary>
+        /// Configure constructor injection to expect a given service to expose only a single constructor.
+        /// </summary>
+        /// <param name="uniqueBuilder">A callback to configure the unique constructor mechanism.</param>
+        public void Unique(Action<IConstructorInjectionSelectorBuilder> uniqueBuilder)
+        {
+            var builder = new UniqueConstructorInjectionSelectorBuilder();
+            uniqueBuilder(builder);
+            this.constructorInjectionSelectorBuilder = builder;
+        }
+
+        /// <summary>
         /// Builds the constructor injection components.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]

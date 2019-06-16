@@ -530,7 +530,9 @@ namespace Ninject.Planning.Bindings
         /// </summary>
         /// <typeparam name="TValue">The type of the argument type to override.</typeparam>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public IBindingWithOrOnSyntax<T> WithConstructorArgument<TValue>(Func<IContext, TValue> callback)
         {
             return this.WithConstructorArgument(typeof(TValue), (context, target) => callback(context));

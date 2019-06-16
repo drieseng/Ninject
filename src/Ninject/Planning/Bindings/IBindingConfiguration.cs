@@ -73,6 +73,11 @@ namespace Ninject.Planning.Bindings
         IList<IParameter> Parameters { get; }
 
         /// <summary>
+        /// Gets the actions that contribute to the initialization of instances that are initialized via the binding.
+        /// </summary>
+        ICollection<Func<IContext, object, object>> InitializationActions { get; }
+
+        /// <summary>
         /// Gets the actions that should be called after instances are activated via the binding.
         /// </summary>
         ICollection<Action<IContext, object>> ActivationActions { get; }

@@ -21,7 +21,6 @@
 
 namespace Ninject.Builder
 {
-    using Ninject.Activation.Providers;
     using Ninject.Selection;
 
     /// <summary>
@@ -29,17 +28,14 @@ namespace Ninject.Builder
     /// a given <see cref="IConstructorReflectionSelector"/>, and an <see cref="IConstructorInjectionSelector"/> that
     /// expects only a single candidate and returns this candidate.
     /// </summary>
-    internal sealed class UniqueConstructorInjectionSelectorBuilder : IComponentBuilder
+    internal sealed class UniqueConstructorInjectionSelectorBuilder : ConstructorInjectionSelectorBuilder
     {
         /// <summary>
         /// Builds the constructor injection components.
         /// </summary>
-        public void Build(IComponentBindingRoot root)
+        public override void Build(IComponentBindingRoot root)
         {
-            /* TODO, MAKE configurable */
-            root.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
-            root.Bind<IConstructorReflectionSelector>().To<ConstructorReflectionSelector>();
-            /* END TODO */
+            base.Build(root);
 
             root.Bind<IConstructorInjectionSelector>().To<UniqueConstructorInjectionSelector>();
         }

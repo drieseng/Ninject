@@ -19,6 +19,8 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
+//#define CYCLIC
+
 namespace Ninject.Activation
 {
     using System;
@@ -175,11 +177,13 @@ namespace Ninject.Activation
         /// </returns>
         public object Resolve()
         {
+#if CYCLIC
             if (this.Request.ActiveBindings.Contains(this.Binding) &&
                 IsCyclical(this.Request.ParentRequest, this.Request.Target))
             {
                 throw new ActivationException(this.exceptionFormatter.CyclicalDependenciesDetected(this));
             }
+#endif
 
             try
             {
@@ -217,32 +221,20 @@ namespace Ninject.Activation
 
         private object ResolveWithoutScope()
         {
+#if CYCLIC
             this.Request.ActiveBindings.Push(this.Binding);
+#endif
 
             var instance = this.Provider.Create(this);
 
+#if CYCLIC
             this.Request.ActiveBindings.Pop();
+#endif
 
             /*
             if (instance == null)
             {
                 throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
-            }
-            */
-
-            /*
-            try
-            {
-                this.Pipeline.Activate(this, reference);
-            }
-            catch (ActivationException)
-            {
-                if (scope != null)
-                {
-                    this.Cache.Release(reference.Instance);
-                }
-
-                throw;
             }
             */
 
@@ -265,11 +257,15 @@ namespace Ninject.Activation
                     return cachedInstance;
                 }
 
+#if CYCLIC
                 this.Request.ActiveBindings.Push(this.Binding);
+#endif
 
                 var reference = new InstanceReference { Instance = this.Provider.Create(this) };
 
+#if CYCLIC
                 this.Request.ActiveBindings.Pop();
+#endif
 
                 /*
                 if (reference.Instance == null)
@@ -279,18 +275,6 @@ namespace Ninject.Activation
                 */
 
                 this.Cache.Remember(this, scope, reference);
-
-                /*
-                try
-                {
-                    this.Pipeline.Activate(this, reference);
-                }
-                catch (ActivationException)
-                {
-                    this.Cache.Release(reference.Instance);
-                    throw;
-                }
-                */
 
                 return reference.Instance;
             }

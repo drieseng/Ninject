@@ -73,7 +73,9 @@
         /// an attribute of the specified type.
         /// </summary>
         /// <typeparam name="TAttribute">The type of attribute.</typeparam>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         INewBindingWhenSyntax<T> WhenClassHas<TAttribute>()
             where TAttribute : Attribute;
 
@@ -82,7 +84,9 @@
         /// an attribute of the specified type.
         /// </summary>
         /// <typeparam name="TAttribute">The type of attribute.</typeparam>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         INewBindingWhenSyntax<T> WhenMemberHas<TAttribute>()
             where TAttribute : Attribute;
 
@@ -91,7 +95,9 @@
         /// an attribute of the specified type.
         /// </summary>
         /// <typeparam name="TAttribute">The type of attribute.</typeparam>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         INewBindingWhenSyntax<T> WhenTargetHas<TAttribute>()
             where TAttribute : Attribute;
 
@@ -126,14 +132,6 @@
         /// <param name="name">The name to expect.</param>
         /// <returns>The fluent syntax.</returns>
         INewBindingWhenSyntax<T> WhenParentNamed(string name);
-
-        /// <summary>
-        /// Indicates that the binding should be used only when any ancestor is bound with the specified name.
-        /// </summary>
-        /// <param name="name">The name to expect.</param>
-        /// <returns>The fluent syntax.</returns>
-        [Obsolete("Use WhenAnyAncestorNamed(string name)")]
-        INewBindingWhenSyntax<T> WhenAnyAnchestorNamed(string name);
 
         /// <summary>
         /// Indicates that the binding should be used only when any ancestor is bound with the specified name.

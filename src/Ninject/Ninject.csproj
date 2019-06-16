@@ -22,7 +22,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ninject/Ninject</RepositoryUrl>
     <DebugType>pdbonly</DebugType>
-    <NoWarn>CS0618</NoWarn>
+    <NoWarn>CS0618;CS1591</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -32,12 +32,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="stylecop.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <None Remove="stylecop.json" />
   </ItemGroup>
 </Project>

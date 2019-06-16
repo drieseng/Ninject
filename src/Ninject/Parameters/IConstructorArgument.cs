@@ -21,6 +21,9 @@
 
 namespace Ninject.Parameters
 {
+    using System;
+    using System.Reflection;
+
     using Ninject.Activation;
     using Ninject.Planning.Targets;
 
@@ -41,6 +44,14 @@ namespace Ninject.Parameters
         /// <remarks>
         /// Only one parameter may return <see langword="true"/>.
         /// </remarks>
-        bool AppliesToTarget(IContext context, ITarget target);
+        bool AppliesToTarget(IContext context, ITarget<ParameterInfo> target);
+
+        /// <summary>
+        /// Gets the value for the parameter within the specified context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="target">The target.</param>
+        /// <returns>The value for the parameter.</returns>
+        object GetValue(IContext context, ITarget<ParameterInfo> target);
     }
 }

@@ -128,7 +128,7 @@ namespace Ninject.Parameters
         /// <summary>
         /// Gets the callback that will be triggered to get the parameter's value.
         /// </summary>
-        public Func<IContext, ITarget<PropertyInfo>, object> ValueCallback { get; internal set; }
+        public Func<IContext, ITarget<PropertyInfo>, object> ValueCallback { get; protected set; }
 
         /// <summary>
         /// Determines if the parameter applies to the given target.

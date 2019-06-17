@@ -47,6 +47,9 @@ namespace Ninject.Builder
         /// </value>
         public abstract string ServiceNames { get; }
 
+        /// <summary>
+        /// Gets the binding being built.
+        /// </summary>
         public abstract BindingConfigurationBuilder BindingConfigurationBuilder { get; }
 
         /// <summary>

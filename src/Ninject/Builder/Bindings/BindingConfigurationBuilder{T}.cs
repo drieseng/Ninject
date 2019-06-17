@@ -52,7 +52,7 @@ namespace Ninject.Builder
         private readonly IProviderFactory providerBuilder;
         private readonly BindingTarget target;
         private readonly BindingBuilder bindingBuilder;
-        private IBindingMetadata metadata;
+        private readonly IBindingMetadata metadata;
         private readonly List<IParameter> parameters;
         private readonly List<Func<IContext, object, object>> initializationActions;
         private readonly List<Action<IContext, object>> activationActions;
@@ -68,6 +68,7 @@ namespace Ninject.Builder
         /// <param name="bindingBuilder">The <see cref="BindingBuilder"/> to provide configuration for.</param>
         internal BindingConfigurationBuilder(IProviderFactory providerFactory, BindingTarget target, BindingBuilder bindingBuilder)
         {
+            this.metadata = new BindingMetadata();
             this.providerBuilder = providerFactory;
             this.target = target;
             this.bindingBuilder = bindingBuilder;
@@ -4032,11 +4033,6 @@ namespace Ninject.Builder
         /// </returns>
         private BindingConfigurationBuilder<T> WithMetadata(string key, object value)
         {
-            if (this.metadata == null)
-            {
-                this.metadata = new BindingMetadata();
-            }
-
             this.metadata.Set(key, value);
             return this;
         }
@@ -4052,12 +4048,6 @@ namespace Ninject.Builder
         private BindingConfigurationBuilder<T> Named(string name)
         {
             string.Intern(name);
-
-            if (this.metadata == null)
-            {
-                this.metadata = new BindingMetadata();
-            }
-
             this.metadata.Name = name;
             return this;
         }

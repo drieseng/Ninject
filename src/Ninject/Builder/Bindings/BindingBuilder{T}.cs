@@ -40,6 +40,9 @@ namespace Ninject.Builder
         private BindingConfigurationBuilder bindingConfigurationBuilder;
         private string serviceNames;
 
+        /// <summary>
+        /// Gets the binding being built.
+        /// </summary>
         public override BindingConfigurationBuilder BindingConfigurationBuilder => this.bindingConfigurationBuilder;
 
         /// <summary>

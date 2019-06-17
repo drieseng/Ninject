@@ -162,10 +162,7 @@ namespace Ninject
             var request = this.CreateRequest(service, null, parameters, false, false);
             var context = this.CreateContext(request, binding);
 
-            var reference = new InstanceReference { Instance = instance };
-
-            // TODO REPLACE BY INITIALIZE
-            this.pipeline.Activate(context, reference);
+            this.pipeline.Initialize(context, instance);
         }
 
         /// <summary>

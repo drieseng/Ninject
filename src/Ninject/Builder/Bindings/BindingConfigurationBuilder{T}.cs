@@ -51,7 +51,7 @@ namespace Ninject.Builder
     {
         private readonly IProviderFactory providerBuilder;
         private readonly BindingTarget target;
-        private readonly BindingBuilder bindingBuilder;
+        private readonly NewBindingBuilder bindingBuilder;
         private readonly IBindingMetadata metadata;
         private readonly List<IParameter> parameters;
         private readonly List<Func<IContext, object, object>> initializationActions;
@@ -65,8 +65,8 @@ namespace Ninject.Builder
         /// </summary>
         /// <param name="providerFactory">A factory for creating an <see cref="IProvider"/>.</param>
         /// <param name="target">The type of target for the binding.</param>
-        /// <param name="bindingBuilder">The <see cref="BindingBuilder"/> to provide configuration for.</param>
-        internal BindingConfigurationBuilder(IProviderFactory providerFactory, BindingTarget target, BindingBuilder bindingBuilder)
+        /// <param name="bindingBuilder">The <see cref="NewBindingBuilder"/> to provide configuration for.</param>
+        internal BindingConfigurationBuilder(IProviderFactory providerFactory, BindingTarget target, NewBindingBuilder bindingBuilder)
         {
             this.metadata = new BindingMetadata();
             this.providerBuilder = providerFactory;

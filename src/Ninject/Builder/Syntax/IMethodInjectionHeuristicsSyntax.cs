@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="StoppableStrategy.cs" company="Ninject Project Contributors">
+// <copyright file="IMethodInjectionHeuristicsSyntax.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,33 +19,16 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Activation.Strategies
+using Ninject.Selection.Heuristics;
+using System;
+
+namespace Ninject.Builder.Syntax
 {
-    using System;
-
-    /// <summary>
-    /// Stops instances that implement <see cref="IStoppable"/> during deactivation.
-    /// </summary>
-    public class StoppableStrategy : IDeactivationStrategy
+    public interface IMethodInjectionHeuristicsSyntax
     {
-        /// <summary>
-        /// Starts the specified instance.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="reference">A reference to the instance being activated.</param>
-        public void Deactivate(IContext context, InstanceReference reference)
-        {
-            if (reference.IsInstanceOf<IStoppable>(out var startable))
-            {
-                startable.Stop();
-            }
-        }
+        IMethodInjectionHeuristicsSyntax InjectionHeuristic(Action<IAttributeBasedMethodInjectionHeuristicBuilder> heuristic);
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        void IDisposable.Dispose()
-        {
-        }
-   }
+        IMethodInjectionHeuristicsSyntax InjectionHeuristic<T>()
+            where T : IMethodInjectionHeuristic;
+    }
 }

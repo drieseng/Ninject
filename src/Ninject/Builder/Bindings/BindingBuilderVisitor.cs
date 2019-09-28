@@ -29,16 +29,14 @@ namespace Ninject.Builder
 
     internal class BindingBuilderVisitor : IVisitor<IBinding>
     {
-        private readonly Dictionary<Type, ICollection<IBinding>> bindingsByType;
-
         public BindingBuilderVisitor()
         {
-            this.bindingsByType = new Dictionary<Type, ICollection<IBinding>>(new ReferenceEqualityTypeComparer());
+            this.Bindings = new Dictionary<Type, ICollection<IBinding>>(new ReferenceEqualityTypeComparer());
         }
 
         public BindingBuilderVisitor(Dictionary<Type, ICollection<IBinding>> bindings)
         {
-            this.bindingsByType = bindings;
+            this.Bindings = bindings;
         }
 
         /// <summary>
@@ -47,17 +45,14 @@ namespace Ninject.Builder
         /// <value>
         /// The gathered bindings.
         /// </value>
-        public Dictionary<Type, ICollection<IBinding>> Bindings
-        {
-            get { return this.bindingsByType; }
-        }
+        public Dictionary<Type, ICollection<IBinding>> Bindings { get; private set; }
 
         public void Visit(IBinding binding)
         {
-            if (!this.bindingsByType.TryGetValue(binding.Service, out var bindingsForType))
+            if (!this.Bindings.TryGetValue(binding.Service, out var bindingsForType))
             {
                 bindingsForType = new List<IBinding>();
-                this.bindingsByType.Add(binding.Service, bindingsForType);
+                this.Bindings.Add(binding.Service, bindingsForType);
             }
 
             bindingsForType.Add(binding);

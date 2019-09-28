@@ -21,12 +21,13 @@
 
 namespace Ninject.Selection
 {
-    using Ninject.Infrastructure;
-    using Ninject.Selection.Heuristics;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+
+    using Ninject.Infrastructure;
+    using Ninject.Selection.Heuristics;
 
     public class MethodReflectionSelector : IMethodReflectionSelector
     {
@@ -35,7 +36,7 @@ namespace Ninject.Selection
         /// </summary>
         private const BindingFlags DefaultBindingFlags = BindingFlags.Public | BindingFlags.Instance;
 
-        private readonly List<IInjectionHeuristic> injectionHeuristics;
+        private readonly List<IMethodInjectionHeuristic> injectionHeuristics;
 
         /// <summary>
         /// The binding flags.
@@ -47,7 +48,7 @@ namespace Ninject.Selection
         /// </summary>
         /// <param name="injectionHeuristics">The injection heuristics.</param>
         /// <exception cref="ArgumentNullException"><paramref name="injectionHeuristics"/> is <see langword="null"/>.</exception>
-        public MethodReflectionSelector(IEnumerable<IInjectionHeuristic> injectionHeuristics)
+        public MethodReflectionSelector(IEnumerable<IMethodInjectionHeuristic> injectionHeuristics)
         {
             Ensure.ArgumentNotNull(injectionHeuristics, nameof(injectionHeuristics));
 
@@ -98,7 +99,7 @@ namespace Ninject.Selection
         {
         }
 
-        private static bool ShouldInject(List<IInjectionHeuristic> injectionHeuristics, MethodInfo method)
+        private static bool ShouldInject(List<IMethodInjectionHeuristic> injectionHeuristics, MethodInfo method)
         {
             var shouldInject = false;
 

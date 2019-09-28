@@ -92,6 +92,7 @@ namespace Ninject
         /// <see langword="true"/> if activation cache is disabled; otherwise, <see langword="false"/>.
         /// The default is <see langword="false"/>.
         /// </value>
+        [Obsolete("TODO", true)]
         bool ActivationCacheDisabled { get; set; }
 
         /// <summary>

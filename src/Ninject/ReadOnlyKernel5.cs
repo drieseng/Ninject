@@ -44,6 +44,7 @@ namespace Ninject
     /// </summary>
     public sealed class ReadOnlyKernel5 : DisposableObject, IReadOnlyKernel
     {
+        private readonly INinjectSettings settings;
         private readonly ICache cache;
         private readonly IPipeline pipeline;
         private readonly IPlanner planner;
@@ -59,6 +60,7 @@ namespace Ninject
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOnlyKernel5"/> class.
         /// </summary>
+        /// <param name="settings">The configuration to use.</param>
         /// <param name="bindings">The preconfigured bindings.</param>
         /// <param name="cache">The <see cref="ICache"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
@@ -68,6 +70,7 @@ namespace Ninject
         /// <param name="bindingResolvers">The binding resolvers.</param>
         /// <param name="missingBindingResolvers">The missing binding resolvers.</param>
         internal ReadOnlyKernel5(
+            INinjectSettings settings,
             Dictionary<Type, ICollection<IBinding>> bindings,
             ICache cache,
             IPlanner planner,
@@ -77,6 +80,7 @@ namespace Ninject
             List<IBindingResolver> bindingResolvers,
             List<IMissingBindingResolver> missingBindingResolvers)
         {
+            this.settings = settings;
             this.bindings = bindings;
             this.bindingResolvers = bindingResolvers;
             this.missingBindingResolvers = missingBindingResolvers;
@@ -95,6 +99,7 @@ namespace Ninject
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOnlyKernel5"/> class.
         /// </summary>
+        /// <param name="settings">The configuration to use.</param>
         /// <param name="bindings">The preconfigured bindings.</param>
         /// <param name="cache">The <see cref="ICache"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
@@ -104,7 +109,8 @@ namespace Ninject
         /// <param name="bindingResolvers">The binding resolvers.</param>
         /// <param name="missingBindingResolvers">The missing binding resolvers.</param>
         internal ReadOnlyKernel5(
-            BindingsBuilder bindings,
+            INinjectSettings settings,
+            NewBindingRoot bindings,
             ICache cache,
             IPlanner planner,
             IPipeline pipeline,
@@ -115,6 +121,7 @@ namespace Ninject
         {
             this.bindingResolvers = bindingResolvers;
             this.missingBindingResolvers = missingBindingResolvers;
+            this.settings = settings;
             this.cache = cache;
             this.planner = planner;
             this.pipeline = pipeline;
@@ -309,6 +316,16 @@ namespace Ninject
         }
 
         /// <summary>
+        /// Immediately deactivates and removes all instances in the cache that are owned by
+        /// the specified scope.
+        /// </summary>
+        /// <param name="scope">The scope whose instances should be deactivated.</param>
+        public void Clear(object scope)
+        {
+            this.cache.Clear(scope);
+        }
+
+        /// <summary>
         /// Returns a value incating whether a given <see cref="IBinding"/> matches the request.
         /// </summary>
         /// <param name="request">The request/.</param>
@@ -378,7 +395,7 @@ namespace Ninject
         /// <returns>The created context.</returns>
         private IContext CreateContext(IRequest request, IBinding binding)
         {
-            return new Context(this, request, binding, this.cache, this.exceptionFormatter);
+            return new Context(this, this.settings, request, binding, this.cache, this.exceptionFormatter);
         }
 
         private IEnumerable<object> ResolveAllWithMissingBindings(IRequest request, bool handleMissingBindings)
@@ -492,7 +509,7 @@ namespace Ninject
 
             if (satisfiedBinding != null)
             {
-                return new Context(this, request, satisfiedBinding, this.cache, this.exceptionFormatter).Resolve();
+                return new Context(this, this.settings, request, satisfiedBinding, this.cache, this.exceptionFormatter).Resolve();
             }
 
             var collection = this.ResolveCollection(request);

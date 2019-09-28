@@ -1,7 +1,7 @@
 // -------------------------------------------------------------------------------------------------
 // <copyright file="INinjectModule.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
-//   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
+//   Copyright (c) 2010-2017 Ninject Project Contributors. All rights reserved.
 //
 //   Dual-licensed under the Apache License, Version 2.0, and the Microsoft Public License (Ms-PL).
 //   You may not use this file except in compliance with one of the Licenses.
@@ -19,10 +19,12 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
+using Ninject.Builder;
+
 namespace Ninject.Modules
 {
     /// <summary>
-    /// A pluggable unit that can be loaded into an <see cref="IKernel"/>.
+    /// A pluggable unit that can be loaded into an <see cref="IKernelBuilder"/>.
     /// </summary>
     public interface INinjectModule
     {
@@ -34,18 +36,12 @@ namespace Ninject.Modules
         /// <summary>
         /// Called when the module is loaded into a kernel.
         /// </summary>
-        /// <param name="kernelConfiguration">The kernel configuration that is loading the module.</param>
-        /// <param name="settings">The ninject settings.</param>
-        void OnLoad(IKernelConfiguration kernelConfiguration, INinjectSettings settings);
+        /// <param name="kernel">The kernel that is loading the module.</param>
+        void OnLoad(Builder.IKernelConfiguration kernel);
 
         /// <summary>
-        /// Called when the module is unloaded from a kernel.
+        /// Called after all modules are loaded. A module can verify here if all other required binding are available.
         /// </summary>
-        void OnUnload();
-
-        /// <summary>
-        /// Called after loading the modules. A module can verify here if all other required modules are loaded.
-        /// </summary>
-        void OnVerifyRequiredModules();
+        void LoadCompleted(Builder.IKernelConfiguration kernel);
     }
 }

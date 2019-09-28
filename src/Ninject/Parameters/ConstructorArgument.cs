@@ -169,7 +169,9 @@ namespace Ninject.Parameters
         /// <summary>
         /// Serves as a hash function for a particular type.
         /// </summary>
-        /// <returns>A hash code for the object.</returns>
+        /// <returns>
+        /// A hash code for the object.
+        /// </returns>
         public override int GetHashCode()
         {
             return this.Name.GetHashCode();

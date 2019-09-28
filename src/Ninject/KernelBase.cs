@@ -19,88 +19,92 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-#pragma warning disable CS0618,SA1600 // Type or member is obsolete,Elements should be documented
 namespace Ninject
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
 
     using Ninject.Activation;
     using Ninject.Activation.Blocks;
+    using Ninject.Builder;
     using Ninject.Components;
     using Ninject.Infrastructure;
+    using Ninject.Infrastructure.Language;
     using Ninject.Modules;
     using Ninject.Parameters;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
     /// <summary>
-    /// The base implementation of an <see cref="IKernel"/>.
+    /// The base implementation of an <see cref="IKernelBuilder"/>.
     /// </summary>
-    public abstract class KernelBase : BindingRoot, IKernel
+    public abstract class KernelBase : NewBindingRoot, IKernel
     {
+        /// <summary>
+        /// The ninject modules.
+        /// </summary>
+        private readonly Dictionary<string, INinjectModule> modules = new Dictionary<string, INinjectModule>();
+
+        private KernelBuilder kernelBuilder;
+
         private readonly object kernelLockObject = new object();
 
-        private readonly IKernelConfiguration kernelConfiguration;
-
         private IReadOnlyKernel kernel;
-
-        private bool isDirty = true;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="KernelBase"/> class.
         /// </summary>
-        /// <param name="components">The component container to use.</param>
         /// <param name="settings">The configuration to use.</param>
         /// <param name="modules">The modules to load into the kernel.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="components"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
-        protected KernelBase(IComponentContainer components, INinjectSettings settings, params INinjectModule[] modules)
+        protected KernelBase(INinjectSettings settings, params INinjectModule[] modules)
         {
-            Ensure.ArgumentNotNull(components, nameof(components));
             Ensure.ArgumentNotNull(settings, nameof(settings));
             Ensure.ArgumentNotNull(modules, nameof(modules));
 
-            base.Settings = settings;
+            this.Settings = settings;
 
-            this.Components = components;
-
-            this.kernelConfiguration = new KernelConfiguration(components, settings, modules);
-
-            this.kernelConfiguration.Bind<IKernel>().ToConstant(this).InTransientScope();
+            this.kernelBuilder = new KernelBuilder();
         }
 
         /// <summary>
         /// Gets the kernel settings.
         /// </summary>
-        [Obsolete]
-        public new INinjectSettings Settings
-        {
-            get { return base.Settings; }
-        }
+        public INinjectSettings Settings { get; }
+
+        /// <summary>
+        /// Gets the component container, which holds components that contribute to Ninject.
+        /// </summary>
+        public IComponentContainer Components { get; }
 
         private IReadOnlyKernel ReadOnlyKernel
         {
             get
             {
-                if (!this.isDirty)
+                if (this.kernel != null)
                 {
                     return this.kernel;
                 }
 
                 lock (this.kernelLockObject)
                 {
-                    if (this.isDirty)
+                    if (this.kernel == null)
                     {
-                        this.kernel = this.kernelConfiguration.BuildReadOnlyKernel();
-                        this.isDirty = false;
+                        this.kernel = BuildReadOnlyKernel();
                     }
 
                     return this.kernel;
                 }
             }
+        }
+
+        private IReadOnlyKernel BuildReadOnlyKernel()
+        {
+            AddComponents(kernelBuilder);
+            return kernelBuilder.Build();
         }
 
         /// <summary>
@@ -111,22 +115,30 @@ namespace Ninject
         {
             if (disposing && !this.IsDisposed)
             {
-                this.kernelConfiguration.Dispose();
+                if (this.kernel != null)
+                    this.kernel.Dispose();
             }
 
             base.Dispose(disposing);
         }
 
+        /*
         /// <summary>
         /// Unregisters all bindings for the specified service.
         /// </summary>
         /// <param name="service">The service to unbind.</param>
         /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
         public override void Unbind(Type service)
         {
-            this.kernelConfiguration.Unbind(service);
-            this.isDirty = true;
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            this.kernelBuilder.Bindings(b => b.Unbind(service));
         }
+        */
 
         /// <summary>
         /// Gets an instance of the specified service.
@@ -141,26 +153,58 @@ namespace Ninject
         }
 
         /// <summary>
+        /// Adds components to the kernel during startup.
+        /// </summary>
+        protected abstract void AddComponents(IKernelBuilder kernelBuilder);
+
+        /*
+        /// <summary>
         /// Registers the specified binding.
         /// </summary>
         /// <param name="binding">The binding to add.</param>
         /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
-        public override void AddBinding(IBinding binding)
+        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
+        public override void AddBinding(INewBindingBuilder binding)
         {
-            this.kernelConfiguration.AddBinding(binding);
-            this.isDirty = true;
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            this.kernelBuilder.Bindings(b => b.AddBinding(binding));
         }
+        */
+
+        /*
+        /// <summary>
+        /// Registers the specified binding.
+        /// </summary>
+        /// <param name="binding">The binding to add.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">The <see cref="IKernel"/> has already been built.</exception>
+        void IKernel.AddBinding(INewBindingBuilder binding)
+        {
+            this.AddBinding(binding);
+        }
+        */
+
+        /*
 
         /// <summary>
         /// Unregisters the specified binding.
         /// </summary>
         /// <param name="binding">The binding to remove.</param>
         /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
-        public override void RemoveBinding(IBinding binding)
+        protected internal override void RemoveBinding(INewBindingBuilder binding)
         {
-            this.kernelConfiguration.RemoveBinding(binding);
-            this.isDirty = true;
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            this.kernelBuilder.BindingsBuilder.RemoveBinding(binding);
         }
+        */
 
         /// <summary>
         /// Determines whether a module with the specified name has been loaded in the kernel.
@@ -172,7 +216,9 @@ namespace Ninject
         /// <exception cref="ArgumentException"><paramref name="name"/> is <see langword="null"/> or a zero-length <see cref="string"/>.</exception>
         public bool HasModule(string name)
         {
-            return this.kernelConfiguration.HasModule(name);
+            Ensure.ArgumentNotNullOrEmpty(name, nameof(name));
+
+            return this.modules.ContainsKey(name);
         }
 
         /// <summary>
@@ -181,7 +227,7 @@ namespace Ninject
         /// <returns>A series of loaded modules.</returns>
         public IEnumerable<INinjectModule> GetModules()
         {
-            return this.kernelConfiguration.GetModules();
+            return this.modules.Values.ToArray();
         }
 
         /// <summary>
@@ -189,10 +235,38 @@ namespace Ninject
         /// </summary>
         /// <param name="modules">The modules to load.</param>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
         public void Load(IEnumerable<INinjectModule> modules)
         {
-            this.kernelConfiguration.Load(modules);
-            this.isDirty = true;
+            Ensure.ArgumentNotNull(modules, nameof(modules));
+
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            modules = modules.ToList();
+            foreach (INinjectModule module in modules)
+            {
+                if (string.IsNullOrEmpty(module.Name))
+                {
+                    throw new NotSupportedException(ExceptionFormatter.ModulesWithNullOrEmptyNamesAreNotSupported());
+                }
+
+                if (this.modules.TryGetValue(module.Name, out INinjectModule existingModule))
+                {
+                    throw new NotSupportedException(ExceptionFormatter.ModuleWithSameNameIsAlreadyLoaded(module, existingModule));
+                }
+
+                module.OnLoad(kernelBuilder);
+
+                this.modules.Add(module.Name, module);
+            }
+
+            foreach (INinjectModule module in modules)
+            {
+                module.LoadCompleted(kernelBuilder);
+            }
         }
 
         /// <summary>
@@ -200,10 +274,18 @@ namespace Ninject
         /// </summary>
         /// <param name="filePatterns">The file patterns (i.e. "*.dll", "modules/*.rb") to match.</param>
         /// <exception cref="ArgumentNullException"><paramref name="filePatterns"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
         public void Load(IEnumerable<string> filePatterns)
         {
-            this.kernelConfiguration.Load(filePatterns);
-            this.isDirty = true;
+            Ensure.ArgumentNotNull(filePatterns, nameof(filePatterns));
+
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            var moduleLoader = this.Components.Get<IModuleLoader>();
+            moduleLoader.LoadModules(filePatterns);
         }
 
         /// <summary>
@@ -211,10 +293,17 @@ namespace Ninject
         /// </summary>
         /// <param name="assemblies">The assemblies to search.</param>
         /// <exception cref="ArgumentNullException"><paramref name="assemblies"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
         public void Load(IEnumerable<Assembly> assemblies)
         {
-            this.kernelConfiguration.Load(assemblies);
-            this.isDirty = true;
+            Ensure.ArgumentNotNull(assemblies, nameof(assemblies));
+
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            this.Load(assemblies.SelectMany(asm => asm.GetNinjectModules()));
         }
 
         /// <summary>
@@ -222,10 +311,26 @@ namespace Ninject
         /// </summary>
         /// <param name="name">The plugin's name.</param>
         /// <exception cref="ArgumentException"><paramref name="name"/> is <see langword="null"/> or a zero-length <see cref="string"/>.</exception>
+        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
         public void Unload(string name)
         {
-            this.kernelConfiguration.Unload(name);
-            this.isDirty = true;
+            Ensure.ArgumentNotNullOrEmpty(name, nameof(name));
+
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            if (!this.modules.TryGetValue(name, out INinjectModule module))
+            {
+                throw new NotSupportedException(ExceptionFormatter.NoModuleLoadedWithTheSpecifiedName(name));
+            }
+
+            /*
+            module.OnUnload(this.kernelBuilder);
+            */
+
+            this.modules.Remove(name);
         }
 
         /// <summary>
@@ -251,6 +356,16 @@ namespace Ninject
         public virtual bool Release(object instance)
         {
             return this.ReadOnlyKernel.Release(instance);
+        }
+
+        /// <summary>
+        /// Immediately deactivates and removes all instances in the cache that are owned by
+        /// the specified scope.
+        /// </summary>
+        /// <param name="scope">The scope whose instances should be deactivated.</param>
+        public void Clear(object scope)
+        {
+            this.ReadOnlyKernel.Clear(scope);
         }
 
         /// <summary>
@@ -328,41 +443,8 @@ namespace Ninject
         /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
         public virtual IBinding[] GetBindings(Type service)
         {
-            return this.kernelConfiguration.GetBindings(service);
+            return this.ReadOnlyKernel.GetBindings(service);
         }
-
-        /// <summary>
-        /// Creates the readonly kernel.
-        /// </summary>
-        /// <returns>The readonly kernel.</returns>
-        public IReadOnlyKernel BuildReadOnlyKernel()
-        {
-            throw new NotSupportedException("Kernel is built internally.");
-        }
-
-        // Todo: Add
-        // protected virtual IComparer<IBinding> GetBindingPrecedenceComparer()
-        // {
-        //    return new BindingPrecedenceComparer();
-        // }
-
-        // Todo: Add
-        // protected virtual Func<IBinding, bool> SatifiesRequest(IRequest request)
-        // {
-        //    return binding => binding.Matches(request) && request.Matches(binding);
-        // }
-
-        // Todo: Add
-        // protected abstract void AddComponents();
-
-        // Todo: Add
-        // protected virtual IContext CreateContext(IRequest request, IBinding binding)
-        // {
-        //    Ensure.ArgumentNotNull(request, "request");
-        //    Ensure.ArgumentNotNull(binding, "binding");
-
-        // return new Context(this, request, binding, this.Components.Get<ICache>(), this.Components.Get<IPlanner>(), this.Components.Get<IPipeline>());
-        // }
 
         /// <summary>
         /// Gets the service object of the specified type.
@@ -388,6 +470,10 @@ namespace Ninject
         {
             return this.ReadOnlyKernel.ResolveSingle(request);
         }
+
+        private static InvalidOperationException CreateKernelHasBeenBuiltException()
+        {
+            return new InvalidOperationException("Cannot perform this operation after the kernel has been built.");
+        }
     }
 }
-#pragma warning restore CS0618 // Type or member is obsolete

@@ -73,7 +73,7 @@ namespace Ninject.Activation.Providers
         {
             IConstructorArgument match = null;
 
-            if (constructorArguments.Count > 0)
+            if (constructorArguments != null && constructorArguments.Count > 0)
             {
                 foreach (var parameter in constructorArguments)
                 {
@@ -102,7 +102,7 @@ namespace Ninject.Activation.Providers
             var parameters = context.Parameters;
             if (parameters.Count == 0)
             {
-                return new List<IConstructorArgument>();
+                return null;
             }
 
             var constructorArguments = new List<IConstructorArgument>();

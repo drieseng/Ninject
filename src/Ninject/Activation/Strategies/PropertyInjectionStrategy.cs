@@ -36,11 +36,6 @@ namespace Ninject.Activation.Strategies
     public class PropertyInjectionStrategy : IInitializationStrategy
     {
         /// <summary>
-        /// The <see cref="IPropertyValueProvider"/> provider.
-        /// </summary>
-        private readonly IPropertyValueProvider propertyValueProvider;
-
-        /// <summary>
         /// The <see cref="IExceptionFormatter"/> component.
         /// </summary>
         private readonly IExceptionFormatter exceptionFormatter;
@@ -48,16 +43,12 @@ namespace Ninject.Activation.Strategies
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyInjectionStrategy"/> class.
         /// </summary>
-        /// <param name="propertyValueProvider">The value provider.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="propertyValueProvider"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="exceptionFormatter"/> is <see langword="null"/>.</exception>
-        public PropertyInjectionStrategy(IPropertyValueProvider propertyValueProvider, IExceptionFormatter exceptionFormatter)
+        public PropertyInjectionStrategy(IExceptionFormatter exceptionFormatter)
         {
-            Ensure.ArgumentNotNull(propertyValueProvider, nameof(propertyValueProvider));
             Ensure.ArgumentNotNull(exceptionFormatter, nameof(exceptionFormatter));
 
-            this.propertyValueProvider = propertyValueProvider;
             this.exceptionFormatter = exceptionFormatter;
         }
 
@@ -110,13 +101,13 @@ namespace Ninject.Activation.Strategies
                         }
                         else
                         {
-                            value = this.propertyValueProvider.GetValue(directive, context);
+                            value = directive.Target.ResolveWithin(context);
                         }
 
                         directive.Injector(instance, value);
                     }
 
-                    // Check if there are any property parameters for which we have no found a corresponding property
+                    // Check if there are any property parameters for which we have not found a corresponding property
                     if (propertyParameters.Count > 0)
                     {
                         throw new ActivationException(this.exceptionFormatter.CouldNotResolvePropertyForValueInjection(context.Request, propertyParameters[0].Name));
@@ -126,7 +117,7 @@ namespace Ninject.Activation.Strategies
                 {
                     foreach (var directive in properties)
                     {
-                        var value = this.propertyValueProvider.GetValue(directive, context);
+                        var value = directive.Target.ResolveWithin(context);
                         directive.Injector(instance, value);
                     }
                 }

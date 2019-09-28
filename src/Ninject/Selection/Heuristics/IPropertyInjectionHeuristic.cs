@@ -22,7 +22,6 @@
 namespace Ninject.Selection
 {
     using Ninject.Components;
-    using System;
     using System.Reflection;
 
     /// <summary>
@@ -34,11 +33,10 @@ namespace Ninject.Selection
         /// Returns a value indicating whether a property should be injected during the initialization
         /// of a type.
         /// </summary>
-        /// <param name="type">The type being initialized, and for which the property should be injected.</param>
         /// <param name="property">The property to take a decision for.</param>
         /// <returns>
         /// <see langword="true"/> if the property should be injected; otherwise, <see langword="false"/>.
         /// </returns>
-        bool ShouldInject(Type type, PropertyInfo property);
+        bool ShouldInject(PropertyInfo property);
     }
 }

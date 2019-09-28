@@ -3,8 +3,7 @@
     using System;
     using System.Linq;
     using FluentAssertions;
-
-    using Ninject.Activation.Caching;
+    using Ninject.Activation;
     using Ninject.Activation.Strategies;
     using Ninject.Tests.Fakes;
     using Xunit;
@@ -24,43 +23,120 @@
         }
 
         [Fact]
-        public void InstanceIsActivatedOnCreation()
+        public void ActivationActions_WithoutContext_NotExecutedWhenTransientInstanceIsInjectedIntoScopedInstance()
         {
-            this.kernel.Bind<Barracks>().ToSelf().OnActivation(
-                instance =>
-                    {
-                        instance.Warrior = new FootSoldier();
-                        instance.Weapon = new Shuriken();
-                    });
+            int daggerActivationCount = 0;
+
+            this.kernel.Bind<IWarrior>().To<Ninja>().InThreadScope();
+            this.kernel.Bind<IWeapon>().To<Dagger>().OnActivation(instance => daggerActivationCount++);
+
+            var warrior = this.kernel.Get<IWarrior>();
+            warrior.Should().NotBeNull();
+            warrior.Should().BeOfType<Ninja>();
+            warrior.Weapon.Should().BeOfType<Dagger>();
+            daggerActivationCount.Should().Be(0);
+        }
+
+        [Fact]
+        public void ActivationActions_WithoutContext_NotExecutedWhenTransientInstanceIsCreated()
+        {
+            int ninjaActivationCount = 0;
+
+            this.kernel.Bind<IWarrior>().To<Ninja>().OnActivation(instance => ninjaActivationCount++);
+            this.kernel.Bind<IWeapon>().To<Dagger>();
+
+            var warrior = this.kernel.Get<IWarrior>();
+            warrior.Should().NotBeNull();
+            warrior.Should().BeOfType<Ninja>();
+            warrior.Weapon.Should().BeOfType<Dagger>();
+            ninjaActivationCount.Should().Be(0);
+        }
+
+        [Fact]
+        public void ActivationActions_WithoutContext_ExecutedWhenScopedInstanceIsCreated()
+        {
+            int barracksActivationCount = 0;
+
+            this.kernel.Bind<Barracks>().ToSelf().InThreadScope().OnActivation(
+                instance => 
+                {
+                    instance.Warrior = new FootSoldier();
+                    instance.Weapon = new Shuriken();
+                    barracksActivationCount++;
+                });
 
             var barracks = this.kernel.Get<Barracks>();
             barracks.Warrior.Should().NotBeNull();
             barracks.Warrior.Should().BeOfType<FootSoldier>();
             barracks.Weapon.Should().NotBeNull();
             barracks.Weapon.Should().BeOfType<Shuriken>();
+            barracksActivationCount.Should().Be(1);
+
+            this.kernel.Get<Barracks>();
+            barracksActivationCount.Should().Be(1);
         }
 
         [Fact]
-        public void InstanceIsActivatedOnCreationWithContext()
+        public void ActivationActions_WithContext_NotExecutedWhenTransientInstanceIsInjectedIntoScopedInstance()
         {
-            this.kernel.Bind<Barracks>().ToSelf().OnActivation(
+            int daggerActivationCount = 0;
+
+            this.kernel.Bind<IWarrior>().To<Ninja>().InThreadScope();
+            this.kernel.Bind<IWeapon>().To<Dagger>().OnActivation((ctx, instance) => daggerActivationCount++);
+
+            var warrior = this.kernel.Get<IWarrior>();
+            warrior.Should().NotBeNull();
+            warrior.Should().BeOfType<Ninja>();
+            warrior.Weapon.Should().BeOfType<Dagger>();
+            daggerActivationCount.Should().Be(0);
+        }
+
+        [Fact]
+        public void ActivationActions_WithContext_NotExecutedWhenTransientInstanceIsCreated()
+        {
+            int ninjaActivationCount = 0;
+
+            this.kernel.Bind<IWarrior>().To<Ninja>().OnActivation((ctx, instance) => ninjaActivationCount++);
+            this.kernel.Bind<IWeapon>().To<Dagger>();
+
+            var warrior = this.kernel.Get<IWarrior>();
+            warrior.Should().NotBeNull();
+            warrior.Should().BeOfType<Ninja>();
+            warrior.Weapon.Should().BeOfType<Dagger>();
+            ninjaActivationCount.Should().Be(0);
+        }
+
+        [Fact]
+        public void ActivationActions_WithContext_ExecutedWhenScopedInstanceIsCreated()
+        {
+            int warriorActivationCount = 0;
+            IContext activationContext = null;
+
+            this.kernel.Bind<IWarrior>().To<Ninja>().InThreadScope().OnActivation(
                 (ctx, instance) =>
-                    {
-                        instance.Warrior = new FootSoldier();
-                        instance.Weapon = new Shuriken();
-                    });
+                {
+                    instance.Weapon = new Sword();
+                    warriorActivationCount++;
+                    activationContext = ctx;
+                });
+            this.kernel.Bind<IWeapon>().To<Dagger>();
 
-            var barracks = this.kernel.Get<Barracks>();
-            barracks.Warrior.Should().NotBeNull();
-            barracks.Warrior.Should().BeOfType<FootSoldier>();
-            barracks.Weapon.Should().NotBeNull();
-            barracks.Weapon.Should().BeOfType<Shuriken>();
+            var warrior = this.kernel.Get<IWarrior>();
+            warrior.Should().NotBeNull();
+            warrior.Weapon.Should().BeOfType<Sword>();
+            warriorActivationCount.Should().Be(1);
+            activationContext.Should().NotBeNull();
+            activationContext.Request.Service.Should().Be<IWarrior>();
+
+            this.kernel.Get<IWarrior>();
+            warriorActivationCount.Should().Be(1);
         }
 
         [Fact]
-        public void InstanceIsDeactivatedWhenItLeavesScope()
+        public void DeactivationActions_WithoutContext_ExecutedWhenScopedInstanceIsReleased()
         {
-            Barracks barracks;
+            int barracksDeactivationCount = 0;
+
             this.kernel.Bind<Barracks>().ToSelf().InSingletonScope()
                   .OnActivation(
                       instance =>
@@ -73,41 +149,83 @@
                       {
                           instance.Warrior = null;
                           instance.Weapon = null;
+                          barracksDeactivationCount++;
                       });
 
-            barracks = this.kernel.Get<Barracks>();
+            Barracks barracks = this.kernel.Get<Barracks>();
             barracks.Warrior.Should().BeOfType<FootSoldier>();
             barracks.Weapon.Should().BeOfType<Shuriken>();
+            barracksDeactivationCount.Should().Be(0);
 
-            this.kernel.Components.Get<ICache>().Release(barracks);
+            this.kernel.Release(barracks);
             barracks.Warrior.Should().BeNull();
             barracks.Weapon.Should().BeNull();
+            barracksDeactivationCount.Should().Be(1);
         }
 
         [Fact]
-        public void InstanceIsDeactivatedWhenItLeavesScopeWithContext()
+        public void DeactivationActions_WithContext_ExecutedWhenScopedInstanceIsReleased()
         {
-            Barracks barracks;
-            this.kernel.Bind<Barracks>().ToSelf().InSingletonScope()
-                  .OnActivation(
-                      instance =>
-                      {
-                          instance.Warrior = new FootSoldier();
-                          instance.Weapon = new Shuriken();
-                      })
-                  .OnDeactivation((ctx, instance) =>
-                      {
-                          instance.Warrior = null;
-                          instance.Weapon = null;
-                      });
+            int warriorDeactivationCount = 0;
+            IContext deactivationContext = null;
 
-            barracks = this.kernel.Get<Barracks>();
-            barracks.Warrior.Should().BeOfType<FootSoldier>();
-            barracks.Weapon.Should().BeOfType<Shuriken>();
+            this.kernel.Bind<IWarrior>().To<Ninja>().InThreadScope()
+                .OnActivation((ctx, instance) =>
+                    {
+                        instance.Weapon = new Sword();
+                    })
+                .OnDeactivation((ctx, instance) =>
+                    {
+                        instance.Weapon = null;
+                        warriorDeactivationCount++;
+                        deactivationContext = ctx;
+                    });
+            this.kernel.Bind<IWeapon>().To<Dagger>();
 
-            this.kernel.Components.Get<ICache>().Release(barracks);
-            barracks.Warrior.Should().BeNull();
-            barracks.Weapon.Should().BeNull();
+            var warrior = this.kernel.Get<IWarrior>();
+            warrior.Should().BeOfType<Ninja>();
+            warrior.Weapon.Should().BeOfType<Sword>();
+            warriorDeactivationCount.Should().Be(0);
+
+            this.kernel.Release(warrior);
+            warrior.Weapon.Should().BeNull();
+            warriorDeactivationCount.Should().Be(1);
+
+            deactivationContext.Should().NotBeNull();
+            deactivationContext.Request.Service.Should().Be<IWarrior>();
+        }
+
+        [Fact]
+        public void DeactivationActions_WithContext_ExecutedWhenScopeOfInstanceIsCleared()
+        {
+            var scope = new object();
+            int warriorDeactivationCount = 0;
+            IContext deactivationContext = null;
+
+            this.kernel.Bind<IWarrior>().To<Ninja>().InScope(ctx => scope)
+                .OnActivation((ctx, instance) =>
+                {
+                    instance.Weapon = new Sword();
+                })
+                .OnDeactivation((ctx, instance) =>
+                {
+                    instance.Weapon = null;
+                    warriorDeactivationCount++;
+                    deactivationContext = ctx;
+                });
+            this.kernel.Bind<IWeapon>().To<Dagger>();
+
+            var warrior = this.kernel.Get<IWarrior>();
+            warrior.Should().BeOfType<Ninja>();
+            warrior.Weapon.Should().BeOfType<Sword>();
+            warriorDeactivationCount.Should().Be(0);
+
+            this.kernel.Clear(scope);
+            warrior.Weapon.Should().BeNull();
+            warriorDeactivationCount.Should().Be(1);
+
+            deactivationContext.Should().NotBeNull();
+            deactivationContext.Request.Service.Should().Be<IWarrior>();
         }
 
         [Fact]
@@ -129,7 +247,7 @@
         {
             this.kernel.Settings.AllowNullInjection = true;
             this.kernel.Components.Add<IActivationStrategy, TestActivationStrategy>();
-            this.kernel.Bind<IWarrior>().To<Samurai>();
+            this.kernel.Bind<IWarrior>().To<Samurai>().InSingletonScope();
             this.kernel.Bind<IWeapon>().ToConstant((IWeapon)null);
             var testActivationStrategy = this.kernel.Components.GetAll<IActivationStrategy>().OfType<TestActivationStrategy>().Single();
 

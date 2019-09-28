@@ -33,7 +33,7 @@ namespace Ninject.Activation.Strategies
     public class MethodInjectionStrategy : IInitializationStrategy
     {
         /// <summary>
-        /// Injects values into the properties as described by <see cref="MethodInjectionDirective"/>s
+        /// Injects values into the methods as described by <see cref="MethodInjectionDirective"/>s
         /// contained in the plan.
         /// </summary>
         /// <param name="context">The context.</param>

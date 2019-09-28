@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IPropertyInjectionHeuristicBuilder.cs" company="Ninject Project Contributors">
+// <copyright file="IMethodSelectorSyntax.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,15 +19,16 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder
+using Ninject.Selection;
+using System;
+
+namespace Ninject.Builder.Syntax
 {
-    using System;
-
-    public interface IDefaultPropertyInjectionHeuristicBuilder : IComponentBuilder
+    public interface IMethodSelectorSyntax
     {
-        IDefaultPropertyInjectionHeuristicBuilder InjectAttribute<T>()
-            where T : Attribute;
+        IMethodInjectionHeuristicsSyntax Selector(Action<IMethodReflectionSelectorBuilder> selector);
 
-        IDefaultPropertyInjectionHeuristicBuilder InjectAttribute(Type attributeType);
+        void Selector<T>()
+            where T : IMethodReflectionSelector;
     }
 }

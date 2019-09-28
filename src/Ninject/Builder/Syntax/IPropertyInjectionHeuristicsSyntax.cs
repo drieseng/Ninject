@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IPropertyValueProvider.cs" company="Ninject Project Contributors">
+// <copyright file="IPropertyInjectionHeuristicsSyntax.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,24 +19,16 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Activation.Providers
-{
-    using Ninject.Components;
-    using Ninject.Planning.Directives;
+using Ninject.Selection;
+using System;
 
-    /// <summary>
-    /// Provides values for injection into properties.
-    /// </summary>
-    public interface IPropertyValueProvider : INinjectComponent
+namespace Ninject.Builder.Syntax
+{
+    public interface IPropertyInjectionHeuristicsSyntax
     {
-        /// <summary>
-        /// Gets a value for the property from the specified context.
-        /// </summary>
-        /// <param name="property">The property to provide a value for.</param>
-        /// <param name="context">The context.</param>
-        /// <returns>
-        /// The value.
-        /// </returns>
-        object GetValue(IPropertyInjectionDirective property, IContext context);
+        IPropertyInjectionHeuristicsSyntax InjectionHeuristic(Action<IAttributeBasedPropertyInjectionHeuristicBuilder> heuristic);
+
+        IPropertyInjectionHeuristicsSyntax InjectionHeuristic<T>()
+            where T : IPropertyInjectionHeuristic;
     }
 }

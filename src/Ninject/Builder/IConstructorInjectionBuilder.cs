@@ -21,14 +21,13 @@
 
 namespace Ninject.Builder
 {
+    using Ninject.Builder.Syntax;
     using System;
-
-    using Ninject.Syntax;
 
     /// <summary>
     /// Enables and configures constructor injection.
     /// </summary>
-    public interface IConstructorInjectionBuilder : IFluentSyntax
+    public interface IConstructorInjectionBuilder : IComponentBuilder
     {
         /// <summary>
         /// Configure constructor injection to expect a given service to expose only a single constructor.
@@ -39,13 +38,22 @@ namespace Ninject.Builder
         /// Configure constructor injection to expect a given service to expose only a single constructor.
         /// </summary>
         /// <param name="uniqueBuilder">A callback to configure the unique constructor mechanism.</param>
-        void Unique(Action<IConstructorInjectionSelectorBuilder> uniqueBuilder);
+        void Unique(Action<IConstructorReflectionSelectorSyntax> uniqueBuilder);
+
+        /// <summary>
+        /// Configure constructor injection to select the best matching constructor from the list of constructors
+        /// a given service exposes.
+        /// </summary>
+        /// <remarks>
+        /// Constructor that are annoted with an <see cref="InjectAttribute"/> take precedence over other constructors.
+        /// </remarks>
+        void BestMatch();
 
         /// <summary>
         /// Configure constructor injection to select the best matching constructor from the list of constructors
         /// a given service exposes.
         /// </summary>
         /// <param name="bestMatchingConstructorBuilder">A callback to configure the best matching constructor mechanism.</param>
-        void BestMatch(Action<IBestMatchConstructorInjectionSelectorBuilder> bestMatchingConstructorBuilder);
+        void BestMatch(Action<IConstructorReflectionSelectorAndScorerSyntax> bestMatchingConstructorBuilder);
     }
 }

@@ -35,6 +35,7 @@ namespace Ninject.Builder
     using Ninject.Planning.Bindings.Resolvers;
     using Ninject.Planning.Strategies;
     using Ninject.Selection;
+    using Ninject.Syntax;
 
     internal class BuilderKernelFactory
     {
@@ -46,6 +47,7 @@ namespace Ninject.Builder
             var cache = new Cache(pipeline, new GarbageCollectionCachePruner());
 
             return new ReadOnlyKernel5(
+                    new NinjectSettings(),
                     CreateBindings(planner, pipeline, cache, exceptionFormatter),
                     cache,
                     planner,
@@ -59,6 +61,7 @@ namespace Ninject.Builder
         public IReadOnlyKernel CreateComponentsKernel(IReadOnlyKernel resolveComponentBindingsKernel, Dictionary<Type, ICollection<IBinding>> bindings)
         {
             return new ReadOnlyKernel5(
+                    new NinjectSettings(),
                     bindings,
                     resolveComponentBindingsKernel.Get<ICache>(),
                     resolveComponentBindingsKernel.Get<IPlanner>(),
@@ -69,9 +72,9 @@ namespace Ninject.Builder
                     new List<IMissingBindingResolver>());
         }
 
-        private static BindingsBuilder CreateBindings(IPlanner planner, IPipeline pipeline, ICache cache, IExceptionFormatter exceptionFormatter)
+        private static NewBindingRoot CreateBindings(IPlanner planner, IPipeline pipeline, ICache cache, IExceptionFormatter exceptionFormatter)
         {
-            BindingsBuilder bindings = new BindingsBuilder();
+            var bindings = new NewBindingRoot();
 
             bindings.Bind<IPlanner>().ToConstant(planner);
             bindings.Bind<IPipeline>().ToConstant(pipeline);
@@ -96,7 +99,7 @@ namespace Ninject.Builder
 
         private static IPipeline CreatePipeline(IExceptionFormatter exceptionFormatter)
         {
-            var propertyInjectionStrategy = new PropertyInjectionStrategy(new PropertyValueProvider(), exceptionFormatter);
+            var propertyInjectionStrategy = new PropertyInjectionStrategy(exceptionFormatter);
             var pipelineInitializer = new PipelineInitializer(new List<IInitializationStrategy> { propertyInjectionStrategy });
             var pipelineDeactivator = new PipelineDeactivator(new List<IDeactivationStrategy> { new DisposableStrategy() });
 
@@ -109,7 +112,7 @@ namespace Ninject.Builder
             {
             }
 
-            public bool ShouldInject(Type type, PropertyInfo property)
+            public bool ShouldInject(PropertyInfo property)
             {
                 return true;
             }

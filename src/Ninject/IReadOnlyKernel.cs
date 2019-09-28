@@ -22,14 +22,13 @@
 namespace Ninject
 {
     using System;
-
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
     /// <summary>
     /// A kernel that is used to resolve instances and has a configuration that can't be changed anymore.
     /// </summary>
-    public interface IReadOnlyKernel : IResolutionRoot, IServiceProvider
+    public interface IReadOnlyKernel : IResolutionRoot, IServiceProvider, IDisposable
     {
         /// <summary>
         /// Gets an instance of the specified service.
@@ -41,9 +40,12 @@ namespace Ninject
         object Get(Type service);
 
         /// <summary>
-        /// Gets the bindings registered for the specified service.
+        /// Immediately deactivates and removes all instances in the cache that are owned by
+        /// the specified scope.
         /// </summary>
-        /// <param name="service">The service in question.</param>
+        /// <param name="scope">The scope whose instances should be deactivated.</param>
+        void Clear(object scope);
+
         /// <returns>
         /// A series of bindings that are registered for the service.
         /// </returns>

@@ -21,7 +21,6 @@
 
 namespace Ninject.Parameters
 {
-    using System;
     using System.Reflection;
 
     using Ninject.Activation;

@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IPropertyInjectionBuilder.cs" company="Ninject Project Contributors">
+// <copyright file="IMethodInjectionHeuristic.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,18 +19,22 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder
+using System.Reflection;
+
+namespace Ninject.Selection.Heuristics
 {
-    using System;
-
-    public interface IPropertyInjectionBuilder
+    /// <summary>
+    /// Defines whether a given method should effectively be injected during the initialization of a type.
+    /// </summary>
+    public interface IMethodInjectionHeuristic
     {
-        IPropertyInjectionBuilder Selector(Action<IPropertyReflectionSelectorBuilder> selector);
-
-        IPropertyInjectionBuilder Selector(Func<IKernelBuilder, IPropertyReflectionSelectorBuilder> selector);
-
-        IPropertyInjectionBuilder InjectionHeuristic(Action<IDefaultPropertyInjectionHeuristicBuilder> heuristic);
-
-        IPropertyInjectionBuilder InjectionHeuristic();
+        /// <summary>
+        /// Returns a value indicating whether the specified method should be injected.
+        /// </summary>
+        /// <param name="method">The method in question.</param>
+        /// <returns>
+        /// <see langword="true"/> if the method should be injected; otherwise, <see langword="false"/>.
+        /// </returns>
+        bool ShouldInject(MethodInfo method);
     }
 }

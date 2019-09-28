@@ -19,7 +19,7 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-//#define CYCLIC
+#define CYCLIC
 
 namespace Ninject.Activation
 {
@@ -41,6 +41,11 @@ namespace Ninject.Activation
     public sealed class Context : IContext
     {
         /// <summary>
+        /// The ninject settings.
+        /// </summary>
+        private readonly INinjectSettings settings;
+
+        /// <summary>
         /// The <see cref="IExceptionFormatter"/> component.
         /// </summary>
         private readonly IExceptionFormatter exceptionFormatter;
@@ -54,27 +59,28 @@ namespace Ninject.Activation
         /// Initializes a new instance of the <see cref="Context"/> class.
         /// </summary>
         /// <param name="kernel">The kernel managing the resolution.</param>
+        /// <param name="settings">The ninject settings.</param>
         /// <param name="request">The context's request.</param>
         /// <param name="binding">The context's binding.</param>
         /// <param name="cache">The cache component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         /// <exception cref="ArgumentNullException"><paramref name="kernel"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="cache"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="exceptionFormatter"/> is <see langword="null"/>.</exception>
-        public Context(IReadOnlyKernel kernel, IRequest request, IBinding binding, ICache cache, IExceptionFormatter exceptionFormatter)
+        public Context(IReadOnlyKernel kernel, INinjectSettings settings, IRequest request, IBinding binding, ICache cache, IExceptionFormatter exceptionFormatter)
         {
-            /*
             Ensure.ArgumentNotNull(kernel, nameof(kernel));
+            Ensure.ArgumentNotNull(settings, nameof(settings));
             Ensure.ArgumentNotNull(cache, nameof(cache));
             Ensure.ArgumentNotNull(exceptionFormatter, nameof(exceptionFormatter));
-            */
-
             Ensure.ArgumentNotNull(request, nameof(request));
             Ensure.ArgumentNotNull(binding, nameof(binding));
 
             this.Kernel = kernel;
+            this.settings = settings;
             this.Request = request;
             this.Binding = binding;
             this.Cache = cache;
@@ -177,14 +183,6 @@ namespace Ninject.Activation
         /// </returns>
         public object Resolve()
         {
-#if CYCLIC
-            if (this.Request.ActiveBindings.Contains(this.Binding) &&
-                IsCyclical(this.Request.ParentRequest, this.Request.Target))
-            {
-                throw new ActivationException(this.exceptionFormatter.CyclicalDependenciesDetected(this));
-            }
-#endif
-
             try
             {
                  this.cachedScope = this.Request.GetScope() ?? this.Binding.GetScope(this);
@@ -222,21 +220,26 @@ namespace Ninject.Activation
         private object ResolveWithoutScope()
         {
 #if CYCLIC
+            EnsureNotCyclic();
+
             this.Request.ActiveBindings.Push(this.Binding);
 #endif
 
             var instance = this.Provider.Create(this);
 
 #if CYCLIC
+
             this.Request.ActiveBindings.Pop();
 #endif
 
-            /*
             if (instance == null)
             {
-                throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
+                if (!this.settings.AllowNullInjection)
+                {
+                    throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
+                }
+
             }
-            */
 
             return instance;
         }
@@ -258,6 +261,8 @@ namespace Ninject.Activation
                 }
 
 #if CYCLIC
+                EnsureNotCyclic();
+
                 this.Request.ActiveBindings.Push(this.Binding);
 #endif
 
@@ -267,16 +272,28 @@ namespace Ninject.Activation
                 this.Request.ActiveBindings.Pop();
 #endif
 
-                /*
                 if (reference.Instance == null)
                 {
-                    throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
+                    if (!this.settings.AllowNullInjection)
+                    {
+                        throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
+                    }
+
+                    return null;
                 }
-                */
 
                 this.Cache.Remember(this, scope, reference);
 
                 return reference.Instance;
+            }
+        }
+
+        private void EnsureNotCyclic()
+        {
+            if (this.Request.ActiveBindings.Contains(this.Binding) &&
+                IsCyclical(this.Request.ParentRequest, this.Request.Target))
+            {
+                throw new ActivationException(this.exceptionFormatter.CyclicalDependenciesDetected(this));
             }
         }
     }

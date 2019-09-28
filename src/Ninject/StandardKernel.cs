@@ -21,19 +21,9 @@
 
 namespace Ninject
 {
-    using Ninject.Activation;
-    using Ninject.Activation.Caching;
-    using Ninject.Activation.Providers;
-    using Ninject.Activation.Strategies;
-    using Ninject.Components;
-    using Ninject.Injection;
+    using Ninject.Builder;
     using Ninject.Modules;
-    using Ninject.Planning;
-    using Ninject.Planning.Bindings;
-    using Ninject.Planning.Bindings.Resolvers;
-    using Ninject.Planning.Strategies;
-    using Ninject.Selection;
-    using Ninject.Selection.Heuristics;
+    using System;
 
     /// <summary>
     /// The standard implementation of a kernel.
@@ -55,89 +45,76 @@ namespace Ninject
         /// <param name="settings">The configuration to use.</param>
         /// <param name="modules">The modules to load into the kernel.</param>
         public StandardKernel(INinjectSettings settings, params INinjectModule[] modules)
-            : base(CreateComponentContainer(settings), settings, modules)
+            : base(settings, modules)
         {
         }
 
         /// <summary>
         /// Adds components to the kernel during startup.
         /// </summary>
-        private static IComponentContainer CreateComponentContainer(INinjectSettings settings)
+        protected override void AddComponents(IKernelBuilder kernelBuilder)
         {
-            var components = new ComponentContainer(settings, new ExceptionFormatter());
-
-            components.Add<IPlanner, Planner>();
-            components.Add<IPlanningStrategy, ConstructorReflectionStrategy>();
-
-            // TODO: add constructor argument for HighestScoreAttribute
-            components.Add<IConstructorInjectionScorer, StandardConstructorScorer>();
-            components.Add<IConstructorReflectionSelector, ConstructorReflectionSelector>();
+            kernelBuilder.Features(features => features.Components.Bind<INinjectSettings>().ToConstant(this.Settings));
+            kernelBuilder.Features(ConfigureFeatures);
 
             /*
-            components.Add<IInjectionHeuristic, StandardInjectionHeuristic>();
+            this.Components.Add<IAssemblyNameRetriever, AssemblyNameRetriever>();
+
+            this.Components.Add<IModuleLoader, ModuleLoader>();
+            this.Components.Add<IModuleLoaderPlugin, CompiledModuleLoaderPlugin>();
             */
+        }
 
-            components.Add<IPipeline, Pipeline>();
+        private void ConfigureFeatures(IFeatureBuilder features)
+        {
+            features.ConstructorInjection(c => c.BestMatch(b => b.Selector(selector => selector.InjectNonPublic(this.Settings.InjectNonPublic))
+                                       .Scorer(scorer => scorer.HighestScoreAttribute(this.Settings.InjectAttribute)
+                                                               .LowestScoreAttribute(typeof(ObsoleteAttribute)))))
+                    .Initialization(pipeline => ConfigureInitializationPipeline(pipeline))
+                    .Activation(pipeline => ConfigureActivationPipeline(pipeline))
+                    .Deactivation(pipeline => ConfigureDeactivationPipeline(pipeline))
+                    .OpenGenericBinding()
+                    .DefaultValueBinding()
+                    .SelfBinding();
 
-            if (!settings.ActivationCacheDisabled)
+            if (this.Settings.UseReflectionBasedInjection)
             {
-                components.Add<IActivationStrategy, ActivationCacheStrategy>();
-            }
-
-            if (settings.PropertyInjection)
-            {
-                components.Add<IPlanningStrategy, PropertyReflectionStrategy>();
-                components.Add<IPropertyReflectionSelector, PropertyReflectionSelector>();
-                components.Add<IInitializationStrategy, PropertyInjectionStrategy>();
-                components.Add<IPropertyValueProvider, PropertyValueProvider>();
-            }
-
-            if (settings.MethodInjection)
-            {
-                components.Add<IPlanningStrategy, MethodReflectionStrategy>();
-                components.Add<IMethodReflectionSelector, MethodReflectionSelector>();
-                components.Add<IInitializationStrategy, MethodInjectionStrategy>();
-            }
-
-            components.Add<IInitializationStrategy, InitializableStrategy>();
-            components.Add<IActivationStrategy, StartableStrategy>();
-            components.Add<IDeactivationStrategy, StoppableStrategy>();
-            components.Add<IActivationStrategy, BindingActionStrategy>();
-            components.Add<IDeactivationStrategy, BindingActionStrategy>();
-
-            // Should be added as last deactivation strategy
-            components.Add<IDeactivationStrategy, DisposableStrategy>();
-
-            components.Add<IBindingPrecedenceComparer, BindingPrecedenceComparer>();
-
-            components.Add<IBindingResolver, StandardBindingResolver>();
-            components.Add<IBindingResolver, OpenGenericBindingResolver>();
-
-            components.Add<IMissingBindingResolver, DefaultValueBindingResolver>();
-            components.Add<IMissingBindingResolver, SelfBindingResolver>();
-
-            if (!settings.UseReflectionBasedInjection)
-            {
-                components.Add<IInjectorFactory, ExpressionInjectorFactory>();
+                features.ReflectionBasedInjection();
             }
             else
             {
-                components.Add<IInjectorFactory, ReflectionInjectorFactory>();
+                features.ExpressionBasedInjection();
+            }
+        }
+
+        private void ConfigureInitializationPipeline(IInitializationPipelineBuilder pipeline)
+        {
+            if (this.Settings.PropertyInjection)
+            {
+                pipeline.PropertyInjection(property =>
+                    property.Selector(selector => selector.InjectNonPublic(this.Settings.InjectNonPublic))
+                            .InjectionHeuristic(h => h.InjectAttribute<InjectAttribute>()));
             }
 
-            components.Add<ICache, Cache>();
-            components.Add<IActivationCache, ActivationCache>();
-            components.Add<ICachePruner, GarbageCollectionCachePruner>();
-
-            components.Add<IAssemblyNameRetriever, AssemblyNameRetriever>();
-
-            /*
-            components.Add<IModuleLoader, ModuleLoader>();
-            components.Add<IModuleLoaderPlugin, CompiledModuleLoaderPlugin>();
-            */
+            if (this.Settings.MethodInjection)
+            {
+                pipeline.MethodInjection(method =>
+                    method.Selector(selector => selector.InjectNonPublic(this.Settings.InjectNonPublic))
+                          .InjectionHeuristic(h => h.InjectAttribute<InjectAttribute>()));
+            }
 
 
-            return components;
+            pipeline.Initializable().BindingAction();
+        }
+
+        private static void ConfigureActivationPipeline(IActivationPipelineBuilder pipeline)
+        {
+            pipeline.Startable().BindingAction();
+        }
+
+        private static void ConfigureDeactivationPipeline(IDeactivationPipelineBuilder pipeline)
+        {
+            pipeline.BindingAction().Disposable();
         }
     }
 }

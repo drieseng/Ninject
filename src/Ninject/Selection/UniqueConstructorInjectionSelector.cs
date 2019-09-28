@@ -31,7 +31,7 @@ namespace Ninject.Selection
     /// <summary>
     /// Selects the only constructor from a given <see cref="IPlan"/>.
     /// </summary>
-    public sealed class UniqueConstructorInjectionSelector : IConstructorInjectionSelector
+    internal sealed class UniqueConstructorInjectionSelector : IConstructorInjectionSelector
     {
         /// <summary>
         /// Select the only constructor from the specified <see cref="IPlan"/>.

@@ -29,9 +29,9 @@ namespace Ninject.Modules
     public interface INinjectBuilderModule
     {
         /// <summary>
-        /// Loads the module into the specified <see cref="IKernelBuilder"/>.
+        /// Loads the module into the specified <see cref="IKernelConfiguration"/>.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> to load this module into.</param>
-        void Load(IKernelBuilder kernelBuilder);
+        /// <param name="kernelBuilder">An <see cref="IKernelConfiguration"/> to load this module into.</param>
+        void Load(IKernelConfiguration kernelBuilder);
     }
 }

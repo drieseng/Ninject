@@ -19,6 +19,10 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
+using Ninject.Builder.Syntax;
+using Ninject.Selection;
+using System;
+
 namespace Ninject.Builder
 {
     /// <summary>
@@ -28,11 +32,11 @@ namespace Ninject.Builder
     public interface IPropertyReflectionSelectorBuilder : IComponentBuilder
     {
         /// <summary>
-        /// Configures whether non-public constructors should also be inclused in the list of constructors.
+        /// Configures whether non-public properties should also be inclused in the list of properties.
         /// </summary>
-        /// <param name="value"><see langword="true"/> if non-public constructors should also be included; otherwise, <see langword="false"/>.</param>
+        /// <param name="value"><see langword="true"/> if non-public properties should also be included; otherwise, <see langword="false"/>.</param>
         /// <remarks>
-        /// By default, only public constructors are included in the list of constructors.
+        /// By default, only public properties are included in the list of properties.
         /// </remarks>
         void InjectNonPublic(bool value);
     }

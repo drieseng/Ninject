@@ -21,6 +21,7 @@
 
 namespace Ninject.Builder
 {
+    using Ninject.Builder.Bindings;
     using Ninject.Infrastructure;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
@@ -29,7 +30,7 @@ namespace Ninject.Builder
     /// <summary>
     /// Provides a root for the fluent syntax associated with an <see cref="Binding"/>.
     /// </summary>
-    internal abstract class BindingBuilder
+    internal abstract class NewBindingBuilder : INewBindingBuilder
     {
         /// <summary>
         /// Gets the <see cref="Type"/> of the service to bind.
@@ -50,13 +51,15 @@ namespace Ninject.Builder
         /// <summary>
         /// Gets the binding being built.
         /// </summary>
-        public abstract BindingConfigurationBuilder BindingConfigurationBuilder { get; }
+        public abstract INewBindingConfigurationBuilder BindingConfigurationBuilder { get; }
 
         /// <summary>
         /// Builds the binding(s) of this instance.
         /// </summary>
         /// <param name="root">The resolution root.</param>
-        /// <param name="bindingVisitor">Gathers built bindings.</param>
+        /// <param name="bindingVisitor">Gathers the bindings that are built from this <see cref="NewBindingBuilder"/>.</param>
         public abstract void Build(IResolutionRoot root, IVisitor<IBinding> bindingVisitor);
+
+        public abstract void Accept(IVisitor<NewBindingBuilder> visitor);
     }
 }

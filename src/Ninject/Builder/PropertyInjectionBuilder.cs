@@ -22,32 +22,82 @@
 namespace Ninject.Builder
 {
     using System;
+    using System.Collections.Generic;
 
-    internal class PropertyInjectionBuilder : IPropertyInjectionBuilder
+    using Ninject.Activation.Providers;
+    using Ninject.Activation.Strategies;
+    using Ninject.Builder.Syntax;
+    using Ninject.Planning.Strategies;
+    using Ninject.Selection;
+
+    internal class PropertyInjectionBuilder : IComponentBuilder, IPropertyInjectionHeuristicsSyntax, IPropertySelectorSyntax
     {
-        private IDefaultPropertyInjectionHeuristicBuilder injectionHeuristicBuilder;
+        private IComponentBuilder selectorBuilder;
+        private List<IComponentBuilder> injectionHeuristicBuilders;
 
-        public IPropertyInjectionBuilder InjectionHeuristic(Action<IDefaultPropertyInjectionHeuristicBuilder> heuristic)
+        public PropertyInjectionBuilder()
         {
-            this.injectionHeuristicBuilder = new DefaultPropertyInjectHeuristicBuilder();
-            heuristic(this.injectionHeuristicBuilder);
+            injectionHeuristicBuilders = new List<IComponentBuilder>();
+        }
+
+        public void Build(IComponentBindingRoot root)
+        {
+            if (this.selectorBuilder == null)
+            {
+                throw new Exception("TODO specifiy at least one ...");
+            }
+
+            if (this.injectionHeuristicBuilders.Count == 0)
+            {
+                throw new Exception("TODO specifiy at least one ...");
+            }
+
+            this.selectorBuilder.Build(root);
+
+            foreach (var injectionHeuristicBuilder in this.injectionHeuristicBuilders)
+            {
+                injectionHeuristicBuilder.Build(root);
+            }
+
+            root.Bind<IPlanningStrategy>().To<PropertyReflectionStrategy>();
+            root.Bind<IInitializationStrategy>().To<PropertyInjectionStrategy>();
+        }
+
+        public IPropertyInjectionHeuristicsSyntax InjectionHeuristic(Action<IAttributeBasedPropertyInjectionHeuristicBuilder> heuristic)
+        {
+            var injectionHeuristicBuilder = new AttributeBasedPropertyInjectionHeuristicBuilder();
+            heuristic(injectionHeuristicBuilder);
+            this.injectionHeuristicBuilders.Add(injectionHeuristicBuilder);
             return this;
         }
 
-        public IPropertyInjectionBuilder InjectionHeuristic()
+        IPropertyInjectionHeuristicsSyntax IPropertyInjectionHeuristicsSyntax.InjectionHeuristic<T>()
         {
-            this.injectionHeuristicBuilder = new DefaultPropertyInjectHeuristicBuilder();
+            injectionHeuristicBuilders.Add(new BindComponentBuilder<IPropertyInjectionHeuristic, T>());
             return this;
         }
 
-        public IPropertyInjectionBuilder Selector(Action<IPropertyReflectionSelectorBuilder> selector)
+        public IPropertyInjectionHeuristicsSyntax Selector(Action<IPropertyReflectionSelectorBuilder> selector)
         {
-            throw new NotImplementedException();
+            if (this.selectorBuilder != null)
+            {
+                throw new Exception("TODO");
+            }
+
+            var selectorBuilder = new PropertyReflectionSelectorBuilder();
+            selector(selectorBuilder);
+            this.selectorBuilder = selectorBuilder;
+            return this;
         }
 
-        public IPropertyInjectionBuilder Selector(Func<IKernelBuilder, IPropertyReflectionSelectorBuilder> selector)
+        void IPropertySelectorSyntax.Selector<T>()
         {
-            throw new NotImplementedException();
+            if (selectorBuilder != null)
+            {
+                throw new Exception("TODO");
+            }
+
+            selectorBuilder = new BindComponentBuilder<IPropertyReflectionSelector, T>();
         }
     }
 }

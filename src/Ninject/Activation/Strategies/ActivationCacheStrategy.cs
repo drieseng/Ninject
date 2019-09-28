@@ -30,7 +30,7 @@ namespace Ninject.Activation.Strategies
     /// <summary>
     /// Adds all activated instances to the activation cache.
     /// </summary>
-    public class ActivationCacheStrategy : NinjectComponent, IActivationStrategy
+    internal class ActivationCacheStrategy : NinjectComponent, IActivationStrategy
     {
         /// <summary>
         /// The activation cache.
@@ -57,16 +57,6 @@ namespace Ninject.Activation.Strategies
         public void Activate(IContext context, InstanceReference reference)
         {
             this.activationCache.AddActivatedInstance(reference.Instance);
-        }
-
-        /// <summary>
-        /// Contributes to the deactivation of the instance in the specified context.
-        /// </summary>
-        /// <param name="context">The context.</param>
-        /// <param name="reference">A reference to the instance being deactivated.</param>
-        public void Deactivate(IContext context, InstanceReference reference)
-        {
-            this.activationCache.AddDeactivatedInstance(reference.Instance);
         }
     }
 }

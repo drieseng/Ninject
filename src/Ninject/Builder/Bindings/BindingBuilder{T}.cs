@@ -26,6 +26,7 @@ namespace Ninject.Builder
 
     using Ninject.Activation;
     using Ninject.Activation.Providers;
+    using Ninject.Builder.Bindings;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Introspection;
     using Ninject.Planning.Bindings;
@@ -35,7 +36,7 @@ namespace Ninject.Builder
     /// Provides a root for the fluent syntax associated with an <see cref="Binding"/>.
     /// </summary>
     /// <typeparam name="T">The service type.</typeparam>
-    internal sealed class BindingBuilder<T> : BindingBuilder, INewBindingToSyntax<T>
+    internal sealed class BindingBuilder<T> : NewBindingBuilder, INewBindingToSyntax<T>
     {
         private BindingConfigurationBuilder bindingConfigurationBuilder;
         private string serviceNames;
@@ -43,7 +44,7 @@ namespace Ninject.Builder
         /// <summary>
         /// Gets the binding being built.
         /// </summary>
-        public override BindingConfigurationBuilder BindingConfigurationBuilder => this.bindingConfigurationBuilder;
+        public override INewBindingConfigurationBuilder BindingConfigurationBuilder => this.bindingConfigurationBuilder;
 
         /// <summary>
         /// Gets the names of the services that this instance builds a binding for.
@@ -71,6 +72,11 @@ namespace Ninject.Builder
         /// The <see cref="Type"/> of the service to bind.
         /// </value>
         public override Type Service => typeof(T);
+
+        public override void Accept(IVisitor<NewBindingBuilder> visitor)
+        {
+            visitor.Visit(this);
+        }
 
         /// <summary>
         /// Builds the binding(s) of this instance.

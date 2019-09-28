@@ -21,50 +21,17 @@
 
 namespace Ninject.Builder
 {
-    using System;
-    using System.ComponentModel;
-
-    using Ninject.Syntax;
-
     /// <summary>
     /// Provides the mechanisms to build a kernel.
     /// </summary>
-    public interface IKernelBuilder : IFluentSyntax
+    public interface IKernelBuilder : IKernelConfiguration
     {
-        /// <summary>
-        /// Gets the root of the component bindings.
-        /// </summary>
-        /// <value>
-        /// The root of the component binding.
-        /// </value>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IComponentBindingRoot Components { get; }
-
-        /// <summary>
-        /// Adds bindings to the <see cref="IKernelBuilder"/>.
-        /// </summary>
-        /// <param name="configureBindings">A callback to configure bindings.</param>
-        /// <returns>
-        /// A reference to this instance after the operation has completed.
-        /// </returns>
-        IKernelBuilder Bindings(Action<IBindingsBuilder> configureBindings);
-
-        /// <summary>
-        /// Adds modules to the <see cref="IKernelBuilder"/>.
-        /// </summary>
-        /// <param name="configureModules">A callback to configure modules.</param>
-        /// <returns>
-        /// A reference to this instance after the operation has completed.
-        /// </returns>
-        IKernelBuilder Modules(Action<IModuleBuilder> configureModules);
-
         /// <summary>
         /// Builds the kernel.
         /// </summary>
         /// <returns>
         /// An <see cref="IReadOnlyKernel"/>.
         /// </returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         IReadOnlyKernel Build();
     }
 }

@@ -19,13 +19,15 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
+using System;
+
 namespace Ninject.Builder
 {
     internal class PropertyReflectionSelectorBuilder : IPropertyReflectionSelectorBuilder
     {
         public void Build(IComponentBindingRoot root)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public void InjectNonPublic(bool value)

@@ -29,14 +29,14 @@ namespace Ninject.Builder
 
     internal class ComponentBindingRoot : IComponentBindingRoot
     {
-        private readonly List<BindingBuilder> bindingBuilders;
+        private readonly List<NewBindingBuilder> bindingBuilders;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComponentBindingRoot"/> class.
         /// </summary>
         public ComponentBindingRoot()
         {
-            this.bindingBuilders = new List<BindingBuilder>();
+            this.bindingBuilders = new List<NewBindingBuilder>();
         }
 
         /// <summary>
@@ -93,6 +93,14 @@ namespace Ninject.Builder
             foreach (var bindingBuilder in this.bindingBuilders)
             {
                 bindingBuilder.Build(root, bindingVisitor);
+            }
+        }
+
+        public void Accept(IVisitor<NewBindingBuilder> visitor)
+        {
+            foreach (var bindingBuilder in this.bindingBuilders)
+            {
+                bindingBuilder.Accept(visitor);
             }
         }
     }

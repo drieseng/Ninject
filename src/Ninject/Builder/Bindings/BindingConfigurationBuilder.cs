@@ -21,13 +21,14 @@
 
 namespace Ninject.Builder
 {
+    using Ninject.Builder.Bindings;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
     /// <summary>
-    /// Builds a binding configurating.
+    /// Builds a <see cref="IBindingConfiguration"/>.
     /// </summary>
-    internal abstract class BindingConfigurationBuilder
+    internal abstract class BindingConfigurationBuilder : INewBindingConfigurationBuilder
     {
         /// <summary>
         /// Builds the binding configuration.

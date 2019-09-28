@@ -96,7 +96,7 @@ namespace Ninject.Selection
 
             return type.GetProperties(this.bindingFlags)
                        .Select(p => p.GetPropertyFromDeclaredType(p, this.bindingFlags))
-                       .Where(p => p != null && p.GetSetMethod(this.InjectNonPublic) != null && ShouldInject(this.injectionHeuristics, type, p));
+                       .Where(p => p != null && p.GetSetMethod(this.InjectNonPublic) != null && ShouldInject(this.injectionHeuristics, p));
         }
 
         /// <summary>
@@ -106,13 +106,13 @@ namespace Ninject.Selection
         {
         }
 
-        private static bool ShouldInject(List<IPropertyInjectionHeuristic> injectionHeuristics, Type type, PropertyInfo property)
+        private static bool ShouldInject(List<IPropertyInjectionHeuristic> injectionHeuristics, PropertyInfo property)
         {
             var shouldInject = false;
 
             foreach (var injectionHeuristic in injectionHeuristics)
             {
-                if (injectionHeuristic.ShouldInject(type, property))
+                if (injectionHeuristic.ShouldInject(property))
                 {
                     shouldInject = true;
                     break;

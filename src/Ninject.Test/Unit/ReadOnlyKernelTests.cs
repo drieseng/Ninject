@@ -283,7 +283,8 @@ namespace Ninject.Test.Unit
                                  .Setup(p => p.Resolve(It.IsAny<Dictionary<Type, ICollection<IBinding>>>(), typeof(IResolutionRoot)))
                                  .Returns(Array.Empty<IBinding>);
 
-            return new MyReadOnlyKernel(bindings,
+            return new MyReadOnlyKernel(NinjectSettingsMock.Object,
+                                        bindings,
                                         CacheMock.Object,
                                         PlannerMock.Object,
                                         ConstructorScorerMock.Object,
@@ -296,7 +297,8 @@ namespace Ninject.Test.Unit
 
         private class MyReadOnlyKernel : ReadOnlyKernel
         {
-            internal MyReadOnlyKernel(Dictionary<Type, ICollection<IBinding>> bindings,
+            internal MyReadOnlyKernel(INinjectSettings settings,
+                                      Dictionary<Type, ICollection<IBinding>> bindings,
                                       ICache cache,
                                       IPlanner planner,
                                       IConstructorInjectionScorer constructorScorer,
@@ -305,7 +307,8 @@ namespace Ninject.Test.Unit
                                       IBindingPrecedenceComparer bindingPrecedenceComparer,
                                       List<IBindingResolver> bindingResolvers,
                                       List<IMissingBindingResolver> missingBindingResolvers)
-                : base(bindings,
+                : base(settings,
+                       bindings,
                        cache,
                        planner,
                        constructorScorer,

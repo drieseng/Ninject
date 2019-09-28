@@ -32,12 +32,12 @@ namespace Ninject.Builder
         /// Specifies the type of a custom attribute that can be applied to a constructor to give it the lowest score.
         /// </summary>
         /// <param name="lowestScoreAttribute">The type of a custom attribute that can be applied to a constructor to give it the lowest score, or <see langword="null"/> to not reduce the score based on the presence of a custom attribute.</param>
-        void LowestScoreAttribute(Type lowestScoreAttribute);
+        IConstructorScorerBuilder LowestScoreAttribute(Type lowestScoreAttribute);
 
         /// <summary>
         /// Specifies the type of a custom attribute that can be applied to a constructor to give it the highest score.
         /// </summary>
         /// <param name="highestScoreAttribute">The type of a custom attribute that can be applied to a constructor to give it the highest score, or <see langword="null"/> to not boost the score based on the presence of a custom attribute.</param>
-        void HighestScoreAttribute(Type highestScoreAttribute);
+        IConstructorScorerBuilder HighestScoreAttribute(Type highestScoreAttribute);
     }
 }

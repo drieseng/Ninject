@@ -32,6 +32,7 @@ namespace Ninject.Selection
     /// </summary>
     public interface IPropertyReflectionSelector : INinjectComponent
     {
+
         /// <summary>
         /// Selects the properties that could be injected into.
         /// </summary>

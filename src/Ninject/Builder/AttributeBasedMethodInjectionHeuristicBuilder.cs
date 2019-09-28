@@ -22,25 +22,21 @@
 namespace Ninject.Builder
 {
     using System;
-
-    using Ninject.Selection;
     using Ninject.Selection.Heuristics;
 
-    internal class DefaultPropertyInjectHeuristicBuilder : IDefaultPropertyInjectionHeuristicBuilder
+    internal class AttributeBasedMethodInjectionHeuristicBuilder : IAttributeBasedMethodInjectionHeuristicBuilder
     {
         private Type attributeType;
 
-        public IDefaultPropertyInjectionHeuristicBuilder InjectAttribute<T>()
+        public void InjectAttribute<T>()
             where T : Attribute
         {
             this.attributeType = typeof(T);
-            return this;
         }
 
-        public IDefaultPropertyInjectionHeuristicBuilder InjectAttribute(Type attributeType)
+        public void InjectAttribute(Type attributeType)
         {
             this.attributeType = attributeType;
-            return this;
         }
 
         public void Build(IComponentBindingRoot root)
@@ -50,10 +46,10 @@ namespace Ninject.Builder
                 throw new ActivationException("TODO Please configure an inject attribute.");
             }
 
-            root.Bind<IPropertyInjectionHeuristic>()
-                .To<DefaultPropertyInjectionHeuristic>()
+            root.Bind<IMethodInjectionHeuristic>()
+                .To<AttributeBasedInjectionHeuristic>()
                 .InTransientScope()
-                .WithPropertyValue(nameof(DefaultPropertyInjectionHeuristic.InjectAttribute), this.attributeType);
+                .WithPropertyValue(nameof(AttributeBasedInjectionHeuristic.InjectAttribute), this.attributeType);
         }
     }
 }

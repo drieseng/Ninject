@@ -59,6 +59,7 @@ namespace Ninject.Tests.Unit.Activation
             const IReadOnlyKernel kernel = null;
 
             var actual = Assert.Throws<ArgumentNullException>(() => new Context(kernel,
+                                                                                _settingsMock.Object,
                                                                                 _requestMock.Object,
                                                                                 _bindingMock.Object,
                                                                                 _cacheMock.Object,
@@ -74,6 +75,7 @@ namespace Ninject.Tests.Unit.Activation
             const INinjectSettings settings = null;
 
             var actual = Assert.Throws<ArgumentNullException>(() => new Context(_kernelMock.Object,
+                                                                                settings,
                                                                                 _requestMock.Object,
                                                                                 _bindingMock.Object,
                                                                                 _cacheMock.Object,
@@ -89,6 +91,7 @@ namespace Ninject.Tests.Unit.Activation
             const IRequest request = null;
 
             var actual = Assert.Throws<ArgumentNullException>(() => new Context(_kernelMock.Object,
+                                                                                _settingsMock.Object,
                                                                                 request,
                                                                                 _bindingMock.Object,
                                                                                 _cacheMock.Object,
@@ -104,6 +107,7 @@ namespace Ninject.Tests.Unit.Activation
             const IBinding binding = null;
 
             var actual = Assert.Throws<ArgumentNullException>(() => new Context(_kernelMock.Object,
+                                                                                _settingsMock.Object,
                                                                                 _requestMock.Object,
                                                                                 binding,
                                                                                 _cacheMock.Object,
@@ -119,6 +123,7 @@ namespace Ninject.Tests.Unit.Activation
             const ICache cache = null;
 
             var actual = Assert.Throws<ArgumentNullException>(() => new Context(_kernelMock.Object,
+                                                                                _settingsMock.Object,
                                                                                 _requestMock.Object,
                                                                                 _bindingMock.Object,
                                                                                 cache,
@@ -134,6 +139,7 @@ namespace Ninject.Tests.Unit.Activation
             const IExceptionFormatter exceptionFormatter = null;
 
             var actual = Assert.Throws<ArgumentNullException>(() => new Context(_kernelMock.Object,
+                                                                                _settingsMock.Object,
                                                                                 _requestMock.Object,
                                                                                 _bindingMock.Object,
                                                                                 _cacheMock.Object,
@@ -155,6 +161,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.Setup(p => p.Service).Returns(service);
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -179,6 +186,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.Setup(p => p.Service).Returns(service);
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -203,6 +211,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.Setup(p => p.Service).Returns(service);
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -227,6 +236,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.Setup(p => p.Service).Returns(bindingService);
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -251,6 +261,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Setup(p => p.Service).Returns(requestService);
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -272,6 +283,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Setup(p => p.Service).Returns(requestService);
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -291,6 +303,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.Setup(p => p.Service).Returns(bindingService);
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -310,6 +323,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -347,6 +361,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -388,6 +403,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -424,6 +440,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -459,6 +476,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -497,6 +515,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -546,6 +565,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -595,6 +615,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -651,6 +672,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -700,6 +722,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -758,6 +781,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -813,6 +837,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -858,6 +883,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -905,6 +931,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -950,6 +977,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -995,6 +1023,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -1041,6 +1070,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -1089,6 +1119,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
@@ -1134,6 +1165,7 @@ namespace Ninject.Tests.Unit.Activation
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(typeof(Dagger));
 
             var context = new Context(_kernelMock.Object,
+                                      _settingsMock.Object,
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,

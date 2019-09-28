@@ -22,14 +22,15 @@ namespace Ninject.Tests.Integration
 {
     using System;
     using FluentAssertions;
+    using Ninject.Builder;
     using Ninject.Tests.Fakes;
     using Xunit;
 
-    public class ConstructorArgumentInBindingConfigurationBuilderTest : IDisposable
+    public class ConstructorArgumentInBindingConfigurationBuilderTest_StandardKernel : IDisposable
     {
         private readonly StandardKernel kernel;
 
-        public ConstructorArgumentInBindingConfigurationBuilderTest()
+        public ConstructorArgumentInBindingConfigurationBuilderTest_StandardKernel()
         {
             this.kernel = new StandardKernel();
         }
@@ -79,6 +80,73 @@ namespace Ninject.Tests.Integration
             this.kernel.Bind<Samurai>().ToSelf().WithConstructorArgument(typeof(IWeapon), (context, target) => expectedWeapon);
 
             var samurai = this.kernel.Get<Samurai>();
+
+            samurai.Weapon.Should().Be(expectedWeapon);
+        }
+    }
+
+    public class ConstructorArgumentInBindingConfigurationBuilderTest_KernelBuilder : IDisposable
+    {
+        private readonly IKernelBuilder _kernelBuilder;
+        private IReadOnlyKernel _kernel;
+
+        public ConstructorArgumentInBindingConfigurationBuilderTest_KernelBuilder()
+        {
+            this._kernelBuilder = new KernelBuilder().ConstructorInjection(c => c.Unique());
+        }
+
+        public void Dispose()
+        {
+        }
+
+        [Fact]
+        public void ConstructorArgumentWithMatchingTypeShouldBeUsed()
+        {
+            var expectedWeapon = new Dagger();
+
+            _kernel = this._kernelBuilder.Bindings(b => b.Bind<Samurai>().ToSelf().WithConstructorArgument<IWeapon>(expectedWeapon))
+                                        .Build();
+
+            var samurai = this._kernel.Get<Samurai>();
+
+            samurai.Weapon.Should().Be(expectedWeapon);
+        }
+
+        [Fact]
+        public void ConstructorArgumentWithMatchingTypeShouldBeUsedIfUsingExplicitTypeArgumentSyntax()
+        {
+            var expectedWeapon = new Dagger();
+
+            _kernel = this._kernelBuilder.Bindings(b => b.Bind<Samurai>().ToSelf().WithConstructorArgument(typeof(IWeapon), expectedWeapon))
+                                         .Build();
+
+            var samurai = _kernel.Get<Samurai>();
+
+            samurai.Weapon.Should().Be(expectedWeapon);
+        }
+
+        [Fact]
+        public void ConstructorArgumentWithMatchingTypeShouldBeUsedIfUsingCallbackWithContext()
+        {
+            var expectedWeapon = new Shuriken();
+
+            _kernel = this._kernelBuilder.Bindings(b => b.Bind<Samurai>().ToSelf().WithConstructorArgument(typeof(IWeapon), context => expectedWeapon))
+                                         .Build();
+
+            var samurai = _kernel.Get<Samurai>();
+
+            samurai.Weapon.Should().Be(expectedWeapon);
+        }
+
+        [Fact]
+        public void ConstructorArgumentWithMatchingTypeShouldBeUsedIfUsingCallbackWithContextAndTarget()
+        {
+            var expectedWeapon = new Shuriken();
+
+            _kernel = this._kernelBuilder.Bindings(b => b.Bind<Samurai>().ToSelf().WithConstructorArgument(typeof(IWeapon), (context, target) => expectedWeapon))
+                                         .Build();
+
+            var samurai = _kernel.Get<Samurai>();
 
             samurai.Weapon.Should().Be(expectedWeapon);
         }

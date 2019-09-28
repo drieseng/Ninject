@@ -29,19 +29,26 @@ namespace Ninject.Builder
     using Ninject.Activation.Caching;
     using Ninject.Activation.Providers;
     using Ninject.Activation.Strategies;
+    using Ninject.Builder.Bindings;
+    using Ninject.Builder.Components;
     using Ninject.Components;
+    using Ninject.Infrastructure;
+    using Ninject.Injection;
     using Ninject.Planning;
     using Ninject.Planning.Bindings;
     using Ninject.Planning.Bindings.Resolvers;
     using Ninject.Planning.Strategies;
     using Ninject.Selection;
+    using Ninject.Syntax;
 
     /// <summary>
     /// Provides the mechanisms to build a kernel.
     /// </summary>
     public sealed class KernelBuilder : IKernelBuilder
     {
-        private readonly BindingsBuilder bindingsBuilder;
+        private readonly NewBindingRoot bindingRoot;
+        private readonly FeatureBuilder featureBuilder;
+        private readonly ModuleBuilder moduleBuilder;
         private readonly ComponentBindingRoot componentRoot;
 
         /// <summary>
@@ -49,12 +56,29 @@ namespace Ninject.Builder
         /// </summary>
         public KernelBuilder()
         {
-            this.bindingsBuilder = new BindingsBuilder();
+            this.bindingRoot = new NewBindingRoot();
+            this.featureBuilder = new FeatureBuilder();
+            this.moduleBuilder = new ModuleBuilder();
+
             this.componentRoot = new ComponentBindingRoot();
 
             this.componentRoot.Bind<IPlanningStrategy>().To<ConstructorReflectionStrategy>();
             this.componentRoot.Bind<IBindingResolver>().To<StandardBindingResolver>();
         }
+
+        /*
+        /// <summary>
+        /// Gets the root of the component bindings.
+        /// </summary>
+        /// <value>
+        /// The root of the component binding.
+        /// </value>
+        IComponentBindingRoot IKernelBuilder.Components
+        {
+            get { return this.componentRoot; }
+        }
+        */
+
 
         /// <summary>
         /// Gets the root of the component bindings.
@@ -62,9 +86,22 @@ namespace Ninject.Builder
         /// <value>
         /// The root of the component binding.
         /// </value>
-        public IComponentBindingRoot Components
+        internal ComponentBindingRoot Components
         {
             get { return this.componentRoot; }
+        }
+
+        /// <summary>
+        /// Configures the features of the <see cref="IKernelBuilder"/>.
+        /// </summary>
+        /// <param name="features">A callback to configure features.</param>
+        /// <returns>
+        /// A reference to this instance after the operation has completed.
+        /// </returns>
+        public IKernelBuilder Features(Action<IFeatureBuilder> features)
+        {
+            features(this.featureBuilder);
+            return this;
         }
 
         /// <summary>
@@ -74,9 +111,9 @@ namespace Ninject.Builder
         /// <returns>
         /// A reference to this instance after the operation has completed.
         /// </returns>
-        public IKernelBuilder Bindings(Action<IBindingsBuilder> configureBindings)
+        public IKernelBuilder Bindings(Action<INewBindingRoot> configureBindings)
         {
-            configureBindings(this.bindingsBuilder);
+            configureBindings(this.bindingRoot);
             return this;
         }
 
@@ -100,6 +137,9 @@ namespace Ninject.Builder
         /// </returns>
         public IReadOnlyKernel Build()
         {
+            // Load the modules
+            this.moduleBuilder.Build(this);
+
             /*
                 TODO:
                 fail if neither constructor injection, nor method or property injection is configured
@@ -146,9 +186,19 @@ namespace Ninject.Builder
                 this.Components.Bind<IConstructorInjectionSelector>().To<DefaultConstructorInjectionSelector>();
             }
 
+            if (!this.Components.IsBound<IConstructorReflectionSelector>())
+            {
+                this.Components.Bind<IConstructorReflectionSelector>().ToConstant(new ConstructorReflectionSelector());
+            }
+
             if (!this.Components.IsBound<IConstructorParameterValueProvider>())
             {
                 this.Components.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
+            }
+
+            if (!this.Components.IsBound<IInjectorFactory>())
+            {
+                this.Components.Bind<IInjectorFactory>().To<ExpressionInjectorFactory>();
             }
 
             if (!this.Components.IsBound<IPipeline>())
@@ -156,35 +206,24 @@ namespace Ninject.Builder
                 this.Components.Bind<IPipeline>().ToMethod(c => new PipelineFactory().Create(c.Kernel)).InSingletonScope();
             }
 
-            var bindingActionAggregate = BindingActionAggregate.Create(this.bindingsBuilder.Bindings);
-            if (bindingActionAggregate.HasActivationActions)
-            {
-                this.Components.Bind<IActivationStrategy>().To<BindingActionStrategy>();
-            }
-
-            if (bindingActionAggregate.HasDeactivationActions)
-            {
-                this.Components.Bind<IDeactivationStrategy>().To<BindingActionStrategy>();
-            }
-
-            if (bindingActionAggregate.HasInitializationActions)
-            {
-                this.Components.Bind<IInitializationStrategy>().To<BindingActionStrategy>();
-            }
-
             var resolveComponentsKernel = new BuilderKernelFactory().CreateResolveComponentBindingsKernel();
 
+            // Build a kernel for the components
             var componentBindingVisitor = new BindingBuilderVisitor();
             this.componentRoot.Build(resolveComponentsKernel, componentBindingVisitor);
-            var componentBindings = componentBindingVisitor.Bindings;
+            var componentContainer = new BuilderKernelFactory().CreateComponentsKernel(resolveComponentsKernel, componentBindingVisitor.Bindings);
 
-            var componentContainer = new BuilderKernelFactory().CreateComponentsKernel(resolveComponentsKernel, componentBindings);
+            // Validate the kernel
+            Validate(componentContainer);
 
+            // Builds the bindings for the user-facing kernel
             var bindingBuilderVisitor = new BindingBuilderVisitor();
-            this.bindingsBuilder.Build(componentContainer, bindingBuilderVisitor);
+            this.bindingRoot.Build(componentContainer, bindingBuilderVisitor);
             var bindingsByType = bindingBuilderVisitor.Bindings;
 
+            // Build the user-facing kernel
             return new ReadOnlyKernel5(
+                    new NinjectSettings(),
                     bindingsByType,
                     componentContainer.Get<ICache>(),
                     componentContainer.Get<IPlanner>(),
@@ -193,6 +232,65 @@ namespace Ninject.Builder
                     componentContainer.Get<IBindingPrecedenceComparer>(),
                     componentContainer.GetAll<IBindingResolver>().ToList(),
                     componentContainer.GetAll<IMissingBindingResolver>().ToList());
+        }
+
+        private void Validate(IReadOnlyKernel componentContainer)
+        {
+            bool activationActionsSupported = Contains<IActivationStrategy, BindingActionStrategy>(componentContainer);
+            bool deactivationActionsSupported = Contains<IDeactivationStrategy, BindingActionStrategy>(componentContainer);
+            bool initializationActionsSupported = Contains<IInitializationStrategy, BindingActionStrategy>(componentContainer);
+
+            if (activationActionsSupported && deactivationActionsSupported && initializationActionsSupported)
+            {
+                return;
+            }
+
+            BindingActionVisitor bindingActionVisitor = new BindingActionVisitor();
+            this.Components.Accept(bindingActionVisitor);
+
+            if (!activationActionsSupported && bindingActionVisitor.ActivationActions)
+            {
+                throw new Exception("TODO");
+            }
+
+            if (!deactivationActionsSupported && bindingActionVisitor.DeactivationActions)
+            {
+                throw new Exception("TODO");
+            }
+
+            if (!initializationActionsSupported && bindingActionVisitor.InitializationActions)
+            {
+                throw new Exception("TODO");
+            }
+        }
+
+        private bool Contains<T, TImplementation>(IReadOnlyKernel componentContainer)
+            where TImplementation : class, T
+        {
+            var implementations = componentContainer.GetAll<T>();
+            foreach (var implementation in implementations)
+            {
+                if (implementation is TImplementation)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal class BindingActionVisitor : IVisitor<NewBindingBuilder>
+        {
+            public bool ActivationActions { get; private set; }
+            public bool DeactivationActions { get; private set; }
+            public bool InitializationActions { get; private set; }
+
+            public void Visit(NewBindingBuilder element)
+            {
+                ActivationActions |= element.BindingConfigurationBuilder.HasActivationActions;
+                DeactivationActions |= element.BindingConfigurationBuilder.HasDeactivationActions;
+                InitializationActions |= element.BindingConfigurationBuilder.HasInitializationActions;
+            }
         }
 
         private class BindingActionAggregate
@@ -207,7 +305,7 @@ namespace Ninject.Builder
 
             public bool HasInitializationActions { get; private set; }
 
-            public static BindingActionAggregate Create(IReadOnlyList<BindingBuilder> bindings)
+            public static BindingActionAggregate Create(IReadOnlyList<INewBindingBuilder> bindings)
             {
                 var aggregate = new BindingActionAggregate();
 

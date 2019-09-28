@@ -1,7 +1,7 @@
 // -------------------------------------------------------------------------------------------------
 // <copyright file="NinjectModule.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
-//   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
+//   Copyright (c) 2010-2017 Ninject Project Contributors. All rights reserved.
 //
 //   Dual-licensed under the Apache License, Version 2.0, and the Microsoft Public License (Ms-PL).
 //   You may not use this file except in compliance with one of the Licenses.
@@ -21,34 +21,14 @@
 
 namespace Ninject.Modules
 {
-    using System;
-    using System.Collections.Generic;
-
-    using Ninject.Infrastructure;
-    using Ninject.Planning.Bindings;
+    using Ninject.Builder;
     using Ninject.Syntax;
 
     /// <summary>
     /// A loadable unit that defines bindings for your application.
     /// </summary>
-    public abstract class NinjectModule : BindingRoot, INinjectModule
+    public abstract class NinjectModule : NewBindingRoot, INinjectModule
     {
-        private readonly List<IBinding> bindings;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NinjectModule"/> class.
-        /// </summary>
-        protected NinjectModule()
-        {
-            this.bindings = new List<IBinding>();
-        }
-
-        /// <summary>
-        /// Gets the kernel that the module is loaded into.
-        /// </summary>
-        [Obsolete]
-        public IKernel Kernel { get; private set; }
-
         /// <summary>
         /// Gets the module's name. Only a single module with a given name can be loaded at one time.
         /// </summary>
@@ -58,106 +38,62 @@ namespace Ninject.Modules
         }
 
         /// <summary>
-        /// Gets the bindings that were registered by the module.
-        /// </summary>
-        public ICollection<IBinding> Bindings
-        {
-            get { return this.bindings; }
-        }
-
-        /// <summary>
-        /// Gets the kernel configuration that the module is loaded into.
-        /// </summary>
-        /// <value>The kernel configuration that the module is loaded into.</value>
-        protected internal IKernelConfiguration KernelConfiguration { get; private set; }
-
-        /// <summary>
         /// Called when the module is loaded into a kernel.
         /// </summary>
-        /// <param name="kernelConfiguration">The kernel configuration that is loading the module.</param>
-        /// <param name="settings">The ninject settings.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
-        public void OnLoad(IKernelConfiguration kernelConfiguration, INinjectSettings settings)
-        {
-            Ensure.ArgumentNotNull(kernelConfiguration, nameof(kernelConfiguration));
-            Ensure.ArgumentNotNull(settings, nameof(settings));
-
-            this.KernelConfiguration = kernelConfiguration;
-            this.Components = this.KernelConfiguration.Components;
-            this.Settings = settings;
-
-            this.Load();
-        }
+        /// <param name="kernel">The kernel that is loading the module.</param>
+        public abstract void OnLoad(IKernelConfiguration kernel);
 
         /// <summary>
-        /// Called when the module is unloaded from a kernel.
+        /// Called after all modules are loaded. A module can verify here if all other required binding are available.
         /// </summary>
-        public void OnUnload()
-        {
-            this.Unload();
-            this.bindings.ForEach(binding => this.KernelConfiguration.RemoveBinding(binding));
-            this.Components = null;
-            this.KernelConfiguration = null;
-        }
-
-        /// <summary>
-        /// Called after loading the modules. A module can verify here if all other required modules are loaded.
-        /// </summary>
-        public void OnVerifyRequiredModules()
-        {
-            this.VerifyRequiredModulesAreLoaded();
-        }
-
-        /// <summary>
-        /// Loads the module into the kernel.
-        /// </summary>
-        public abstract void Load();
-
-        /// <summary>
-        /// Unloads the module from the kernel.
-        /// </summary>
-        public virtual void Unload()
+        public virtual void LoadCompleted(IKernelConfiguration kernel)
         {
         }
 
-        /// <summary>
-        /// Called after loading the modules. A module can verify here if all other required modules are loaded.
-        /// </summary>
-        public virtual void VerifyRequiredModulesAreLoaded()
-        {
-        }
-
+        /*
         /// <summary>
         /// Unregisters all bindings for the specified service.
         /// </summary>
         /// <param name="service">The service to unbind.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
         public override void Unbind(Type service)
         {
-            this.KernelConfiguration.Unbind(service);
+            this.Kernel.Bindings(b => b.Unbind(service));
         }
 
+        public void OnUnload(IKernelBuilder kernel)
+        {
+            this.Kernel.Bindings(builder => this.bindings.ForEach(b => builder.RemoveBinding(b)));
+        }
+        */
+
+        /*
         /// <summary>
         /// Registers the specified binding.
         /// </summary>
         /// <param name="binding">The binding to add.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
-        public override void AddBinding(IBinding binding)
+        public override void AddBinding(INewBindingBuilder binding)
         {
-            this.KernelConfiguration.AddBinding(binding);
-            this.bindings.Add(binding);
-        }
+            Ensure.ArgumentNotNull(binding, "binding");
 
+            this.Kernel.Bindings(b => b.AddBinding(binding));
+
+
+            this.Bindings.Add(binding);
+        }
+        */
+
+        /*
         /// <summary>
         /// Unregisters the specified binding.
         /// </summary>
         /// <param name="binding">The binding to remove.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
         public override void RemoveBinding(IBinding binding)
         {
-            this.KernelConfiguration.RemoveBinding(binding);
-            this.bindings.Remove(binding);
+            Ensure.ArgumentNotNull(binding, "binding");
+
+            this.Kernel.RemoveBinding(binding);
+            this.Bindings.Remove(binding);
         }
+        */
     }
 }

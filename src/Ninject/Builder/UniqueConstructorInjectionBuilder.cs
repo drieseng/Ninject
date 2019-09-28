@@ -21,23 +21,41 @@
 
 namespace Ninject.Builder
 {
+    using Ninject.Builder.Syntax;
     using Ninject.Selection;
+    using System;
 
     /// <summary>
     /// Configures the <see cref="IReadOnlyKernel"/> with a planning strategy that selects candidate constructors using
     /// a given <see cref="IConstructorReflectionSelector"/>, and an <see cref="IConstructorInjectionSelector"/> that
     /// expects only a single candidate and returns this candidate.
     /// </summary>
-    internal sealed class UniqueConstructorInjectionSelectorBuilder : ConstructorInjectionSelectorBuilder
+    internal sealed class UniqueConstructorInjectionBuilder : IComponentBuilder, IConstructorReflectionSelectorSyntax
     {
+        private ConstructorReflectionSelectorBuilder selectorBuilder;
+
+        public UniqueConstructorInjectionBuilder()
+        {
+            this.selectorBuilder = new ConstructorReflectionSelectorBuilder();
+        }
+
         /// <summary>
         /// Builds the constructor injection components.
         /// </summary>
-        public override void Build(IComponentBindingRoot root)
+        public void Build(IComponentBindingRoot root)
         {
-            base.Build(root);
-
+            this.selectorBuilder.Build(root);
             root.Bind<IConstructorInjectionSelector>().To<UniqueConstructorInjectionSelector>();
+        }
+
+        /// <summary>
+        /// Configures an <see cref="IConstructorReflectionSelector"/> to use for composing a list of constructors that
+        /// can be used to instantiate a given service.
+        /// </summary>
+        /// <param name="selectorBuilder">A callback to configure an <see cref="IConstructorReflectionSelector"/>.</param>
+        void IConstructorReflectionSelectorSyntax.Selector(Action<IConstructorReflectionSelectorBuilder> selectorBuilder)
+        {
+            selectorBuilder(this.selectorBuilder);
         }
     }
 }

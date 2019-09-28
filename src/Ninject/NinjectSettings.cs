@@ -116,7 +116,7 @@ namespace Ninject
         /// Activating this setting has an impact on the performance. It is recommended not
         /// to use this feature and use constructor injection instead.
         /// </remarks>
-        [Obsolete("Injecting parent private properties is not recommended. Use constructor injection instead.")]
+        [Obsolete("Injecting parent private properties is not recommended. Use public properties or constructor injection instead.", true)]
         public bool InjectParentPrivateProperties { get; set; }
 
         /// <summary>
@@ -134,6 +134,7 @@ namespace Ninject
         /// <see langword="true"/> if activation cache is disabled; otherwise, <see langword="false"/>.
         /// The default is <see langword="false"/>.
         /// </value>
+        [Obsolete("Build a kernel that does not define an activation pipeline.", true)]
         public bool ActivationCacheDisabled { get; set; }
 
         /// <summary>

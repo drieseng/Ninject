@@ -21,7 +21,7 @@
 
 namespace Ninject.Infrastructure
 {
-    internal interface IVisitor<T>
+    public interface IVisitor<T>
     {
         void Visit(T element);
     }

@@ -144,7 +144,7 @@ namespace Ninject.Test.Unit.Activation.Providers
                 };
 
             var kernelConfiguration = new KernelConfiguration(_ninjectSettings);
-            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object);
+            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object, _ninjectSettings);
             context.Plan = new Plan(typeof(MyService));
             context.Plan.Add(directiveOne);
             context.Plan.Add(directiveTwo);
@@ -300,7 +300,7 @@ namespace Ninject.Test.Unit.Activation.Providers
                 };
 
             var kernelConfiguration = new KernelConfiguration(_ninjectSettings);
-            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object);
+            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object, _ninjectSettings);
             context.Plan = new Plan(typeof(NinjaBarracks));
 
             _providerCallbackMock.Setup(p => p(context)).Returns(_providerMock.Object);
@@ -336,7 +336,7 @@ namespace Ninject.Test.Unit.Activation.Providers
                 };
 
             var kernelConfiguration = new KernelConfiguration(_ninjectSettings);
-            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object);
+            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object, _ninjectSettings);
             context.Plan = new Plan(typeof(MyService));
             context.Plan.Add(directiveOne);
             context.Plan.Add(directiveTwo);
@@ -366,7 +366,7 @@ namespace Ninject.Test.Unit.Activation.Providers
             var constructorInjectorMock = new Mock<ConstructorInjector>(MockBehavior.Strict);
 
             var kernelConfiguration = new KernelConfiguration(_ninjectSettings);
-            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object);
+            var context = CreateContext(kernelConfiguration, kernelConfiguration.BuildReadOnlyKernel(), parameters, typeof(NinjaBarracks), _providerMock.Object, _ninjectSettings);
             context.Plan = new Plan(typeof(NinjaBarracks));
             context.Plan.Add(new ConstructorInjectionDirective(GetWeaponAndWarriorConstructor(), constructorInjectorMock.Object));
 
@@ -400,7 +400,8 @@ namespace Ninject.Test.Unit.Activation.Providers
                                              IReadOnlyKernel readonlyKernel,
                                              IReadOnlyList<IParameter> parameters,
                                              Type serviceType,
-                                             IProvider provider)
+                                             IProvider provider,
+                                             INinjectSettings ninjectSettings)
         {
             var request = new Request(serviceType,
                                       null,
@@ -413,6 +414,7 @@ namespace Ninject.Test.Unit.Activation.Providers
             binding.BindingConfiguration.Provider = provider;
 
             var context = new Context(readonlyKernel,
+                                      ninjectSettings,
                                       request,
                                       binding,
                                       kernelConfiguration.Components.Get<ICache>(),

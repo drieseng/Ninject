@@ -154,7 +154,6 @@ namespace Ninject.Activation
 
             if (!this.activationCache.IsActivated(reference.Instance))
             {
-                Console.WriteLine("ACTIVATE " + this.strategies.Count);
                 this.strategies.ForEach(s => s.Activate(context, reference));
             }
         }

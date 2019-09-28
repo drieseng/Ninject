@@ -44,6 +44,7 @@ namespace Ninject
     /// </summary>
     public class ReadOnlyKernel : DisposableObject, IReadOnlyKernel
     {
+        private readonly INinjectSettings settings;
         private readonly ICache cache;
         private readonly IPlanner planner;
         private readonly IConstructorInjectionScorer constructorScorer;
@@ -60,6 +61,7 @@ namespace Ninject
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOnlyKernel"/> class.
         /// </summary>
+        /// <param name="settings">The configuration to use.</param>
         /// <param name="bindings">The preconfigured bindings.</param>
         /// <param name="cache">The <see cref="ICache"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
@@ -70,6 +72,7 @@ namespace Ninject
         /// <param name="bindingResolvers">The binding resolvers.</param>
         /// <param name="missingBindingResolvers">The missing binding resolvers.</param>
         internal ReadOnlyKernel(
+            INinjectSettings settings,
             Dictionary<Type, ICollection<IBinding>> bindings,
             ICache cache,
             IPlanner planner,
@@ -80,6 +83,7 @@ namespace Ninject
             List<IBindingResolver> bindingResolvers,
             List<IMissingBindingResolver> missingBindingResolvers)
         {
+            this.settings = settings;
             this.bindings = bindings;
             this.bindingResolvers = bindingResolvers;
             this.missingBindingResolvers = missingBindingResolvers;
@@ -274,6 +278,16 @@ namespace Ninject
         }
 
         /// <summary>
+        /// Immediately deactivates and removes all instances in the cache that are owned by
+        /// the specified scope.
+        /// </summary>
+        /// <param name="scope">The scope whose instances should be deactivated.</param>
+        public void Clear(object scope)
+        {
+            this.cache.Clear(scope);
+        }
+
+        /// <summary>
         /// Returns a value incating whether a given <see cref="IBinding"/> matches the request.
         /// </summary>
         /// <param name="request">The request/.</param>
@@ -343,7 +357,7 @@ namespace Ninject
         /// <returns>The created context.</returns>
         protected virtual IContext CreateContext(IRequest request, IBinding binding)
         {
-            return new Context(this, request, binding, this.cache, this.exceptionFormatter);
+            return new Context(this, this.settings, request, binding, this.cache, this.exceptionFormatter);
         }
 
         private IEnumerable<object> ResolveAllWithMissingBindings(IRequest request, bool handleMissingBindings)

@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="DefaultPropertyInjectionHeuristic.cs" company="Ninject Project Contributors">
+// <copyright file="BindComponentBuilder.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,29 +19,14 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Selection.Heuristics
+namespace Ninject.Builder
 {
-    using System;
-    using System.Reflection;
-
-    using Ninject.Infrastructure.Language;
-
-    public class DefaultPropertyInjectionHeuristic : IPropertyInjectionHeuristic
+    public class BindComponentBuilder<T,TImplementation> : IComponentBuilder
+        where TImplementation : T
     {
-        public DefaultPropertyInjectionHeuristic()
+        public void Build(IComponentBindingRoot root)
         {
-            this.InjectAttribute = typeof(InjectAttribute);
-        }
-
-        public Type InjectAttribute { get; set; }
-
-        public bool ShouldInject(Type type, PropertyInfo property)
-        {
-            return property.HasAttribute(this.InjectAttribute);
-        }
-
-        void IDisposable.Dispose()
-        {
+            root.Bind<T>().To<TImplementation>();
         }
     }
 }

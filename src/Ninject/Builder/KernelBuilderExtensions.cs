@@ -22,11 +22,9 @@
 namespace Ninject.Builder
 {
     using System;
-
-    using Ninject.Activation.Providers;
-    using Ninject.Activation.Strategies;
+    using Ninject.Builder.Syntax;
     using Ninject.Injection;
-    using Ninject.Selection;
+    using Ninject.Planning.Bindings.Resolvers;
 
     /// <summary>
     /// Extension methods for configure an <see cref="IKernelBuilder"/>.
@@ -36,121 +34,185 @@ namespace Ninject.Builder
         /// <summary>
         /// Enables and configures constructor injection.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
         /// <param name="ctor">A callback to configure constructor injection.</param>
         /// <returns>
-        /// The <see cref="IKernelBuilder"/> instance.
+        /// The <see cref="IFeatureBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder ConstructorInjection(this IKernelBuilder kernelBuilder, Action<IConstructorInjectionBuilder> ctor)
+        public static IFeatureBuilder ConstructorInjection(this IFeatureBuilder features, Action<IConstructorInjectionBuilder> ctor)
         {
             var constructorInjectionBuilder = new ConstructorInjectionBuilder();
             ctor(constructorInjectionBuilder);
-            constructorInjectionBuilder.Build(kernelBuilder.Components);
-            return kernelBuilder;
+            constructorInjectionBuilder.Build(features.Components);
+            return features;
+        }
+
+        /// <summary>
+        /// Enables and configures constructor injection to expect only a single public constructor to
+        /// inject services into.
+        /// </summary>
+        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
+        /// <returns>
+        /// The <see cref="IFeatureBuilder"/> instance.
+        /// </returns>
+        public static IFeatureBuilder ConstructorInjection(this IFeatureBuilder features)
+        {
+            return features.ConstructorInjection(c => c.Unique());
         }
 
         /// <summary>
         /// Enables and configures property injection.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="pipeline">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="property">A callback to configure property injection.</param>
         /// <returns>
         /// The <see cref="IKernelBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder PropertyInjection(this IKernelBuilder kernelBuilder)
+        public static IInitializationPipelineBuilder PropertyInjection(this IInitializationPipelineBuilder pipeline, Action<IPropertySelectorSyntax> property)
         {
-            kernelBuilder.Components.Bind<IPropertyValueProvider>().To<PropertyValueProvider>();
-            kernelBuilder.Components.Bind<IPropertyReflectionSelector>().To<PropertyReflectionSelector>();
-            kernelBuilder.Components.Bind<IInitializationStrategy>().To<PropertyInjectionStrategy>();
-            return kernelBuilder;
+            return pipeline.AddStage(() =>
+                {
+                    var propertyInjectionBuilder = new PropertyInjectionBuilder();
+                    property(propertyInjectionBuilder);
+                    return propertyInjectionBuilder;
+                });
         }
 
         /// <summary>
         /// Enables and configures property injection.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
-        /// <param name="property">A builder to configure property injection.</param>
+        /// <param name="pipeline">An <see cref="IKernelBuilder"/> instance.</param>
         /// <returns>
         /// The <see cref="IKernelBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder PropertyInjection(this IKernelBuilder kernelBuilder, Action<IPropertyInjectionBuilder> property)
+        public static IInitializationPipelineBuilder PropertyInjection(this IInitializationPipelineBuilder pipeline)
         {
-            return kernelBuilder;
+            return pipeline.PropertyInjection(property =>
+                property.Selector(s => s.InjectNonPublic(false))
+                        .InjectionHeuristic(a => a.InjectAttribute<InjectAttribute>()));
         }
 
         /// <summary>
         /// Enables and configures method injection.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="pipeline">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="method">A callback to configure method injection.</param>
         /// <returns>
         /// The <see cref="IKernelBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder MethodInjection(this IKernelBuilder kernelBuilder)
+        public static IInitializationPipelineBuilder MethodInjection(this IInitializationPipelineBuilder pipeline, Action<IMethodSelectorSyntax> method)
         {
-            throw new NotImplementedException();
+            return pipeline.AddStage(() =>
+                {
+                    var methodInjectionBuilder = new MethodInjectionBuilder();
+                    method(methodInjectionBuilder);
+                    return methodInjectionBuilder;
+                });
+        }
+
+        /// <summary>
+        /// Enables and configures method injection.
+        /// </summary>
+        /// <param name="pipeline">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <returns>
+        /// The <see cref="IKernelBuilder"/> instance.
+        /// </returns>
+        public static IInitializationPipelineBuilder MethodInjection(this IInitializationPipelineBuilder pipeline)
+        {
+            return pipeline.MethodInjection(method =>
+                method.Selector(s => s.InjectNonPublic(false))
+                      .InjectionHeuristic(a => a.InjectAttribute<InjectAttribute>()));
         }
 
         /// <summary>
         /// Configures an <see cref="IKernelBuilder"/> to use expression-based injection.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
         /// <returns>
-        /// The <see cref="IKernelBuilder"/> instance.
+        /// The <see cref="IFeatureBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder ExpressionBasedInjection(this IKernelBuilder kernelBuilder)
+        public static IFeatureBuilder ExpressionBasedInjection(this IFeatureBuilder features)
         {
-            kernelBuilder.Components.Bind<IInjectorFactory>().To<ExpressionInjectorFactory>();
-            return kernelBuilder;
+            features.Components.Bind<IInjectorFactory>().To<ExpressionInjectorFactory>();
+            return features;
         }
 
         /// <summary>
         /// Configures an <see cref="IKernelBuilder"/> to use expression-based injection.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
         /// <returns>
-        /// The <see cref="IKernelBuilder"/> instance.
+        /// The <see cref="IFeatureBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder ReflectionBasedInjection(this IKernelBuilder kernelBuilder)
+        public static IFeatureBuilder ReflectionBasedInjection(this IFeatureBuilder features)
         {
-            kernelBuilder.Components.Bind<IInjectorFactory>().To<ReflectionInjectorFactory>();
-            return kernelBuilder;
+            features.Components.Bind<IInjectorFactory>().To<ReflectionInjectorFactory>();
+            return features;
         }
 
         /// <summary>
         /// Configures an <see cref="IKernelBuilder"/> to automatically create a self-binding for a given
         /// service when no explicit binding is available.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
         /// <returns>
-        /// The <see cref="IKernelBuilder"/> instance.
+        /// The <see cref="IFeatureBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder SelfBinding(this IKernelBuilder kernelBuilder)
+        public static IFeatureBuilder SelfBinding(this IFeatureBuilder features)
         {
-            throw new NotImplementedException();
+            features.Components.Bind<IMissingBindingResolver>().To<SelfBindingResolver>();
+            return features;
         }
 
         /// <summary>
         /// Configures an <see cref="IKernelBuilder"/> to use the default value for a given target when no
         /// explicit binding is available.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
         /// <returns>
-        /// The <see cref="IKernelBuilder"/> instance.
+        /// The <see cref="IFeatureBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder DefaultValueBinding(this IKernelBuilder kernelBuilder)
+        public static IFeatureBuilder DefaultValueBinding(this IFeatureBuilder features)
         {
-            throw new NotImplementedException();
+            features.Components.Bind<IMissingBindingResolver>().To<DefaultValueBindingResolver>();
+            return features;
         }
 
         /// <summary>
         /// Configures an <see cref="IKernelBuilder"/> to support open generic binding.
         /// </summary>
-        /// <param name="kernelBuilder">An <see cref="IKernelBuilder"/> instance.</param>
+        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
         /// <returns>
-        /// The <see cref="IKernelBuilder"/> instance.
+        /// The <see cref="IFeatureBuilder"/> instance.
         /// </returns>
-        public static IKernelBuilder OpenGenericBinding(this IKernelBuilder kernelBuilder)
+        public static IFeatureBuilder OpenGenericBinding(this IFeatureBuilder features)
         {
-            throw new NotImplementedException();
+            features.Components.Bind<IBindingResolver>().To<OpenGenericBindingResolver>();
+            return features;
+        }
+
+        public static IFeatureBuilder Initialization(this IFeatureBuilder features, Action<IInitializationPipelineBuilder> pipeline)
+        {
+            var builder = new InitializationPipelineBuilder();
+            pipeline(builder);
+            builder.Build(features.Components);
+            return features;
+        }
+
+        public static IFeatureBuilder Activation(this IFeatureBuilder features, Action<IActivationPipelineBuilder> pipeline)
+        {
+            var builder = new ActivationPipelineBuilder();
+            pipeline(builder);
+            builder.Build(features.Components);
+            return features;
+        }
+
+        public static IFeatureBuilder Deactivation(this IFeatureBuilder features, Action<IDeactivationPipelineBuilder> pipeline)
+        {
+            var builder = new DeactivationPipelineBuilder();
+            pipeline(builder);
+            builder.Build(features.Components);
+            return features;
         }
     }
 }

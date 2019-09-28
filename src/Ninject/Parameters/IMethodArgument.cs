@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="PropertyValueProvider.cs" company="Ninject Project Contributors">
+// <copyright file="IMethodArgument.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,35 +19,38 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Activation.Providers
+namespace Ninject.Parameters
 {
-    using System;
+    using System.Reflection;
 
-    using Ninject.Planning.Directives;
+    using Ninject.Activation;
+    using Ninject.Planning.Targets;
 
     /// <summary>
-    /// Provides values for injection into properties.
+    /// Defines the interface for constructor arguments.
     /// </summary>
-    public class PropertyValueProvider : IPropertyValueProvider
+    public interface IMethodArgument : IParameter
     {
         /// <summary>
-        /// Gets a value for the property from the specified context.
+        /// Determines if the parameter applies to the given target.
         /// </summary>
-        /// <param name="property">The property to provide a value for.</param>
         /// <param name="context">The context.</param>
+        /// <param name="target">The target.</param>
         /// <returns>
-        /// The value.
+        /// <see langword="true"/> if the parameter applies in the specified context to the specified target;
+        /// otherwise, <see langword="false"/>.
         /// </returns>
-        public object GetValue(IPropertyInjectionDirective property, IContext context)
-        {
-            return property.Target.ResolveWithin(context);
-        }
+        /// <remarks>
+        /// Only one parameter may return <see langword="true"/>.
+        /// </remarks>
+        bool AppliesToTarget(IContext context, ITarget<ParameterInfo> target);
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// Gets the value for the parameter within the specified context.
         /// </summary>
-        void IDisposable.Dispose()
-        {
-        }
+        /// <param name="context">The context.</param>
+        /// <param name="target">The target.</param>
+        /// <returns>The value for the parameter.</returns>
+        object GetValue(IContext context, ITarget<ParameterInfo> target);
     }
 }

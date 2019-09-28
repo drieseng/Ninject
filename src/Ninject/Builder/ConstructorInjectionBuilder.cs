@@ -21,6 +21,7 @@
 
 namespace Ninject.Builder
 {
+    using Ninject.Builder.Syntax;
     using System;
     using System.ComponentModel;
 
@@ -35,10 +36,33 @@ namespace Ninject.Builder
         /// Configure constructor injection to select the best matching constructor from the list of constructors
         /// a given service exposes.
         /// </summary>
-        /// <param name="bestMatchingConstructorBuilder">A callback to configure the best matching constructor mechanism.</param>
-        public void BestMatch(Action<IBestMatchConstructorInjectionSelectorBuilder> bestMatchingConstructorBuilder)
+        /// <remarks>
+        /// Constructor that are annoted with an <see cref="InjectAttribute"/> take precedence over other constructors.
+        /// </remarks>
+        public void BestMatch()
         {
-            var builder = new BestMatchConstructorInjectionSelectorBuilder();
+            if (this.constructorInjectionSelectorBuilder != null)
+            {
+                throw new Exception("TODO");
+            }
+
+            BestMatch(b => b.Selector(selector => selector.InjectNonPublic(false))
+                            .Scorer(scorer => scorer.HighestScoreAttribute(typeof(InjectAttribute))));
+        }
+
+        /// <summary>
+        /// Configure constructor injection to select the best matching constructor from the list of constructors
+        /// a given service exposes.
+        /// </summary>
+        /// <param name="bestMatchingConstructorBuilder">A callback to configure the best matching constructor mechanism.</param>
+        public void BestMatch(Action<IConstructorReflectionSelectorAndScorerSyntax> bestMatchingConstructorBuilder)
+        {
+            if (this.constructorInjectionSelectorBuilder != null)
+            {
+                throw new Exception("TODO");
+            }
+
+            var builder = new BestMatchConstructorInjectionBuilder();
             bestMatchingConstructorBuilder(builder);
             this.constructorInjectionSelectorBuilder = builder;
         }
@@ -48,16 +72,26 @@ namespace Ninject.Builder
         /// </summary>
         public void Unique()
         {
-            this.constructorInjectionSelectorBuilder = new UniqueConstructorInjectionSelectorBuilder();
+            if (this.constructorInjectionSelectorBuilder != null)
+            {
+                throw new Exception("TODO");
+            }
+
+            this.constructorInjectionSelectorBuilder = new UniqueConstructorInjectionBuilder();
         }
 
         /// <summary>
         /// Configure constructor injection to expect a given service to expose only a single constructor.
         /// </summary>
         /// <param name="uniqueBuilder">A callback to configure the unique constructor mechanism.</param>
-        public void Unique(Action<IConstructorInjectionSelectorBuilder> uniqueBuilder)
+        public void Unique(Action<IConstructorReflectionSelectorSyntax> uniqueBuilder)
         {
-            var builder = new UniqueConstructorInjectionSelectorBuilder();
+            if (this.constructorInjectionSelectorBuilder != null)
+            {
+                throw new Exception("TODO");
+            }
+
+            var builder = new UniqueConstructorInjectionBuilder();
             uniqueBuilder(builder);
             this.constructorInjectionSelectorBuilder = builder;
         }
@@ -68,6 +102,11 @@ namespace Ninject.Builder
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void Build(IComponentBindingRoot root)
         {
+            if (this.constructorInjectionSelectorBuilder == null)
+            {
+                throw new Exception("TODO");
+            }
+
             this.constructorInjectionSelectorBuilder.Build(root);
         }
     }

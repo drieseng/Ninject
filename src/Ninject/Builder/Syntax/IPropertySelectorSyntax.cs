@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IBestMatchConstructorInjectionSelectorBuilder.cs" company="Ninject Project Contributors">
+// <copyright file="IPropertySelectorSyntax.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,24 +19,16 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Builder
+using Ninject.Selection;
+using System;
+
+namespace Ninject.Builder.Syntax
 {
-    using System;
-
-    using Ninject.Selection;
-    using Ninject.Selection.Heuristics;
-
-    /// <summary>
-    /// Configures the <see cref="IReadOnlyKernel"/> with a planning strategy that selects candidate constructors using
-    /// a given <see cref="IConstructorReflectionSelector"/>, and an <see cref="IConstructorInjectionScorer"/> to select
-    /// the best matching constructor.
-    /// </summary>
-    public interface IBestMatchConstructorInjectionSelectorBuilder : IConstructorInjectionSelectorBuilder
+    public interface IPropertySelectorSyntax
     {
-        /// <summary>
-        /// Configures an <see cref="IConstructorInjectionScorer"/> to use for selecting the best matching constructor.
-        /// </summary>
-        /// <param name="scorerBuilder">A callback to configure an <see cref="IConstructorInjectionScorer"/>.</param>
-        void Scorer(Action<IConstructorScorerBuilder> scorerBuilder);
+        IPropertyInjectionHeuristicsSyntax Selector(Action<IPropertyReflectionSelectorBuilder> selector);
+
+        void Selector<T>()
+            where T : IPropertyReflectionSelector;
     }
 }

@@ -31,7 +31,7 @@ namespace Ninject.Syntax
     /// <summary>
     /// Provides a path to register bindings.
     /// </summary>
-    public class NewBindingRoot : DisposableObject, INewBindingRoot
+    public sealed class NewBindingRoot : INewBindingRoot
     {
         private readonly List<INewBindingBuilder> bindingBuilders;
 
@@ -65,7 +65,9 @@ namespace Ninject.Syntax
         /// Declares a binding for the specified service.
         /// </summary>
         /// <typeparam name="T">The service to bind.</typeparam>
-        /// <returns>The fluent syntax.</returns>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
         public INewBindingToSyntax<T> Bind<T>()
         {
             var bindingBuilder = new BindingBuilder<T>();
@@ -138,8 +140,7 @@ namespace Ninject.Syntax
         {
             for (var i = (this.bindingBuilders.Count - 1); i >= 0; i--)
             {
-                var bindingBuilder = this.bindingBuilders[i];
-                if (bindingBuilder.Service == service)
+                if (this.bindingBuilders[i].Service == service)
                 {
                     this.bindingBuilders.RemoveAt(i);
                 }
@@ -225,20 +226,9 @@ namespace Ninject.Syntax
         /// Registers the specified binding.
         /// </summary>
         /// <param name="binding">The binding to add.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
-        public void AddBinding(INewBindingBuilder binding)
+        private void AddBinding(INewBindingBuilder binding)
         {
             this.bindingBuilders.Add(binding);
-        }
-
-        /// <summary>
-        /// Unregisters the specified binding.
-        /// </summary>
-        /// <param name="binding">The binding to remove.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
-        public void RemoveBinding(INewBindingBuilder binding)
-        {
-            this.bindingBuilders.Remove(binding);
         }
 
         /// <summary>

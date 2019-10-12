@@ -1,5 +1,5 @@
-// -------------------------------------------------------------------------------------------------
-// <copyright file="IModuleLoaderPlugin.cs" company="Ninject Project Contributors">
+﻿// -------------------------------------------------------------------------------------------------
+// <copyright file="StoppableStrategy.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,26 +19,33 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Modules
+namespace Ninject.Activation.Strategies
 {
-    using System.Collections.Generic;
-
-    using Ninject.Components;
+    using System;
 
     /// <summary>
-    /// Loads modules at runtime by searching external files.
+    /// Invokes <see cref="IStoppable.Stop()"/> on an <see cref="IStoppable"/> instance upon deactivation.
     /// </summary>
-    public interface IModuleLoaderPlugin : INinjectComponent
+    public class StoppableStrategy : IDeactivationStrategy
     {
         /// <summary>
-        /// Gets the file extensions that the plugin understands how to load.
+        /// Stops the instance upon deactivation.
         /// </summary>
-        IEnumerable<string> SupportedExtensions { get; }
+        /// <param name="context">The context.</param>
+        /// <param name="reference">A reference to the instance being deactivated.</param>
+        public void Deactivate(IContext context, InstanceReference reference)
+        {
+            if (reference.IsInstanceOf<IStoppable>(out var stoppable))
+            {
+                stoppable.Stop();
+            }
+        }
 
         /// <summary>
-        /// Loads modules from the specified files.
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <param name="filenames">The names of the files to load modules from.</param>
-        void LoadModules(IEnumerable<string> filenames);
+        void IDisposable.Dispose()
+        {
+        }
     }
 }

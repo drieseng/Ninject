@@ -114,7 +114,7 @@ namespace Ninject
 
         private static void ConfigureDeactivationPipeline(IDeactivationPipelineBuilder pipeline)
         {
-            pipeline.BindingAction().Disposable();
+            pipeline.BindingAction().Disposable().Stoppable();
         }
     }
 }

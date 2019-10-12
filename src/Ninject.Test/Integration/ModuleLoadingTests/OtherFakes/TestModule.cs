@@ -4,7 +4,7 @@
 
     public class TestModule : NinjectModule
     {
-        public override void Load()
+        protected override void OnLoad(Builder.IKernelConfiguration kernelConfiguration)
         {
         }
     }

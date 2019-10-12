@@ -30,9 +30,9 @@ namespace Ninject.Builder
     using Ninject.Activation.Providers;
     using Ninject.Activation.Strategies;
     using Ninject.Builder.Bindings;
-    using Ninject.Builder.Components;
     using Ninject.Components;
     using Ninject.Infrastructure;
+    using Ninject.Infrastructure.Disposal;
     using Ninject.Injection;
     using Ninject.Planning;
     using Ninject.Planning.Bindings;
@@ -44,11 +44,12 @@ namespace Ninject.Builder
     /// <summary>
     /// Provides the mechanisms to build a kernel.
     /// </summary>
-    public sealed class KernelBuilder : IKernelBuilder
+    public sealed class KernelBuilder : DisposableObject, IKernelBuilder, IKernelConfiguration
     {
+        private IExceptionFormatter exceptionFormatter;
         private readonly NewBindingRoot bindingRoot;
         private readonly FeatureBuilder featureBuilder;
-        private readonly ModuleBuilder moduleBuilder;
+        private readonly ModuleLoader moduleBuilder;
         private readonly ComponentBindingRoot componentRoot;
 
         /// <summary>
@@ -56,29 +57,15 @@ namespace Ninject.Builder
         /// </summary>
         public KernelBuilder()
         {
+            this.exceptionFormatter = new ExceptionFormatter();
             this.bindingRoot = new NewBindingRoot();
             this.featureBuilder = new FeatureBuilder();
-            this.moduleBuilder = new ModuleBuilder();
+            this.moduleBuilder = new ModuleLoader(this, this.exceptionFormatter);
 
             this.componentRoot = new ComponentBindingRoot();
-
             this.componentRoot.Bind<IPlanningStrategy>().To<ConstructorReflectionStrategy>();
             this.componentRoot.Bind<IBindingResolver>().To<StandardBindingResolver>();
         }
-
-        /*
-        /// <summary>
-        /// Gets the root of the component bindings.
-        /// </summary>
-        /// <value>
-        /// The root of the component binding.
-        /// </value>
-        IComponentBindingRoot IKernelBuilder.Components
-        {
-            get { return this.componentRoot; }
-        }
-        */
-
 
         /// <summary>
         /// Gets the root of the component bindings.
@@ -89,6 +76,17 @@ namespace Ninject.Builder
         internal ComponentBindingRoot Components
         {
             get { return this.componentRoot; }
+        }
+
+        /// <summary>
+        /// Gets the module builder.
+        /// </summary>
+        /// <value>
+        /// The module builder.
+        /// </value>
+        internal ModuleLoader ModuleBuilder
+        {
+            get { return this.moduleBuilder; }
         }
 
         /// <summary>
@@ -124,7 +122,7 @@ namespace Ninject.Builder
         /// <returns>
         /// A reference to this instance after the operation has completed.
         /// </returns>
-        public IKernelBuilder Modules(Action<IModuleBuilder> configureModules)
+        public IKernelBuilder Modules(Action<IModuleLoader> configureModules)
         {
             return this;
         }
@@ -137,8 +135,8 @@ namespace Ninject.Builder
         /// </returns>
         public IReadOnlyKernel Build()
         {
-            // Load the modules
-            this.moduleBuilder.Build(this);
+            // Signal that all modules have been loaded
+            this.moduleBuilder.Complete();
 
             /*
                 TODO:
@@ -206,9 +204,8 @@ namespace Ninject.Builder
                 this.Components.Bind<IPipeline>().ToMethod(c => new PipelineFactory().Create(c.Kernel)).InSingletonScope();
             }
 
-            var resolveComponentsKernel = new BuilderKernelFactory().CreateResolveComponentBindingsKernel();
-
             // Build a kernel for the components
+            var resolveComponentsKernel = new BuilderKernelFactory().CreateResolveComponentBindingsKernel();
             var componentBindingVisitor = new BindingBuilderVisitor();
             this.componentRoot.Build(resolveComponentsKernel, componentBindingVisitor);
             var componentContainer = new BuilderKernelFactory().CreateComponentsKernel(resolveComponentsKernel, componentBindingVisitor.Bindings);
@@ -233,6 +230,61 @@ namespace Ninject.Builder
                     componentContainer.GetAll<IBindingResolver>().ToList(),
                     componentContainer.GetAll<IMissingBindingResolver>().ToList());
         }
+
+        #region IKernelConfiguration implementation
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.exceptionFormatter.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
+
+        /// <summary>
+        /// Adds bindings to the <see cref="IKernelBuilder"/>.
+        /// </summary>
+        /// <param name="configureBindings">A callback to configure bindings.</param>
+        /// <returns>
+        /// A reference to this instance after the operation has completed.
+        /// </returns>
+        IKernelConfiguration IKernelConfiguration.Bindings(Action<INewBindingRoot> configureBindings)
+        {
+            Bindings(configureBindings);
+            return this;
+        }
+
+        /// <summary>
+        /// Configures the features of the <see cref="IKernelBuilder"/>.
+        /// </summary>
+        /// <param name="features">A callback to configure features.</param>
+        /// <returns>
+        /// A reference to this instance after the operation has completed.
+        /// </returns>
+        IKernelConfiguration IKernelConfiguration.Features(Action<IFeatureBuilder> features)
+        {
+            Features(features);
+            return this;
+        }
+
+
+        /// <summary>
+        /// Adds modules to the <see cref="IKernelBuilder"/>.
+        /// </summary>
+        /// <param name="configureModules">A callback to configure modules.</param>
+        /// <returns>
+        /// A reference to this instance after the operation has completed.
+        /// </returns>
+        IKernelConfiguration IKernelConfiguration.Modules(Action<IModuleLoader> configureModules)
+        {
+            Modules(configureModules);
+            return this;
+        }
+
+        #endregion IKernelConfiguration implementation
 
         private void Validate(IReadOnlyKernel componentContainer)
         {

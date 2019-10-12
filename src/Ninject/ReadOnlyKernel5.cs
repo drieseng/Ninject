@@ -42,7 +42,7 @@ namespace Ninject
     /// <summary>
     /// The readonly kernel.
     /// </summary>
-    public sealed class ReadOnlyKernel5 : DisposableObject, IReadOnlyKernel
+    internal sealed class ReadOnlyKernel5 : DisposableObject, IReadOnlyKernel, IComponentContainerNew
     {
         private readonly INinjectSettings settings;
         private readonly ICache cache;
@@ -462,7 +462,6 @@ namespace Ninject
             {
                 var binding = bindings[i];
 
-                /*
                 if (!SatifiesRequest(request, binding))
                 {
                     continue;
@@ -502,7 +501,6 @@ namespace Ninject
                         break;
                     }
                 }
-                */
 
                 satisfiedBinding = binding;
             }
@@ -718,6 +716,58 @@ namespace Ninject
                 Array.Sort(bindingArray, new ReverseComparer<IBinding>(this.bindingPrecedenceComparer));
                 return bindingArray;
             }
+        }
+
+        /// <summary>
+        /// Gets an instance of the specified component.
+        /// </summary>
+        /// <typeparam name="T">The component type.</typeparam>
+        /// <returns>
+        /// An instance of the component.
+        /// </returns>
+        T IComponentContainerNew.Get<T>()
+        {
+            var request = this.CreateRequest(typeof(T), null, Array.Empty<IParameter>(), false, true);
+            return (T) this.ResolveSingle(request);
+        }
+
+        /// <summary>
+        /// Gets all available instances of the specified component.
+        /// </summary>
+        /// <typeparam name="T">The component type.</typeparam>
+        /// <returns>
+        /// A series of instances of the specified component.
+        /// </returns>
+        IEnumerable<T> IComponentContainerNew.GetAll<T>()
+        {
+            var request = this.CreateRequest(typeof(T), null, Array.Empty<IParameter>(), true, false);
+            return this.ResolveAll(request, true).Cast<T>();
+        }
+
+        /// <summary>
+        /// Gets an instance of the specified component.
+        /// </summary>
+        /// <param name="component">The component type.</param>
+        /// <returns>
+        /// The instance of the component.
+        /// </returns>
+        object IComponentContainerNew.Get(Type component)
+        {
+            var request = this.CreateRequest(component, null, Array.Empty<IParameter>(), false, true);
+            return this.ResolveSingle(request);
+        }
+
+        /// <summary>
+        /// Gets all available instances of the specified component.
+        /// </summary>
+        /// <param name="component">The component type.</param>
+        /// <returns>
+        /// A series of instances of the specified component.
+        /// </returns>
+        IEnumerable<object> IComponentContainerNew.GetAll(Type component)
+        {
+            var request = this.CreateRequest(component, null, Array.Empty<IParameter>(), true, false);
+            return this.ResolveAll(request, true);
         }
     }
 }

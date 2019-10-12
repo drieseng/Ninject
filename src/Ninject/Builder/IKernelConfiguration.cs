@@ -33,7 +33,7 @@ namespace Ninject.Builder
         /// <returns>
         /// A reference to this instance after the operation has completed.
         /// </returns>
-        IKernelBuilder Bindings(Action<INewBindingRoot> configureBindings);
+        IKernelConfiguration Bindings(Action<INewBindingRoot> configureBindings);
 
         /// <summary>
         /// Configures the features of the <see cref="IKernelBuilder"/>.
@@ -42,7 +42,7 @@ namespace Ninject.Builder
         /// <returns>
         /// A reference to this instance after the operation has completed.
         /// </returns>
-        IKernelBuilder Features(Action<IFeatureBuilder> features);
+        IKernelConfiguration Features(Action<IFeatureBuilder> features);
 
         /// <summary>
         /// Adds modules to the <see cref="IKernelBuilder"/>.
@@ -51,6 +51,6 @@ namespace Ninject.Builder
         /// <returns>
         /// A reference to this instance after the operation has completed.
         /// </returns>
-        IKernelBuilder Modules(Action<IModuleBuilder> configureModules);
+        IKernelConfiguration Modules(Action<IModuleLoader> configureModules);
     }
 }

@@ -92,7 +92,7 @@ namespace Ninject.Tests.Integration
 
         public ConstructorArgumentInBindingConfigurationBuilderTest_KernelBuilder()
         {
-            this._kernelBuilder = new KernelBuilder().ConstructorInjection(c => c.Unique());
+            this._kernelBuilder = new KernelBuilder().Features(f => f.ConstructorInjection(c => c.Unique()));
         }
 
         public void Dispose()

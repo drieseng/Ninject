@@ -227,7 +227,7 @@ namespace Ninject.Tests.Integration
             ninja.VerySecretWeaponAccessor.Should().BeOfType<Sword>();
         }
 
-        public override void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing && !this.IsDisposed)
             {

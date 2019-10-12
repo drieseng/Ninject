@@ -36,14 +36,14 @@ namespace Ninject.Syntax
         /// Indicates that the service should be self-bound.
         /// </summary>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T1> ToSelf();
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T1> ToSelf();
 
         /// <summary>
         /// Indicates that the service should be bound to the specified implementation type.
         /// </summary>
         /// <typeparam name="TImplementation">The implementation type.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<TImplementation> To<TImplementation>()
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<TImplementation> To<TImplementation>()
             where TImplementation : T1;
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Ninject.Syntax
         /// </summary>
         /// <param name="implementation">The implementation type.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T1> To(Type implementation);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T1> To(Type implementation);
 
         /// <summary>
         /// Indicates that the service should be bound to an instance of the specified provider type.
@@ -59,7 +59,7 @@ namespace Ninject.Syntax
         /// </summary>
         /// <typeparam name="TProvider">The type of provider to activate.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T1> ToProvider<TProvider>()
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T1> ToProvider<TProvider>()
             where TProvider : IProvider;
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Ninject.Syntax
         /// </summary>
         /// <param name="providerType">The type of provider to activate.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<T1> ToProvider(Type providerType);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T1> ToProvider(Type providerType);
 
         /// <summary>
         /// Indicates that the service should be bound to the specified provider.
@@ -76,7 +76,7 @@ namespace Ninject.Syntax
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="provider">The provider.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<TImplementation> ToProvider<TImplementation>(IProvider<TImplementation> provider)
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<TImplementation> ToProvider<TImplementation>(IProvider<TImplementation> provider)
             where TImplementation : T1;
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Ninject.Syntax
         /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
         /// <param name="newExpression">The expression that specifies the constructor.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenInWithOrOnInitializationSyntax<TImplementation> ToConstructor<TImplementation>(
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<TImplementation> ToConstructor<TImplementation>(
             Expression<Func<IConstructorArgumentSyntax, TImplementation>> newExpression)
             where TImplementation : T1;
     }

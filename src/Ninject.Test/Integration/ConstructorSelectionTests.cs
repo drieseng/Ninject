@@ -186,20 +186,20 @@ namespace Ninject.Tests.Integration
         [Fact]
         public void WhenLazyValuesArePassedToConstructorSelectionTheyAreEvaluatedAtResolve()
         {
-            int activationCount = 0;
-            this.kernel.Bind<Ninja>().ToSelf().Named("1").OnActivation(inst => activationCount++);
+            int initializationCount = 0;
+            this.kernel.Bind<Ninja>().ToSelf().Named("1").OnInitialization(inst => initializationCount++);
             this.kernel.Bind<Barracks>().ToConstructor(ctorArg => new Barracks(ctorArg.Context.Kernel.Get<Ninja>("1"), ctorArg.Inject<IWeapon>()));
             this.kernel.Bind<IWeapon>().To<Sword>();
             this.kernel.Bind<IWarrior>().To<Samurai>();
 
-            activationCount.Should().Be(0);
+            initializationCount.Should().Be(0);
             var barracks = this.kernel.Get<Barracks>();
 
             barracks.Should().NotBeNull();
             barracks.Warrior.Should().NotBeNull();
             barracks.Warrior.Should().BeOfType<Ninja>();
             barracks.Weapon.Should().NotBeNull();
-            activationCount.Should().Be(1);
+            initializationCount.Should().Be(1);
         }
 
         [Fact]

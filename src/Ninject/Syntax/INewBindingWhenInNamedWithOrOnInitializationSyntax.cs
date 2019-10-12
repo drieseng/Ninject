@@ -6,7 +6,7 @@
     using Ninject.Parameters;
     using Ninject.Planning.Targets;
 
-    public interface INewBindingNhenInNamedWithOrOnInitializationSyntax<T> : IFluentSyntax
+    public interface INewBindingWhenInNamedWithOrOnInitializationSyntax<T> : IFluentSyntax
     {
         #region In
 
@@ -49,7 +49,7 @@
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> OnInitialization(Action<T> action);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> OnInitialization(Action<T> action);
 
         /// <summary>
         /// Indicates that the specified callback should be invoked when instances are initialized.
@@ -59,7 +59,7 @@
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> OnInitialization<TImplementation>(Action<TImplementation> action);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> OnInitialization<TImplementation>(Action<TImplementation> action);
 
         /// <summary>
         /// Indicates that the specified callback should be invoked when instances are initialized.
@@ -68,17 +68,7 @@
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> OnInitialization(Action<IContext, T> action);
-
-        /// <summary>
-        /// Indicates that the specified callback should be invoked when instances are initialized.
-        /// </summary>
-        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
-        /// <param name="action">The action callback.</param>
-        /// <returns>
-        /// The fluent syntax.
-        /// </returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> OnInitialization<TImplementation>(Action<IContext, TImplementation> action);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> OnInitialization(Action<IContext, T> action);
 
         /// <summary>
         /// Indicates that the specified callback should be invoked when instances are initialized.
@@ -88,7 +78,17 @@
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> OnInitialization<TImplementation>(Func<IContext, TImplementation, TImplementation> action);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> OnInitialization<TImplementation>(Action<IContext, TImplementation> action);
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> OnInitialization<TImplementation>(Func<IContext, TImplementation, TImplementation> action);
 
         #endregion OnInitialization
 
@@ -100,7 +100,7 @@
         /// <param name="name">The name of the argument to override.</param>
         /// <param name="value">The value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, object value);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, object value);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -108,7 +108,7 @@
         /// <param name="name">The name of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, Func<IContext, object> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, Func<IContext, object> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -116,7 +116,7 @@
         /// <param name="name">The name of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, Func<IContext, ITarget<IConstructorArgument>, object> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(string name, Func<IContext, ITarget<IConstructorArgument>, object> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -124,7 +124,7 @@
         /// <typeparam name="TValue">Specifies the argument type to override.</typeparam>
         /// <param name="value">The value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(TValue value);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(TValue value);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -132,7 +132,7 @@
         /// <param name="type">The type of the argument to override.</param>
         /// <param name="value">The value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, object value);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, object value);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -140,7 +140,7 @@
         /// <typeparam name="TValue">The type of the argument to override.</typeparam>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(Func<IContext, TValue> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(Func<IContext, TValue> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -148,7 +148,7 @@
         /// <param name="type">The type of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, Func<IContext, object> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, Func<IContext, object> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -156,7 +156,7 @@
         /// <typeparam name="TValue">The type of the argument to override.</typeparam>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(Func<IContext, ITarget<IConstructorArgument>, TValue> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument<TValue>(Func<IContext, ITarget<IConstructorArgument>, TValue> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -164,7 +164,7 @@
         /// <param name="type">The type of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, Func<IContext, ITarget<IConstructorArgument>, object> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithConstructorArgument(Type type, Func<IContext, ITarget<IConstructorArgument>, object> callback);
 
         /// <summary>
         /// Indicates that the specified property should be injected with the specified value.
@@ -172,7 +172,7 @@
         /// <param name="name">The name of the property to override.</param>
         /// <param name="value">The value for the property.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithPropertyValue(string name, object value);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithPropertyValue(string name, object value);
 
         /// <summary>
         /// Indicates that the specified property should be injected with the specified value.
@@ -180,7 +180,7 @@
         /// <param name="name">The name of the property to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the property.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithPropertyValue(string name, Func<IContext, object> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithPropertyValue(string name, Func<IContext, object> callback);
 
         /// <summary>
         /// Indicates that the specified property should be injected with the specified value.
@@ -188,14 +188,14 @@
         /// <param name="name">The name of the property to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the property.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithPropertyValue(string name, Func<IContext, ITarget<IPropertyValue>, object> callback);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithPropertyValue(string name, Func<IContext, ITarget<IPropertyValue>, object> callback);
 
         /// <summary>
         /// Adds a custom parameter to the binding.
         /// </summary>
         /// <param name="parameter">The parameter.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithParameter(IParameter parameter);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithParameter(IParameter parameter);
 
         /// <summary>
         /// Sets the value of a piece of metadata on the binding.
@@ -203,7 +203,7 @@
         /// <param name="key">The metadata key.</param>
         /// <param name="value">The metadata value.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WithMetadata(string key, object value);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WithMetadata(string key, object value);
 
         #endregion With
 
@@ -214,7 +214,7 @@
         /// </summary>
         /// <param name="condition">The condition.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> When(Func<IRequest, bool> condition);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> When(Func<IRequest, bool> condition);
 
         /// <summary>
         /// Indicates that the binding should be used only for injections on the specified type.
@@ -222,7 +222,7 @@
         /// </summary>
         /// <typeparam name="TParent">The type.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedInto<TParent>();
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedInto<TParent>();
 
         /// <summary>
         /// Indicates that the binding should be used only for injections on the specified type.
@@ -230,7 +230,7 @@
         /// </summary>
         /// <param name="parent">The type.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedInto(Type parent);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedInto(Type parent);
 
         /// <summary>
         /// Indicates that the binding should be used only for injections on the specified types.
@@ -239,7 +239,7 @@
         /// </summary>
         /// <param name="parents">The types to match.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedInto(params Type[] parents);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedInto(params Type[] parents);
 
         /// <summary>
         /// Indicates that the binding should be used only for injections on the specified type.
@@ -248,7 +248,7 @@
         /// </summary>
         /// <typeparam name="TParent">The type.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedExactlyInto<TParent>();
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedExactlyInto<TParent>();
 
         /// <summary>
         /// Indicates that the binding should be used only for injections on the specified type.
@@ -257,7 +257,7 @@
         /// </summary>
         /// <param name="parent">The type.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedExactlyInto(Type parent);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedExactlyInto(Type parent);
 
         /// <summary>
         /// Indicates that the binding should be used only for injections on the specified type.
@@ -267,7 +267,7 @@
         /// </summary>
         /// <param name="parents">The types.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedExactlyInto(params Type[] parents);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenInjectedExactlyInto(params Type[] parents);
 
         /// <summary>
         /// Indicates that the binding should be used only when the class being injected has
@@ -275,7 +275,7 @@
         /// </summary>
         /// <typeparam name="TAttribute">The type of attribute.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenClassHas<TAttribute>()
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenClassHas<TAttribute>()
             where TAttribute : Attribute;
 
         /// <summary>
@@ -284,7 +284,7 @@
         /// </summary>
         /// <typeparam name="TAttribute">The type of attribute.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenMemberHas<TAttribute>()
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenMemberHas<TAttribute>()
             where TAttribute : Attribute;
 
         /// <summary>
@@ -293,7 +293,7 @@
         /// </summary>
         /// <typeparam name="TAttribute">The type of attribute.</typeparam>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenTargetHas<TAttribute>()
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenTargetHas<TAttribute>()
             where TAttribute : Attribute;
 
         /// <summary>
@@ -302,7 +302,7 @@
         /// </summary>
         /// <param name="attributeType">The type of attribute.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenClassHas(Type attributeType);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenClassHas(Type attributeType);
 
         /// <summary>
         /// Indicates that the binding should be used only when the member being injected has
@@ -310,7 +310,7 @@
         /// </summary>
         /// <param name="attributeType">The type of attribute.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenMemberHas(Type attributeType);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenMemberHas(Type attributeType);
 
         /// <summary>
         /// Indicates that the binding should be used only when the target being injected has
@@ -318,7 +318,7 @@
         /// </summary>
         /// <param name="attributeType">The type of attribute.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenTargetHas(Type attributeType);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenTargetHas(Type attributeType);
 
         /// <summary>
         /// Indicates that the binding should be used only when the service is being requested
@@ -326,35 +326,35 @@
         /// </summary>
         /// <param name="name">The name to expect.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenParentNamed(string name);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenParentNamed(string name);
 
         /// <summary>
         /// Indicates that the binding should be used only when any ancestor is bound with the specified name.
         /// </summary>
         /// <param name="name">The name to expect.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenAnyAncestorNamed(string name);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenAnyAncestorNamed(string name);
 
         /// <summary>
         /// Indicates that the binding should be used only when no ancestor is bound with the specified name.
         /// </summary>
         /// <param name="name">The name to expect.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenNoAncestorNamed(string name);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenNoAncestorNamed(string name);
 
         /// <summary>
         /// Indicates that the binding should be used only when any ancestor matches the specified predicate.
         /// </summary>
         /// <param name="predicate">The predicate to match.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenAnyAncestorMatches(Predicate<IContext> predicate);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenAnyAncestorMatches(Predicate<IContext> predicate);
 
         /// <summary>
         /// Indicates that the binding should be used only when no ancestor matches the specified predicate.
         /// </summary>
         /// <param name="predicate">The predicate to match.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> WhenNoAncestorMatches(Predicate<IContext> predicate);
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> WhenNoAncestorMatches(Predicate<IContext> predicate);
 
         #endregion When
 
@@ -366,7 +366,7 @@
         /// </summary>
         /// <param name="name">The name to give the binding.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingNhenInNamedWithOrOnInitializationSyntax<T> Named(string name);
+        INewBindingWhenInWithOrOnInitializationSyntax<T> Named(string name);
 
         #endregion Named
     }

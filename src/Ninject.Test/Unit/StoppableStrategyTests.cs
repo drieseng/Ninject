@@ -22,7 +22,7 @@ namespace Ninject.Tests.Unit.StoppableStrategyTests
     public class WhenDeactivateIsCalled : StoppableStrategyContext
     {
         [Fact]
-        public void StrategyStopsInstanceIfItIsStartable()
+        public void StrategyStopsInstanceIfItIsStoppable()
         {
             var instance = new StoppableObject();
             var reference = new InstanceReference { Instance = instance };
@@ -33,7 +33,7 @@ namespace Ninject.Tests.Unit.StoppableStrategyTests
         }
 
         [Fact]
-        public void StrategyDoesNotAttemptToInitializeInstanceIfItIsNotInitializable()
+        public void StrategyDoesNotAttemptToStopInstanceIfItIsNotStoppable()
         {
             var instance = new object();
             var reference = new InstanceReference { Instance = instance };

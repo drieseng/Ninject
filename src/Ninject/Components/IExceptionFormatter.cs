@@ -24,6 +24,7 @@ namespace Ninject.Components
     using System;
     using System.Reflection;
     using Ninject.Activation;
+    using Ninject.Modules;
     using Ninject.Parameters;
     using Ninject.Planning.Targets;
 
@@ -55,6 +56,24 @@ namespace Ninject.Components
         string CyclicalDependenciesDetected(IContext context);
 
         /// <summary>
+        /// Generates a message saying that modules without names are not supported.
+        /// </summary>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        string ModulesWithNullNameAreNotSupported();
+
+        /// <summary>
+        /// Generates a message saying that a module with the same name is already loaded.
+        /// </summary>
+        /// <param name="newModule">The new module.</param>
+        /// <param name="existingModule">The existing module.</param>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        string ModuleWithSameNameIsAlreadyLoaded(INinjectModule newModule, INinjectModule existingModule);
+
+        /// <summary>
         /// Generates a message saying that more than one <see cref="PropertyValue"/> is defined for the specified
         /// <see cref="ITarget{PropertyInfo}"/>.
         /// </summary>
@@ -79,6 +98,15 @@ namespace Ninject.Components
         /// <param name="implementation">The implementation.</param>
         /// <returns>The exception message.</returns>
         string NoConstructorsAvailableForComponent(Type component, Type implementation);
+
+        /// <summary>
+        /// Generates a message saying that no module has been loaded with the specified name.
+        /// </summary>
+        /// <param name="name">The module name.</param>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        string NoModuleLoadedWithTheSpecifiedName(string name);
 
         /// <summary>
         /// Generates a message saying that the specified component is not registered.

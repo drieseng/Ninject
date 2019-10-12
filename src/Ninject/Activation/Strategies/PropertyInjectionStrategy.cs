@@ -24,7 +24,6 @@ namespace Ninject.Activation.Strategies
     using System;
     using System.Collections.Generic;
 
-    using Ninject.Activation.Providers;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Parameters;
@@ -106,6 +105,13 @@ namespace Ninject.Activation.Strategies
 
                         directive.Injector(instance, value);
                     }
+
+                    /*
+                    TODO cannot throw here if not we'll thow for any inherited parameter value for which there's no matching
+                    directive.
+
+                    We could throw for non-inherited property values for which no match is found.
+                    */
 
                     // Check if there are any property parameters for which we have not found a corresponding property
                     if (propertyParameters.Count > 0)

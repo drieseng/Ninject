@@ -31,6 +31,7 @@ namespace Ninject
     using Ninject.Builder;
     using Ninject.Components;
     using Ninject.Infrastructure;
+    using Ninject.Infrastructure.Disposal;
     using Ninject.Infrastructure.Language;
     using Ninject.Modules;
     using Ninject.Parameters;
@@ -40,15 +41,9 @@ namespace Ninject
     /// <summary>
     /// The base implementation of an <see cref="IKernelBuilder"/>.
     /// </summary>
-    public abstract class KernelBase : NewBindingRoot, IKernel
+    public abstract class KernelBase : DisposableObject, INewBindingRoot, IKernel
     {
-        /// <summary>
-        /// The ninject modules.
-        /// </summary>
-        private readonly Dictionary<string, INinjectModule> modules = new Dictionary<string, INinjectModule>();
-
-        private KernelBuilder kernelBuilder;
-
+        private readonly KernelBuilder kernelBuilder;
         private readonly object kernelLockObject = new object();
 
         private IReadOnlyKernel kernel;
@@ -63,11 +58,11 @@ namespace Ninject
         protected KernelBase(INinjectSettings settings, params INinjectModule[] modules)
         {
             Ensure.ArgumentNotNull(settings, nameof(settings));
-            Ensure.ArgumentNotNull(modules, nameof(modules));
 
             this.Settings = settings;
 
             this.kernelBuilder = new KernelBuilder();
+            this.kernelBuilder.Modules(m => m.Load(modules));
         }
 
         /// <summary>
@@ -111,7 +106,7 @@ namespace Ninject
         /// Releases resources held by the object.
         /// </summary>
         /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
-        public override void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing && !this.IsDisposed)
             {
@@ -213,12 +208,10 @@ namespace Ninject
         /// <returns>
         /// <see langword="true"/> if the specified module has been loaded; otherwise, <see langword="false"/>.
         /// </returns>
-        /// <exception cref="ArgumentException"><paramref name="name"/> is <see langword="null"/> or a zero-length <see cref="string"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
         public bool HasModule(string name)
         {
-            Ensure.ArgumentNotNullOrEmpty(name, nameof(name));
-
-            return this.modules.ContainsKey(name);
+            return kernelBuilder.ModuleBuilder.HasModule(name);
         }
 
         /// <summary>
@@ -227,7 +220,7 @@ namespace Ninject
         /// <returns>A series of loaded modules.</returns>
         public IEnumerable<INinjectModule> GetModules()
         {
-            return this.modules.Values.ToArray();
+            return kernelBuilder.ModuleBuilder.Modules;
         }
 
         /// <summary>
@@ -245,92 +238,7 @@ namespace Ninject
                 throw CreateKernelHasBeenBuiltException();
             }
 
-            modules = modules.ToList();
-            foreach (INinjectModule module in modules)
-            {
-                if (string.IsNullOrEmpty(module.Name))
-                {
-                    throw new NotSupportedException(ExceptionFormatter.ModulesWithNullOrEmptyNamesAreNotSupported());
-                }
-
-                if (this.modules.TryGetValue(module.Name, out INinjectModule existingModule))
-                {
-                    throw new NotSupportedException(ExceptionFormatter.ModuleWithSameNameIsAlreadyLoaded(module, existingModule));
-                }
-
-                module.OnLoad(kernelBuilder);
-
-                this.modules.Add(module.Name, module);
-            }
-
-            foreach (INinjectModule module in modules)
-            {
-                module.LoadCompleted(kernelBuilder);
-            }
-        }
-
-        /// <summary>
-        /// Loads modules from the files that match the specified pattern(s).
-        /// </summary>
-        /// <param name="filePatterns">The file patterns (i.e. "*.dll", "modules/*.rb") to match.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="filePatterns"/> is <see langword="null"/>.</exception>
-        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
-        public void Load(IEnumerable<string> filePatterns)
-        {
-            Ensure.ArgumentNotNull(filePatterns, nameof(filePatterns));
-
-            if (kernel != null)
-            {
-                throw CreateKernelHasBeenBuiltException();
-            }
-
-            var moduleLoader = this.Components.Get<IModuleLoader>();
-            moduleLoader.LoadModules(filePatterns);
-        }
-
-        /// <summary>
-        /// Loads modules defined in the specified assemblies.
-        /// </summary>
-        /// <param name="assemblies">The assemblies to search.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="assemblies"/> is <see langword="null"/>.</exception>
-        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
-        public void Load(IEnumerable<Assembly> assemblies)
-        {
-            Ensure.ArgumentNotNull(assemblies, nameof(assemblies));
-
-            if (kernel != null)
-            {
-                throw CreateKernelHasBeenBuiltException();
-            }
-
-            this.Load(assemblies.SelectMany(asm => asm.GetNinjectModules()));
-        }
-
-        /// <summary>
-        /// Unloads the plugin with the specified name.
-        /// </summary>
-        /// <param name="name">The plugin's name.</param>
-        /// <exception cref="ArgumentException"><paramref name="name"/> is <see langword="null"/> or a zero-length <see cref="string"/>.</exception>
-        /// <exception cref="InvalidOperationException">The <see cref="IKernelBuilder"/> has already been built.</exception>
-        public void Unload(string name)
-        {
-            Ensure.ArgumentNotNullOrEmpty(name, nameof(name));
-
-            if (kernel != null)
-            {
-                throw CreateKernelHasBeenBuiltException();
-            }
-
-            if (!this.modules.TryGetValue(name, out INinjectModule module))
-            {
-                throw new NotSupportedException(ExceptionFormatter.NoModuleLoadedWithTheSpecifiedName(name));
-            }
-
-            /*
-            module.OnUnload(this.kernelBuilder);
-            */
-
-            this.modules.Remove(name);
+            kernelBuilder.Modules(m => m.Load(modules));
         }
 
         /// <summary>
@@ -474,6 +382,158 @@ namespace Ninject
         private static InvalidOperationException CreateKernelHasBeenBuiltException()
         {
             return new InvalidOperationException("Cannot perform this operation after the kernel has been built.");
+        }
+
+        public bool IsBound<T>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            bool isBound = false;
+            this.kernelBuilder.Bindings(m => isBound = m.IsBound<T>());
+            return isBound;
+        }
+
+        public INewBindingToSyntax<T> Bind<T>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Bind<T>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<T1, T2> Bind<T1, T2>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T1, T2> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Bind<T1, T2>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<T1, T2, T3> Bind<T1, T2, T3>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T1, T2, T3> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Bind<T1, T2, T3>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<T1, T2, T3, T4> Bind<T1, T2, T3, T4>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T1, T2, T3, T4> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Bind<T1, T2, T3, T4>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<object> Bind(params Type[] services)
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<object> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Bind(services));
+            return syntax;
+        }
+
+        public void Unbind<T>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            this.kernelBuilder.Bindings(m => m.Unbind<T>());
+        }
+
+        public void Unbind(Type service)
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            this.kernelBuilder.Bindings(m => m.Unbind(service));
+        }
+
+        public INewBindingToSyntax<T1> Rebind<T1>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T1> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Rebind<T1>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<T1, T2> Rebind<T1, T2>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T1, T2> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Rebind<T1, T2>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<T1, T2, T3> Rebind<T1, T2, T3>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T1, T2, T3> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Rebind<T1, T2, T3>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<T1, T2, T3, T4> Rebind<T1, T2, T3, T4>()
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<T1, T2, T3, T4> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Rebind<T1, T2, T3, T4>());
+            return syntax;
+        }
+
+        public INewBindingToSyntax<object> Rebind(params Type[] services)
+        {
+            if (kernel != null)
+            {
+                throw CreateKernelHasBeenBuiltException();
+            }
+
+            INewBindingToSyntax<object> syntax = null;
+            this.kernelBuilder.Bindings(m => syntax = m.Rebind(services));
+            return syntax;
         }
     }
 }

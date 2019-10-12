@@ -36,12 +36,16 @@ namespace Ninject.Modules
         /// <summary>
         /// Called when the module is loaded into a kernel.
         /// </summary>
-        /// <param name="kernel">The kernel that is loading the module.</param>
-        void OnLoad(Builder.IKernelConfiguration kernel);
+        /// <param name="kernelConfiguration">The configuration of the kernel that is loading the module.</param>
+        void OnLoad(Builder.IKernelConfiguration kernelConfiguration);
 
         /// <summary>
-        /// Called after all modules are loaded. A module can verify here if all other required binding are available.
+        /// Called after all modules are loaded.
         /// </summary>
-        void LoadCompleted(Builder.IKernelConfiguration kernel);
+        /// <param name="kernelConfiguration">The configuration of the kernel that has loaded the modules.</param>
+        /// <remarks>
+        /// A module can verify here if all other required bindings are available.
+        /// </remarks>
+        void OnLoadCompleted(Builder.IKernelConfiguration kernelConfiguration);
     }
 }

@@ -67,37 +67,9 @@ namespace Ninject
         void Load(IEnumerable<INinjectModule> m);
 
         /// <summary>
-        /// Loads modules from the files that match the specified pattern(s).
-        /// </summary>
-        /// <param name="filePatterns">The file patterns (i.e. "*.dll", "modules/*.rb") to match.</param>
-        void Load(IEnumerable<string> filePatterns);
-
-        /// <summary>
-        /// Loads modules defined in the specified assemblies.
-        /// </summary>
-        /// <param name="assemblies">The assemblies to search.</param>
-        void Load(IEnumerable<Assembly> assemblies);
-
-        /// <summary>
-        /// Unloads the plugin with the specified name.
-        /// </summary>
-        /// <param name="name">The plugin's name.</param>
-        void Unload(string name);
-
-        /// <summary>
         /// Begins a new activation block, which can be used to deterministically dispose resolved instances.
         /// </summary>
         /// <returns>The new activation block.</returns>
         IActivationBlock BeginBlock();
-
-        /*
-        /// <summary>
-        /// Registers the specified binding.
-        /// </summary>
-        /// <param name="binding">The binding to add.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
-        /// <exception cref="InvalidOperationException">The <see cref="IKernel"/> has already been built.</exception>
-        void AddBinding(INewBindingBuilder binding);
-        */
     }
 }

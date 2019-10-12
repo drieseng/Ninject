@@ -39,7 +39,6 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
 
     public class PropertyInjectionDirectiveContext
     {
-        protected Mock<IPropertyValueProvider> propertyValueProviderMock { get; private set; }
         protected Mock<IExceptionFormatter> exceptionFormatterMock { get; private set; }
         protected Mock<IContext> contextMock { get; private set; }
         protected Mock<IPlan> planMock { get; private set; }
@@ -48,15 +47,13 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
 
         public PropertyInjectionDirectiveContext()
         {
-            this.propertyValueProviderMock = new Mock<IPropertyValueProvider>(MockBehavior.Strict);
             this.exceptionFormatterMock = new Mock<IExceptionFormatter>(MockBehavior.Strict);
             this.contextMock = new Mock<IContext>(MockBehavior.Strict);
             this.planMock = new Mock<IPlan>(MockBehavior.Strict);
 
             this.random = new Random();
 
-            this.strategy = new PropertyInjectionStrategy(propertyValueProviderMock.Object,
-                                                          this.exceptionFormatterMock.Object);
+            this.strategy = new PropertyInjectionStrategy(this.exceptionFormatterMock.Object);
         }
     }
 
@@ -64,6 +61,8 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
     {
         private Mock<PropertyInjector> fooInjectorMock;
         private Mock<PropertyInjector> barInjectorMock;
+        private Mock<ITarget<PropertyInfo>> fooTargetMock;
+        private Mock<ITarget<PropertyInfo>> barTargetMock;
         private Mock<IPropertyInjectionDirective> fooPropertyDirectiveMock;
         private Mock<IPropertyInjectionDirective> barPropertyDirectiveMock;
         private Dummy instance = new Dummy();
@@ -98,15 +97,13 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
             this.contextMock.InSequence(mockSequence)
                             .SetupGet(x => x.Parameters)
                             .Returns(Array.Empty<IParameter>());
-            this.propertyValueProviderMock.InSequence(mockSequence)
-                                          .Setup(p => p.GetValue(fooPropertyDirectiveMock.Object, this.contextMock.Object))
-                                          .Returns(fooResolvedValue);
+            this.fooPropertyDirectiveMock.Setup(p => p.Target).Returns(fooTargetMock.Object);
+            this.fooTargetMock.Setup(p => p.ResolveWithin(this.contextMock.Object)).Returns(fooResolvedValue);
             this.fooPropertyDirectiveMock.Setup(p => p.Injector).Returns(fooInjectorMock.Object);
             this.fooInjectorMock.InSequence(mockSequence)
                                 .Setup(p => p(this.instance, this.fooResolvedValue));
-            this.propertyValueProviderMock.InSequence(mockSequence)
-                                          .Setup(p => p.GetValue(barPropertyDirectiveMock.Object, this.contextMock.Object))
-                                          .Returns(barResolvedValue);
+            this.barPropertyDirectiveMock.Setup(p => p.Target).Returns(barTargetMock.Object);
+            this.barTargetMock.Setup(p => p.ResolveWithin(this.contextMock.Object)).Returns(barResolvedValue);
             this.barPropertyDirectiveMock.Setup(p => p.Injector).Returns(barInjectorMock.Object);
             this.barInjectorMock.InSequence(mockSequence)
                                 .Setup(p => p(this.instance, this.barResolvedValue));
@@ -133,8 +130,11 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         {
             this.strategy.Initialize(this.contextMock.Object, this.instance);
 
-            this.propertyValueProviderMock.Verify(p => p.GetValue(fooPropertyDirectiveMock.Object, this.contextMock.Object), Times.Once);
-            this.propertyValueProviderMock.Verify(p => p.GetValue(barPropertyDirectiveMock.Object, this.contextMock.Object), Times.Once);
+            this.fooPropertyDirectiveMock.Verify(p => p.Target, Times.Once);
+            this.fooTargetMock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
+
+            this.barPropertyDirectiveMock.Verify(p => p.Target, Times.Once);
+            this.barTargetMock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
         }
 
         [Fact]
@@ -147,7 +147,7 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         }
     }
 
-    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValuesFullMatch : PropertyInjectionDirectiveContext
+    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_FullMatch : PropertyInjectionDirectiveContext
     {
         private Mock<PropertyInjector> fooInjectorMock;
         private Mock<PropertyInjector> barInjectorMock;
@@ -168,7 +168,7 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         private List<IPropertyInjectionDirective> directives;
         private IReadOnlyList<IParameter> parameters;
 
-        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValuesFullMatch()
+        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_FullMatch()
         {
             this.fooInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
             this.barInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
@@ -412,7 +412,136 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         }
     }
 
-    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_PropertyValueProviderThrowsActivationException : PropertyInjectionDirectiveContext
+    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_PropertyValuesWithNoCorrespondingDirective : PropertyInjectionDirectiveContext
+    {
+        private Mock<PropertyInjector> fooInjectorMock;
+        private Mock<PropertyInjector> barInjectorMock;
+        private Mock<ITarget<PropertyInfo>> fooTargetMock;
+        private Mock<ITarget<PropertyInfo>> barTargetMock;
+        private Mock<IPropertyValue> barPropertyValueMock;
+        private Mock<IPropertyValue> gooPropertyValueMock;
+        private Mock<IPropertyInjectionDirective> fooPropertyDirectiveMock;
+        private Mock<IPropertyInjectionDirective> barPropertyDirectiveMock;
+        private Dummy instance = new Dummy();
+        private int fooPropertyValue;
+        private string barPropertyValue;
+        private string gooPropertyValue;
+        private List<IPropertyInjectionDirective> directives;
+        private IReadOnlyList<IParameter> parameters;
+
+        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_PropertyValuesWithNoCorrespondingDirective()
+        {
+            this.fooInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
+            this.barInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
+            this.fooTargetMock = new Mock<ITarget<PropertyInfo>>(MockBehavior.Strict);
+            this.barTargetMock = new Mock<ITarget<PropertyInfo>>(MockBehavior.Strict);
+            this.barPropertyValueMock = new Mock<IPropertyValue>(MockBehavior.Strict);
+            this.gooPropertyValueMock = new Mock<IPropertyValue>(MockBehavior.Strict);
+            this.fooPropertyDirectiveMock = new Mock<IPropertyInjectionDirective>(MockBehavior.Strict);
+            this.barPropertyDirectiveMock = new Mock<IPropertyInjectionDirective>(MockBehavior.Strict);
+            this.fooPropertyValue = this.random.Next();
+            this.barPropertyValue = this.random.Next().ToString();
+            this.gooPropertyValue = this.random.Next().ToString();
+            this.directives = new List<IPropertyInjectionDirective>
+                {
+                    fooPropertyDirectiveMock.Object,
+                    barPropertyDirectiveMock.Object,
+                };
+            this.parameters = new List<IParameter>
+                {
+                    new ConstructorArgument("A", "B"),
+                    this.barPropertyValueMock.Object,
+                    this.gooPropertyValueMock.Object
+                };
+
+            var mockSequence = new MockSequence();
+
+            this.contextMock.InSequence(mockSequence)
+                            .SetupGet(x => x.Plan)
+                            .Returns(this.planMock.Object);
+            this.planMock.InSequence(mockSequence)
+                         .Setup(x => x.GetProperties())
+                         .Returns(this.directives);
+            this.contextMock.InSequence(mockSequence)
+                            .SetupGet(x => x.Parameters)
+                            .Returns(this.parameters);
+
+            #region Process Foo property injection directive
+
+            this.fooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.fooTargetMock.Object);
+            this.barPropertyValueMock.InSequence(mockSequence)
+                                     .Setup(p => p.AppliesToTarget(this.contextMock.Object, this.fooTargetMock.Object))
+                                     .Returns(false);
+            this.fooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.fooTargetMock.Object);
+            this.fooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.fooTargetMock.Object);
+            this.gooPropertyValueMock.InSequence(mockSequence)
+                                     .Setup(p => p.AppliesToTarget(this.contextMock.Object, this.fooTargetMock.Object))
+                                     .Returns(false);
+            this.fooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.fooTargetMock.Object);
+            this.fooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Injector)
+                                         .Returns(this.fooInjectorMock.Object);
+            this.fooInjectorMock.InSequence(mockSequence)
+                                         .Setup(p => p(this.instance, this.fooPropertyValue));
+
+            #endregion Process Foo property injection directive
+
+            #region Process Bar property injection directive
+
+            this.barPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.barTargetMock.Object);
+            this.barPropertyValueMock.InSequence(mockSequence)
+                                     .Setup(p => p.AppliesToTarget(this.contextMock.Object, this.barTargetMock.Object))
+                                     .Returns(true);
+            this.barPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.barTargetMock.Object);
+            this.gooPropertyValueMock.InSequence(mockSequence)
+                                     .Setup(p => p.AppliesToTarget(this.contextMock.Object, this.barTargetMock.Object))
+                                     .Returns(false);
+            this.barPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.barTargetMock.Object);
+            this.barPropertyValueMock.InSequence(mockSequence)
+                                     .Setup(p => p.GetValue(this.contextMock.Object, this.barTargetMock.Object))
+                                     .Returns(this.barPropertyValue);
+            this.barPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Injector)
+                                         .Returns(this.barInjectorMock.Object);
+            this.barInjectorMock.InSequence(mockSequence)
+                                 .Setup(p => p(this.instance, this.barPropertyValue));
+
+            #endregion Process Bar property injection directive
+        }
+
+        [Fact]
+        public void ReadsMethodInjectorsFromPlan()
+        {
+            this.strategy.Initialize(this.contextMock.Object, this.instance);
+
+            this.planMock.Verify(x => x.GetProperties(), Times.Once);
+        }
+
+        [Fact]
+        public void InvokesInjectorsForEachDirective()
+        {
+            this.strategy.Initialize(this.contextMock.Object, this.instance);
+
+            this.fooInjectorMock.Verify(x => x(this.instance, this.fooPropertyValue), Times.Once);
+            this.barInjectorMock.Verify(x => x(this.instance, this.barPropertyValue), Times.Once);
+        }
+    }
+
+    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_ResolveWithinOfPropertyTargetThrowsActivationException : PropertyInjectionDirectiveContext
     {
         private Mock<PropertyInjector> fooInjectorMock;
         private Mock<ITarget<PropertyInfo>> fooTargetMock;
@@ -429,7 +558,7 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         private IReadOnlyList<IParameter> parameters;
         private ActivationException activationException;
 
-        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_PropertyValueProviderThrowsActivationException()
+        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_ResolveWithinOfPropertyTargetThrowsActivationException()
         {
             this.fooInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
             this.fooTargetMock = new Mock<ITarget<PropertyInfo>>(MockBehavior.Strict);
@@ -504,8 +633,12 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
             this.barPropertyValueMock.InSequence(mockSequence)
                                      .Setup(p => p.AppliesToTarget(this.contextMock.Object, gooTargetMock.Object))
                                      .Returns(false);
-            this.propertyValueProviderMock.Setup(p => p.GetValue(this.gooPropertyDirectiveMock.Object, this.contextMock.Object))
-                                          .Throws(this.activationException);
+            this.gooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.gooTargetMock.Object);
+            this.gooTargetMock.InSequence(mockSequence)
+                              .Setup(p => p.ResolveWithin(this.contextMock.Object))
+                              .Throws(this.activationException);
 
             #endregion Process goo property injection directive
         }
@@ -539,7 +672,7 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         {
             Assert.Throws<ActivationException>(() => this.strategy.Initialize(this.contextMock.Object, this.instance));
 
-            this.propertyValueProviderMock.Verify(p => p.GetValue(this.gooPropertyDirectiveMock.Object, this.contextMock.Object), Times.Once);
+            this.gooTargetMock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
         }
 
         [Fact]
@@ -551,24 +684,30 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         }
     }
 
-    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithoutPropertyValues_PropertyValueProviderThrowsActivationException : PropertyInjectionDirectiveContext
+    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithoutPropertyValues_ResolveWithinOfPropertyTargetThrowsActivationException : PropertyInjectionDirectiveContext
     {
         private Mock<PropertyInjector> fooInjectorMock;
         private Mock<IPropertyInjectionDirective> fooPropertyDirectiveMock;
         private Mock<IPropertyInjectionDirective> barPropertyDirectiveMock;
         private Mock<IPropertyInjectionDirective> gooPropertyDirectiveMock;
+        private Mock<ITarget<PropertyInfo>> fooTargetMock;
+        private Mock<ITarget<PropertyInfo>> barTargetMock;
+        private Mock<ITarget<PropertyInfo>> gooTargetMock;
         private Dummy instance = new Dummy();
         private int fooResolvedValue;
         private List<IPropertyInjectionDirective> directives;
         private IReadOnlyList<IParameter> parameters;
         private ActivationException activationException;
 
-        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithoutPropertyValues_PropertyValueProviderThrowsActivationException()
+        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithoutPropertyValues_ResolveWithinOfPropertyTargetThrowsActivationException()
         {
             this.fooInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
             this.fooPropertyDirectiveMock = new Mock<IPropertyInjectionDirective>(MockBehavior.Strict);
             this.barPropertyDirectiveMock = new Mock<IPropertyInjectionDirective>(MockBehavior.Strict);
             this.gooPropertyDirectiveMock = new Mock<IPropertyInjectionDirective>(MockBehavior.Strict);
+            this.fooTargetMock = new Mock<ITarget<PropertyInfo>>(MockBehavior.Strict);
+            this.barTargetMock = new Mock<ITarget<PropertyInfo>>(MockBehavior.Strict);
+            this.gooTargetMock = new Mock<ITarget<PropertyInfo>>(MockBehavior.Strict);
 
             this.fooResolvedValue = this.random.Next();
             this.directives = new List<IPropertyInjectionDirective>
@@ -597,9 +736,12 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
 
             #region Process Foo property injection directive
 
-            this.propertyValueProviderMock.InSequence(mockSequence)
-                                          .Setup(p => p.GetValue(this.fooPropertyDirectiveMock.Object, this.contextMock.Object))
-                                          .Returns(fooResolvedValue);
+            this.fooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.fooTargetMock.Object);
+            this.fooTargetMock.InSequence(mockSequence)
+                              .Setup(p => p.ResolveWithin(this.contextMock.Object))
+                              .Returns(fooResolvedValue);
             this.fooPropertyDirectiveMock.InSequence(mockSequence)
                                          .Setup(p => p.Injector)
                                          .Returns(this.fooInjectorMock.Object);
@@ -610,9 +752,12 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
 
             #region Process goo property injection directive
 
-            this.propertyValueProviderMock.InSequence(mockSequence)
-                                          .Setup(p => p.GetValue(this.gooPropertyDirectiveMock.Object, this.contextMock.Object))
-                                          .Throws(this.activationException);
+            this.gooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.gooTargetMock.Object);
+            this.gooTargetMock.InSequence(mockSequence)
+                              .Setup(p => p.ResolveWithin(this.contextMock.Object))
+                              .Throws(this.activationException);
 
             #endregion Process goo property injection directive
         }
@@ -638,8 +783,8 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         {
             Assert.Throws<ActivationException>(() => this.strategy.Initialize(this.contextMock.Object, this.instance));
 
-            this.propertyValueProviderMock.Verify(p => p.GetValue(this.fooPropertyDirectiveMock.Object, this.contextMock.Object), Times.Once);
-            this.propertyValueProviderMock.Verify(p => p.GetValue(this.gooPropertyDirectiveMock.Object, this.contextMock.Object), Times.Once);
+            this.fooTargetMock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
+            this.gooTargetMock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
         }
 
         [Fact]
@@ -651,7 +796,7 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         }
     }
 
-    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValuesPartialMatch : PropertyInjectionDirectiveContext
+    public class WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_PartialMatch : PropertyInjectionDirectiveContext
     {
         private Mock<PropertyInjector> fooInjectorMock;
         private Mock<PropertyInjector> barInjectorMock;
@@ -671,7 +816,7 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         private List<IPropertyInjectionDirective> directives;
         private IReadOnlyList<IParameter> parameters;
 
-        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValuesPartialMatch()
+        public WhenInitializeIsCalled_WithPropertyInjectionDirectivesAndWithPropertyValues_PartialMatch()
         {
             this.fooInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
             this.barInjectorMock = new Mock<PropertyInjector>(MockBehavior.Strict);
@@ -745,12 +890,16 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
 
             this.gooPropertyDirectiveMock.InSequence(mockSequence)
                                          .Setup(p => p.Target)
-                                         .Returns(gooTargetMock.Object);
+                                         .Returns(this.gooTargetMock.Object);
             this.barPropertyValueMock.InSequence(mockSequence)
                                      .Setup(p => p.AppliesToTarget(this.contextMock.Object, gooTargetMock.Object))
                                      .Returns(false);
-            this.propertyValueProviderMock.Setup(p => p.GetValue(this.gooPropertyDirectiveMock.Object, this.contextMock.Object))
-                                           .Returns(gooResolvedValue);
+            this.gooPropertyDirectiveMock.InSequence(mockSequence)
+                                         .Setup(p => p.Target)
+                                         .Returns(this.gooTargetMock.Object);
+            this.gooTargetMock.InSequence(mockSequence)
+                              .Setup(p => p.ResolveWithin(this.contextMock.Object))
+                              .Returns(this.gooResolvedValue);
             this.gooPropertyDirectiveMock.InSequence(mockSequence)
                                          .Setup(p => p.Injector)
                                          .Returns(this.gooInjectorMock.Object);
@@ -812,7 +961,7 @@ namespace Ninject.Tests.Unit.PropertyInjectionStrategyTests
         {
             this.strategy.Initialize(this.contextMock.Object, this.instance);
 
-            this.propertyValueProviderMock.Verify(p => p.GetValue(this.gooPropertyDirectiveMock.Object, this.contextMock.Object), Times.Once);
+            this.gooTargetMock.Verify(p => p.ResolveWithin(this.contextMock.Object), Times.Once);
         }
 
         [Fact]

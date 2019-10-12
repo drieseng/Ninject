@@ -30,20 +30,30 @@ namespace Ninject.Builder
     /// <summary>
     /// Loads modules in an <see cref="IKernelBuilder"/>.
     /// </summary>
-    public interface IModuleBuilder : IFluentSyntax
+    public interface IModuleLoader : IFluentSyntax
     {
         /// <summary>
-        /// Loads the module(s) into the kernel.
+        /// Determines whether a module with the specified name has been loaded in the kernel.
         /// </summary>
-        /// <param name="modules">The modules to load.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
-        void Load(params INinjectBuilderModule[] modules);
+        /// <param name="name">The name of the module.</param>
+        /// <returns>
+        /// <see langword="true"/> if the specified module has been loaded; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/> is <see langword="null"/>.</exception>
+        bool HasModule(string name);
 
         /// <summary>
         /// Loads the module(s) into the kernel.
         /// </summary>
         /// <param name="modules">The modules to load.</param>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
-        void Load(IEnumerable<INinjectBuilderModule> modules);
+        void Load(params INinjectModule[] modules);
+
+        /// <summary>
+        /// Loads the module(s) into the kernel.
+        /// </summary>
+        /// <param name="modules">The modules to load.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
+        void Load(IEnumerable<INinjectModule> modules);
     }
 }

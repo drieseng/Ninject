@@ -1,171 +1,87 @@
-﻿using Moq;
-using Ninject.Selection;
-using Ninject.Selection.Heuristics;
-using Ninject.Tests.Fakes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using Xunit;
+﻿//-------------------------------------------------------------------------------
+// <copyright file="MethodReflectionSelectorTests.cs" company="Ninject Project Contributors">
+//   Copyright (c) 2009-2013 Ninject Project Contributors
+//   Authors: Ivan Appert (iappert@gmail.com)
+//           
+//   Dual-licensed under the Apache License, Version 2.0, and the Microsoft Public License (Ms-PL).
+//   you may not use this file except in compliance with one of the Licenses.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//   or
+//       http://www.microsoft.com/opensource/licenses.mspx
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+// </copyright>
+//-------------------------------------------------------------------------------
 
-namespace Ninject.Test.Unit.Selection
+namespace Ninject.Tests.Unit.Selection
 {
-    public class SelectorTests
+    using Moq;
+    using Ninject.Selection;
+    using Ninject.Selection.Heuristics;
+    using Ninject.Tests.Fakes;
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection;
+    using Xunit;
+
+    public class MethodReflectionSelectorTests
     {
-        private Mock<IInjectionHeuristic> _injectionHeuristicMock1;
-        private Mock<IInjectionHeuristic> _injectionHeuristicMock2;
-        private Mock<INinjectSettings> _settingsMock;
-        private MockSequence _sequence;
-        private IEnumerable<IInjectionHeuristic> _injectionHeuristics;
-        private Selector _selector;
+        private Mock<IMethodInjectionHeuristic> _injectionHeuristicMock1;
+        private Mock<IMethodInjectionHeuristic> _injectionHeuristicMock2;
+        private MethodReflectionSelector _selector;
 
-        public SelectorTests()
+        public MethodReflectionSelectorTests()
         {
-            _injectionHeuristicMock1 = new Mock<IInjectionHeuristic>(MockBehavior.Strict);
-            _injectionHeuristicMock2 = new Mock<IInjectionHeuristic>(MockBehavior.Strict);
-            _settingsMock = new Mock<INinjectSettings>(MockBehavior.Strict);
-            _sequence = new MockSequence();
-
-            _injectionHeuristics = new IInjectionHeuristic[]
-                {
-                    _injectionHeuristicMock1.Object,
-                    _injectionHeuristicMock2.Object
-                };
-
-            _selector = new Selector(_injectionHeuristics, _settingsMock.Object);
+            _injectionHeuristicMock1 = new Mock<IMethodInjectionHeuristic>(MockBehavior.Strict);
+            _injectionHeuristicMock2 = new Mock<IMethodInjectionHeuristic>(MockBehavior.Strict);
+            _selector = new MethodReflectionSelector(new IMethodInjectionHeuristic[] { _injectionHeuristicMock1.Object, _injectionHeuristicMock2.Object });
         }
 
         [Fact]
         public void Constructor_ShouldThrowArgumentNullExceptionWhenInjectionHeuristicsIsNull()
         {
-            IInjectionHeuristic[] injectionHeuristics = null;
+            const IEnumerable<IMethodInjectionHeuristic> injectionHeuristics = null;
 
-            var actual = Assert.Throws<ArgumentNullException>(() => new Selector(injectionHeuristics, _settingsMock.Object));
+            var actual = Assert.Throws<ArgumentNullException>(() => new MethodReflectionSelector(injectionHeuristics));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(injectionHeuristics), actual.ParamName);
         }
 
         [Fact]
-        public void Constructor_ShouldThrowArgumentNullExceptionWhenSettingsIsNull()
+        public void InjectNonPublicShouldBeFalseByDefault()
         {
-            const INinjectSettings settings = null;
-
-            var actual = Assert.Throws<ArgumentNullException>(() => new Selector(_injectionHeuristics, settings));
-
-            Assert.Null(actual.InnerException);
-            Assert.Equal(nameof(settings), actual.ParamName);
+            Assert.False(_selector.InjectNonPublic);
         }
 
         [Fact]
-        public void SelectConstructorsForInjection_ShouldThrowArgumentNullExceptionWhenTypeIsNull()
+        public void InjectNonPublicShouldReturnValueThatIsSet()
+        {
+            _selector.InjectNonPublic = true;
+            Assert.True(_selector.InjectNonPublic);
+            _selector.InjectNonPublic = false;
+            Assert.False(_selector.InjectNonPublic);
+        }
+
+        [Fact]
+        public void Select_ShouldThrowArgumentNullExceptionWhenTypeIsNull()
         {
             const Type type = null;
 
-            var actual = Assert.Throws<ArgumentNullException>(() => _selector.SelectConstructorsForInjection(type));
-
-            Assert.Null(actual.InnerException);
-            Assert.Equal(nameof(type), actual.ParamName);
-
-        }
-
-        [Fact]
-        public void SelectConstructorsForInjection_InjectNonPublicIsTrue_ShouldReturnEmptyResultWhenTypeIsSubclassOfMulticastDelegate()
-        {
-            MyDelegate delegate1 = () => { };
-            MyDelegate delegate2 = () => { };
-            MyDelegate multiDelegate = delegate1 + delegate2;
-
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(true);
-
-            Assert.Empty(_selector.SelectConstructorsForInjection(delegate1.GetType()));
-            Assert.Empty(_selector.SelectConstructorsForInjection(multiDelegate.GetType()));
-        }
-
-        [Fact]
-        public void SelectConstructorsForInjection_InjectNonPublicIsFalse_ShouldReturnEmptyResultWhenTypeIsSubclassOfMulticastDelegate()
-        {
-            MyDelegate delegate1 = () => { };
-            MyDelegate delegate2 = () => { };
-            MyDelegate multiDelegate = delegate1 + delegate2;
-
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(false);
-
-            Assert.Empty(_selector.SelectConstructorsForInjection(delegate1.GetType()));
-            Assert.Empty(_selector.SelectConstructorsForInjection(multiDelegate.GetType()));
-        }
-
-        [Fact]
-        public void SelectConstructorsForInjection_InjectNonPublicIsTrue_ShouldReturnPublicAndNonPublicInstanceConstructors()
-        {
-            var type = typeof(MyService);
-
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(true);
-
-            var actual = _selector.SelectConstructorsForInjection(typeof(MyService));
-
-            Assert.Equal(new [] 
-                            {
-                                type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new [] { typeof(string) }, Array.Empty<ParameterModifier>()),
-                                type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new [] { typeof(int) }, Array.Empty<ParameterModifier>()),
-                                type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new [] { typeof(int), typeof(string) }, Array.Empty<ParameterModifier>()),
-                                type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new [] { typeof(string), typeof(int) }, Array.Empty<ParameterModifier>()),
-                                type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new [] { typeof(Type) }, Array.Empty<ParameterModifier>()),
-                                type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new [] { typeof(Type), typeof(string) }, Array.Empty<ParameterModifier>())
-                            },
-                        actual);
-        }
-
-        [Fact]
-        public void SelectConstructorsForInjection_InjectNonPublicIsFalse_ShouldOnlyReturnPublicConstructors()
-        {
-            var type = typeof(MyService);
-
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(false);
-
-            var actual = _selector.SelectConstructorsForInjection(type);
-
-            Assert.Equal(new []
-                            {
-                                type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new [] { typeof(Type) }, Array.Empty<ParameterModifier>()),
-                                type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new [] { typeof(Type), typeof(string) }, Array.Empty<ParameterModifier>())
-                            },
-                        actual);
-        }
-
-        [Fact]
-        public void SelectConstructorsForInjection_InjectNonPublicIsTrue_ShouldReturnEmptyResultWhenTypeIsStaticClass()
-        {
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(true);
-
-            var actual = _selector.SelectConstructorsForInjection(typeof(MyFactory));
-
-            Assert.Empty(actual);
-        }
-
-        [Fact]
-        public void SelectConstructorsForInjection_InjectNonPublicIsFalse_ShouldReturnEmptyResultWhenTypeIsStaticClass()
-        {
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(false);
-
-            var actual = _selector.SelectConstructorsForInjection(typeof(MyFactory));
-
-            Assert.Empty(actual);
-        }
-
-        [Fact]
-        public void SelectMethodsForInjection_ShouldThrowArgumentNullExceptionWhenTypeIsNull()
-        {
-            const Type type = null;
-
-            var actual = Assert.Throws<ArgumentNullException>(() => _selector.SelectMethodsForInjection(type));
+            var actual = Assert.Throws<ArgumentNullException>(() => _selector.Select(type));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(type), actual.ParamName);
         }
 
         [Fact]
-        public void SelectMethodsForInjection_InjectNonPublicIsTrue_ShouldReturnPublicAndNonPublicInstanceMethodsThatAreEligibleForInjection()
+        public void Select_InjectNonPublicIsTrue_ShouldReturnPublicAndNonPublicInstanceMethodsThatAreEligibleForInjection()
         {
             #region Arrange
 
@@ -191,7 +107,6 @@ namespace Ninject.Test.Unit.Selection
             var finalizeMethod = type.GetMethod("Finalize", BindingFlags.NonPublic | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
             var memberwiseCloneMethod = type.GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
 
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(true);
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(getWeaponMethod)).Returns(false);
             _injectionHeuristicMock2.Setup(p => p.ShouldInject(getWeaponMethod)).Returns(false);
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(setWeaponMethod)).Returns(false);
@@ -229,9 +144,11 @@ namespace Ninject.Test.Unit.Selection
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(memberwiseCloneMethod)).Returns(false);
             _injectionHeuristicMock2.Setup(p => p.ShouldInject(memberwiseCloneMethod)).Returns(false);
 
+            _selector.InjectNonPublic = true;
+
             #endregion Arrange
 
-            var actual = _selector.SelectMethodsForInjection(type);
+            var actual = _selector.Select(type);
 
             Assert.Equal(new[]
                             {
@@ -246,7 +163,7 @@ namespace Ninject.Test.Unit.Selection
         }
 
         [Fact]
-        public void SelectMethodsForInjection_InjectNonPublicIsFalse_ShouldReturnPublicAndNonPublicInstanceMethodsThatAreEligibleForInjection()
+        public void Select_InjectNonPublicIsFalse_ShouldReturnPublicAndNonPublicInstanceMethodsThatAreEligibleForInjection()
         {
             #region Arrange
 
@@ -264,7 +181,6 @@ namespace Ninject.Test.Unit.Selection
             var getTypeMethod = type.GetMethod("GetType", BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
             var memberwiseCloneMethod = type.GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
 
-            _settingsMock.Setup(p => p.InjectNonPublic).Returns(false);
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(getEnabledMethod)).Returns(false);
             _injectionHeuristicMock2.Setup(p => p.ShouldInject(getEnabledMethod)).Returns(false);
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(setStopMethod)).Returns(false);
@@ -290,7 +206,7 @@ namespace Ninject.Test.Unit.Selection
 
             #endregion Arrange
 
-            var actual = _selector.SelectMethodsForInjection(type);
+            var actual = _selector.Select(type);
 
             Assert.Equal(new[]
                             {
@@ -300,111 +216,6 @@ namespace Ninject.Test.Unit.Selection
                                 toStringMethod
                             },
                         actual);
-        }
-
-        [Fact]
-        public void SelectPropertiesForInjection_ShouldThrowArgumentNullExceptionWhenTypeIsNull()
-        {
-            const Type type = null;
-
-            var actual = Assert.Throws<ArgumentNullException>(() => _selector.SelectPropertiesForInjection(type));
-
-            Assert.Null(actual.InnerException);
-            Assert.Equal(nameof(type), actual.ParamName);
-        }
-
-        [Fact]
-        public void SelectPropertiesForInjection_InjectNonPublicIsTrueAndInjectParentPrivatePropertiesIsFalse_ShouldReturnPublicAndNonPublicInstanceMethodsThatAreEligibleForInjection()
-        {
-            #region Arrange
-
-            var type = typeof(MyService);
-            var weaponProperty = type.GetProperty("Weapon", BindingFlags.NonPublic | BindingFlags.Instance);
-            var idProperty = type.GetProperty("Id", BindingFlags.NonPublic | BindingFlags.Instance);
-            var nameProperty = type.GetProperty("Name", BindingFlags.NonPublic | BindingFlags.Instance);
-            var activeProperty = type.GetProperty("Active", BindingFlags.Public | BindingFlags.Instance);
-            var enabledProperty = type.GetProperty("Enabled", BindingFlags.Public | BindingFlags.Instance);
-            var visibleProperty = type.GetProperty("Visible", BindingFlags.Public | BindingFlags.Instance);
-            var stopProperty = type.GetProperty("Stop", BindingFlags.Public | BindingFlags.Instance);
-
-            _settingsMock.InSequence(_sequence)
-                         .Setup(p => p.InjectNonPublic)
-                         .Returns(true);
-            _settingsMock.InSequence(_sequence)
-                         .Setup(p => p.InjectParentPrivateProperties)
-                         .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(weaponProperty))
-                                    .Returns(true);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(idProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(idProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(nameProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(nameProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(enabledProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(enabledProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(visibleProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(visibleProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(stopProperty))
-                                    .Returns(true);
-
-            #endregion Arrange
-
-            var actual = _selector.SelectPropertiesForInjection(type);
-
-            var actualList = actual.ToList();
-
-            Assert.Equal(2, actualList.Count);
-            Assert.Contains(weaponProperty, actualList);
-            Assert.Contains(stopProperty, actualList);
-
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(weaponProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(idProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(idProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(nameProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(nameProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(enabledProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(enabledProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(visibleProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(visibleProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(stopProperty), Times.Once);
-        }
-
-        [Fact]
-        public void SelectPropertiesForInjection_InjectNonPublicIsFalseAndInjectParentPrivatePropertiesIsFalse_ShouldReturnPublicPropertiesDeclaradOnSpecifiedTypeThatAreEligibleForInjection()
-        {
-            #region Arrange
-
-            var type = typeof(MyService);
-            var enabledProperty = type.GetProperty("Enabled", BindingFlags.Public | BindingFlags.Instance);
-            var visibleProperty = type.GetProperty("Visible", BindingFlags.Public | BindingFlags.Instance);
-            var stopProperty = type.GetProperty("Stop", BindingFlags.Public | BindingFlags.Instance);
-
-            _settingsMock.InSequence(_sequence)
-                         .Setup(p => p.InjectNonPublic)
-                         .Returns(false);
-            _settingsMock.InSequence(_sequence)
-                         .Setup(p => p.InjectParentPrivateProperties)
-                         .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(enabledProperty)).Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(enabledProperty)).Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(stopProperty)).Returns(true);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(visibleProperty)).Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(visibleProperty)).Returns(true);
-
-            #endregion Arrange
-
-            var actual = _selector.SelectPropertiesForInjection(type).ToList();
-
-            Assert.Equal(2, actual.Count);
-            Assert.Contains(stopProperty, actual);
-            Assert.Contains(visibleProperty, actual);
         }
 
         public class MyService
@@ -491,21 +302,5 @@ namespace Ninject.Test.Unit.Selection
                 return new MyService(iterations);
             }
         }
-
-        public abstract class ServiceBase
-        {
-            public bool Active { get; set; }
-        }
-
-
-        public static class MyFactory
-        {
-            public static MyService Create()
-            {
-                return new MyService(typeof(string));
-            }
-        }
-
-        private delegate void MyDelegate();
     }
 }

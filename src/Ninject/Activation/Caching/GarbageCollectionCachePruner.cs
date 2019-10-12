@@ -79,7 +79,7 @@ namespace Ninject.Activation.Caching
         /// Releases resources held by the object.
         /// </summary>
         /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
-        public override void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing && !this.IsDisposed && this.timer != null)
             {

@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IKernelBuilder.cs" company="Ninject Project Contributors">
+// <copyright file="IComponentContainerNew.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,49 +19,52 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-using Ninject.Syntax;
 using System;
+using System.Collections.Generic;
 
-namespace Ninject.Builder
+namespace Ninject.Components
 {
     /// <summary>
-    /// Provides the mechanisms to build a kernel.
+    /// A container that manages and resolves components that contribute to Ninject.
     /// </summary>
-    public interface IKernelBuilder : IFluentSyntax
+    public interface IComponentContainerNew
     {
         /// <summary>
-        /// Adds bindings to the <see cref="IKernelBuilder"/>.
+        /// Gets an instance of the specified component.
         /// </summary>
-        /// <param name="configureBindings">A callback to configure bindings.</param>
+        /// <typeparam name="T">The component type.</typeparam>
         /// <returns>
-        /// A reference to this instance after the operation has completed.
+        /// An instance of the component.
         /// </returns>
-        IKernelBuilder Bindings(Action<INewBindingRoot> configureBindings);
+        T Get<T>()
+            where T : INinjectComponent;
 
         /// <summary>
-        /// Configures the features of the <see cref="IKernelBuilder"/>.
+        /// Gets all available instances of the specified component.
         /// </summary>
-        /// <param name="features">A callback to configure features.</param>
+        /// <typeparam name="T">The component type.</typeparam>
         /// <returns>
-        /// A reference to this instance after the operation has completed.
+        /// A series of instances of the specified component.
         /// </returns>
-        IKernelBuilder Features(Action<IFeatureBuilder> features);
+        IEnumerable<T> GetAll<T>()
+            where T : INinjectComponent;
 
         /// <summary>
-        /// Adds modules to the <see cref="IKernelBuilder"/>.
+        /// Gets an instance of the specified component.
         /// </summary>
-        /// <param name="configureModules">A callback to configure modules.</param>
+        /// <param name="component">The component type.</param>
         /// <returns>
-        /// A reference to this instance after the operation has completed.
+        /// The instance of the component.
         /// </returns>
-        IKernelBuilder Modules(Action<IModuleLoader> configureModules);
+        object Get(Type component);
 
         /// <summary>
-        /// Builds the kernel.
+        /// Gets all available instances of the specified component.
         /// </summary>
+        /// <param name="component">The component type.</param>
         /// <returns>
-        /// An <see cref="IReadOnlyKernel"/>.
+        /// A series of instances of the specified component.
         /// </returns>
-        IReadOnlyKernel Build();
+        IEnumerable<object> GetAll(Type component);
     }
 }

@@ -63,7 +63,7 @@ namespace Ninject.Tests.Integration
         [Fact]
         public void MultipleServicesBoundWithToConstantReturnSameInstance()
         {
-            this.kernel.Bind<IWarrior, ICleric, IHuman, ILifeform>().ToConstant(new Monk()).InSingletonScope();
+            this.kernel.Bind<IWarrior, ICleric, IHuman, ILifeform>().ToConstant(new Monk());
 
             this.VerifyAllInterfacesAreSameInstance();
         }

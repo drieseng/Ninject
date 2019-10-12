@@ -3,24 +3,23 @@
     using System;
 
     using Moq;
+    using Ninject.Builder;
     using Ninject.Modules;
 
     public class ModuleLoadingContext : IDisposable
     {
         public ModuleLoadingContext()
         {
-            this.NinjectSettings = new NinjectSettings();
-            this.KernelConfiguration = new KernelConfiguration(this.NinjectSettings);
+            this.KernelBuilder = new KernelBuilder();
         }
 
         public void Dispose()
         {
-            this.KernelConfiguration.Dispose();
+            this.KernelBuilder.Dispose();
         }
 
         protected INinjectSettings NinjectSettings { get; private set; }
-
-        protected IKernelConfiguration KernelConfiguration { get; private set; }
+        protected KernelBuilder KernelBuilder { get; }
 
         protected string GetRegularMockModuleName()
         {
@@ -31,7 +30,6 @@
         {
             var moduleMock = new Mock<INinjectModule>();
             moduleMock.SetupGet(x => x.Name).Returns(name);
-
             return moduleMock;
         }
 

@@ -9,6 +9,8 @@ namespace Ninject.Builder
 
         IDeactivationPipelineBuilder Disposable();
 
+        IDeactivationPipelineBuilder Stoppable();
+
         [EditorBrowsable(EditorBrowsableState.Never)]
         IDeactivationPipelineBuilder AddStage(Func<IComponentBuilder> componentDelegate);
     }

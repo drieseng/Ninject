@@ -52,13 +52,14 @@ namespace Ninject.Infrastructure.Disposal
         public void Dispose()
         {
             this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
         /// Releases resources held by the object.
         /// </summary>
         /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
-        public virtual void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             lock (this)
             {

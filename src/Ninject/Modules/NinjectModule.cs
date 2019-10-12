@@ -21,14 +21,17 @@
 
 namespace Ninject.Modules
 {
+    using System;
     using Ninject.Builder;
     using Ninject.Syntax;
 
     /// <summary>
     /// A loadable unit that defines bindings for your application.
     /// </summary>
-    public abstract class NinjectModule : NewBindingRoot, INinjectModule
+    public abstract class NinjectModule : INinjectModule
     {
+        private INewBindingRoot _bindingRoot;
+
         /// <summary>
         /// Gets the module's name. Only a single module with a given name can be loaded at one time.
         /// </summary>
@@ -37,63 +40,129 @@ namespace Ninject.Modules
             get { return this.GetType().FullName; }
         }
 
-        /// <summary>
-        /// Called when the module is loaded into a kernel.
-        /// </summary>
-        /// <param name="kernel">The kernel that is loading the module.</param>
-        public abstract void OnLoad(IKernelConfiguration kernel);
+        private INewBindingRoot BindingRoot
+        {
+            get
+            {
+                if (_bindingRoot == null)
+                {
+                    throw new InvalidOperationException("Bindings can only be configured after module has been loaded.");
+                }
+
+                return _bindingRoot;
+            }
+        }
 
         /// <summary>
-        /// Called after all modules are loaded. A module can verify here if all other required binding are available.
+        /// Called when the module is loaded into a kernel configuration.
         /// </summary>
-        public virtual void LoadCompleted(IKernelConfiguration kernel)
+        /// <param name="kernelConfiguration">The configuration of the kernel that is loading the module.</param>
+        void INinjectModule.OnLoad(IKernelConfiguration kernelConfiguration)
+        {
+            kernelConfiguration.Bindings(a => _bindingRoot = a);
+            OnLoad(kernelConfiguration);
+        }
+
+        /// <summary>
+        /// Called after all modules are loaded.
+        /// </summary>
+        /// <param name="kernelConfiguration">The configuration of the kernel that has loaded the modules.</param>
+        /// <remarks>
+        /// A module can verify here if all other required bindings are available.
+        /// </remarks>
+        void INinjectModule.OnLoadCompleted(IKernelConfiguration kernelConfiguration)
+        {
+            OnLoadCompleted(kernelConfiguration);
+        }
+
+        /// <summary>
+        /// Called when the module is loaded into a kernel configuration.
+        /// </summary>
+        /// <param name="kernelConfiguration">The configuration of the kernel that is loading the module.</param>
+        protected abstract void OnLoad(IKernelConfiguration kernelConfiguration);
+
+        /// <summary>
+        /// Called after all modules are loaded into a kernel configuration.
+        /// </summary>
+        /// <param name="kernelConfiguration">The configuration of the kernel that has loaded the modules.</param>
+        /// <remarks>
+        /// A module can verify here if all other required bindings are available.
+        /// </remarks>
+        protected virtual void OnLoadCompleted(IKernelConfiguration kernelConfiguration)
         {
         }
 
-        /*
         /// <summary>
-        /// Unregisters all bindings for the specified service.
+        /// Returns a value indicating whether a binding exists for the specified service.
         /// </summary>
-        /// <param name="service">The service to unbind.</param>
-        public override void Unbind(Type service)
+        /// <typeparam name="T">The service to check.</typeparam>
+        /// <returns>
+        /// <see langword="true"/> if a binding exists for <typeparamref name="T"/>; otherwise,
+        /// <see langword="false"/>.
+        /// </returns>
+        protected bool IsBound<T>()
         {
-            this.Kernel.Bindings(b => b.Unbind(service));
+            return BindingRoot.IsBound<T>();
         }
 
-        public void OnUnload(IKernelBuilder kernel)
+        protected INewBindingToSyntax<T> Bind<T>()
         {
-            this.Kernel.Bindings(builder => this.bindings.ForEach(b => builder.RemoveBinding(b)));
+            return BindingRoot.Bind<T>();
         }
-        */
 
-        /*
-        /// <summary>
-        /// Registers the specified binding.
-        /// </summary>
-        /// <param name="binding">The binding to add.</param>
-        public override void AddBinding(INewBindingBuilder binding)
+        protected INewBindingToSyntax<T1, T2> Bind<T1, T2>()
         {
-            Ensure.ArgumentNotNull(binding, "binding");
-
-            this.Kernel.Bindings(b => b.AddBinding(binding));
-
-
-            this.Bindings.Add(binding);
+            return BindingRoot.Bind<T1, T2>();
         }
-        */
 
-        /*
-        /// <summary>
-        /// Unregisters the specified binding.
-        /// </summary>
-        /// <param name="binding">The binding to remove.</param>
-        public override void RemoveBinding(IBinding binding)
+        protected INewBindingToSyntax<T1, T2, T3> Bind<T1, T2, T3>()
         {
-            Ensure.ArgumentNotNull(binding, "binding");
-
-            this.Kernel.RemoveBinding(binding);
-            this.Bindings.Remove(binding);
+            return BindingRoot.Bind<T1, T2, T3>();
         }
-        */
-    }
+
+        protected INewBindingToSyntax<T1, T2, T3, T4> Bind<T1, T2, T3, T4>()
+        {
+            return BindingRoot.Bind<T1, T2, T3, T4>();
+        }
+
+        protected INewBindingToSyntax<object> Bind(params Type[] services)
+        {
+            return BindingRoot.Bind(services);
+        }
+
+        protected void Unbind<T>()
+        {
+            BindingRoot.Unbind<T>();
+        }
+
+        protected void Unbind(Type service)
+        {
+            BindingRoot.Unbind(service);
+        }
+
+        protected INewBindingToSyntax<T1> Rebind<T1>()
+        {
+            return BindingRoot.Rebind<T1>();
+        }
+
+        protected INewBindingToSyntax<T1, T2> Rebind<T1, T2>()
+        {
+            return BindingRoot.Rebind<T1, T2>();
+        }
+
+        protected INewBindingToSyntax<T1, T2, T3> Rebind<T1, T2, T3>()
+        {
+            return BindingRoot.Rebind<T1, T2, T3>();
+        }
+
+        protected INewBindingToSyntax<T1, T2, T3, T4> Rebind<T1, T2, T3, T4>()
+        {
+            return BindingRoot.Rebind<T1, T2, T3, T4>();
+        }
+
+        protected INewBindingToSyntax<object> Rebind(params Type[] services)
+        {
+            return BindingRoot.Rebind(services);
+        }
+   }
 }

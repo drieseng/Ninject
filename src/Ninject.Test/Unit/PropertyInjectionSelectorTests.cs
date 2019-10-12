@@ -20,7 +20,7 @@ namespace Ninject.Tests.Unit
                     .WhenTargetHas<InjectAttribute>();
         }
 
-        public override void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (disposing && !this.IsDisposed)
             {

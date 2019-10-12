@@ -23,36 +23,6 @@
         }
 
         [Fact]
-        public void ActivationActions_WithoutContext_NotExecutedWhenTransientInstanceIsInjectedIntoScopedInstance()
-        {
-            int daggerActivationCount = 0;
-
-            this.kernel.Bind<IWarrior>().To<Ninja>().InThreadScope();
-            this.kernel.Bind<IWeapon>().To<Dagger>().OnActivation(instance => daggerActivationCount++);
-
-            var warrior = this.kernel.Get<IWarrior>();
-            warrior.Should().NotBeNull();
-            warrior.Should().BeOfType<Ninja>();
-            warrior.Weapon.Should().BeOfType<Dagger>();
-            daggerActivationCount.Should().Be(0);
-        }
-
-        [Fact]
-        public void ActivationActions_WithoutContext_NotExecutedWhenTransientInstanceIsCreated()
-        {
-            int ninjaActivationCount = 0;
-
-            this.kernel.Bind<IWarrior>().To<Ninja>().OnActivation(instance => ninjaActivationCount++);
-            this.kernel.Bind<IWeapon>().To<Dagger>();
-
-            var warrior = this.kernel.Get<IWarrior>();
-            warrior.Should().NotBeNull();
-            warrior.Should().BeOfType<Ninja>();
-            warrior.Weapon.Should().BeOfType<Dagger>();
-            ninjaActivationCount.Should().Be(0);
-        }
-
-        [Fact]
         public void ActivationActions_WithoutContext_ExecutedWhenScopedInstanceIsCreated()
         {
             int barracksActivationCount = 0;
@@ -74,36 +44,6 @@
 
             this.kernel.Get<Barracks>();
             barracksActivationCount.Should().Be(1);
-        }
-
-        [Fact]
-        public void ActivationActions_WithContext_NotExecutedWhenTransientInstanceIsInjectedIntoScopedInstance()
-        {
-            int daggerActivationCount = 0;
-
-            this.kernel.Bind<IWarrior>().To<Ninja>().InThreadScope();
-            this.kernel.Bind<IWeapon>().To<Dagger>().OnActivation((ctx, instance) => daggerActivationCount++);
-
-            var warrior = this.kernel.Get<IWarrior>();
-            warrior.Should().NotBeNull();
-            warrior.Should().BeOfType<Ninja>();
-            warrior.Weapon.Should().BeOfType<Dagger>();
-            daggerActivationCount.Should().Be(0);
-        }
-
-        [Fact]
-        public void ActivationActions_WithContext_NotExecutedWhenTransientInstanceIsCreated()
-        {
-            int ninjaActivationCount = 0;
-
-            this.kernel.Bind<IWarrior>().To<Ninja>().OnActivation((ctx, instance) => ninjaActivationCount++);
-            this.kernel.Bind<IWeapon>().To<Dagger>();
-
-            var warrior = this.kernel.Get<IWarrior>();
-            warrior.Should().NotBeNull();
-            warrior.Should().BeOfType<Ninja>();
-            warrior.Weapon.Should().BeOfType<Dagger>();
-            ninjaActivationCount.Should().Be(0);
         }
 
         [Fact]

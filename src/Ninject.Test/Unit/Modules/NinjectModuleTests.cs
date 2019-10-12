@@ -2,6 +2,7 @@
 using Ninject.Components;
 using Ninject.Modules;
 using Ninject.Planning.Bindings;
+using Ninject.Syntax;
 using System;
 using System.Threading;
 using Xunit;
@@ -10,7 +11,8 @@ namespace Ninject.Tests.Unit.Modules
 {
     public class NinjectModuleTests
     {
-        protected Mock<IKernelConfiguration> KernelConfigurationMock { get; }
+        protected Mock<Builder.IKernelConfiguration> KernelConfigurationMock { get; }
+        protected Mock<INewBindingRoot> BindingRootMock { get; }
         protected Mock<INinjectSettings> SettingsMock { get; }
         protected Mock<IComponentContainer> ComponentsMock { get; }
         protected Mock<IBinding> BindingMock { get; }
@@ -18,70 +20,39 @@ namespace Ninject.Tests.Unit.Modules
 
         public NinjectModuleTests()
         {
-            KernelConfigurationMock = new Mock<IKernelConfiguration>(MockBehavior.Strict);
-            SettingsMock = new Mock<INinjectSettings>(MockBehavior.Strict);
-            ComponentsMock = new Mock<IComponentContainer>(MockBehavior.Strict);
+            KernelConfigurationMock = new Mock<Builder.IKernelConfiguration>(MockBehavior.Strict);
+            BindingRootMock = new Mock<INewBindingRoot>(MockBehavior.Strict);
             BindingMock = new Mock<IBinding>(MockBehavior.Strict);
 
             NinjectModule = new MyNinjectModule();
         }
 
-        public class WhenAddBindingIsCalledBeforeOnLoad : NinjectModuleTests
+        public class WhenBindOfTIsCalledBeforeOnLoad : NinjectModuleTests
         {
             [Fact]
-            public void NullReferenceExceptionShouldBeThrown()
+            public void InvalidOperationExceptionShouldBeThrown()
             {
-                Assert.Throws<NullReferenceException>(() => NinjectModule.AddBinding(BindingMock.Object));
-            }
-
-            [Fact]
-            public void BindingShouldNotBeAddedToBindings()
-            {
-                Assert.Throws<NullReferenceException>(() => NinjectModule.AddBinding(BindingMock.Object));
-
-                Assert.Empty(NinjectModule.Bindings);
+                Assert.Throws<InvalidOperationException>(() => NinjectModule.Bind<string>());
             }
         }
 
-        public class WhenAddBindingIsCalledAfterOnLoad : NinjectModuleTests
+        public class WhenBindOfTIsCalledAfterOnLoad : NinjectModuleTests
         {
-            public WhenAddBindingIsCalledAfterOnLoad()
+            public WhenBindOfTIsCalledAfterOnLoad()
             {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
-            }
-
-            [Fact]
-            public void NoArgumentNullCheckShouldBePerformed()
-            {
-                const IBinding binding = null;
-
-                KernelConfigurationMock.Setup(p => p.AddBinding(binding));
-
-                NinjectModule.AddBinding(binding);
-
-                KernelConfigurationMock.Verify(p => p.AddBinding(binding), Times.Once());
+                ((INinjectModule) NinjectModule).OnLoad(KernelConfigurationMock.Object);
             }
 
             [Fact]
             public void CallShouldBeDelegatedToKernelConfiguration()
             {
-                KernelConfigurationMock.Setup(p => p.AddBinding(BindingMock.Object));
+                KernelConfigurationMock.Setup(p => p.Bindings(It.IsAny<Action<INewBindingRoot>>()))
+                                       .Callback((Action<INewBindingRoot> action) => action(BindingRootMock.Object));
 
-                NinjectModule.AddBinding(BindingMock.Object);
+                NinjectModule.Bind<string>();
 
-                KernelConfigurationMock.Verify(p => p.AddBinding(BindingMock.Object), Times.Once());
-            }
-
-            [Fact]
-            public void BindingShouldBeAddedToBindings()
-            {
-                KernelConfigurationMock.Setup(p => p.AddBinding(BindingMock.Object));
-
-                NinjectModule.AddBinding(BindingMock.Object);
-
-                Assert.Equal(1, NinjectModule.Bindings.Count);
-                Assert.True(NinjectModule.Bindings.Contains(BindingMock.Object));
+                KernelConfigurationMock.Verify(p => p.Bindings(It.IsAny<Action<INewBindingRoot>>()), Times.Once());
+                BindingRootMock.Verify(p => p.Bind<string>(), Times.Once);
             }
         }
 
@@ -90,169 +61,38 @@ namespace Ninject.Tests.Unit.Modules
             [Fact]
             public void ArgumentNullExceptionShouldBeThrownWhenKernelConfigurationIsNull()
             {
-                const IKernelConfiguration kernelConfiguration = null;
+                const Builder.IKernelConfiguration kernelConfiguration = null;
 
-                var actual = Assert.Throws<ArgumentNullException>(() => NinjectModule.OnLoad(kernelConfiguration, SettingsMock.Object));
+                var actual = Assert.Throws<ArgumentNullException>(() => ((INinjectModule) NinjectModule).OnLoad(kernelConfiguration));
 
                 Assert.Null(actual.InnerException);
                 Assert.Equal(nameof(kernelConfiguration), actual.ParamName);
             }
 
-
-            [Fact]
-            public void ArgumentNullExceptionShouldBeThrownWhenSettingsIsNull()
-            {
-                const INinjectSettings settings = null;
-
-                var actual = Assert.Throws<ArgumentNullException>(() => NinjectModule.OnLoad(KernelConfigurationMock.Object, settings));
-
-                Assert.Null(actual.InnerException);
-                Assert.Equal(nameof(settings), actual.ParamName);
-            }
-
             [Fact]
             public void XernelConfigurationShouldBeAssigned()
             {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
+                ((INinjectModule) NinjectModule).OnLoad(KernelConfigurationMock.Object);
 
                 Assert.NotNull(NinjectModule.KernelConfiguration);
                 Assert.Same(KernelConfigurationMock.Object, NinjectModule.KernelConfiguration);
             }
 
             [Fact]
-            public void SettingsShouldBeAssigned()
-            {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
-
-                Assert.NotNull(NinjectModule.Settings);
-                Assert.Same(SettingsMock.Object, NinjectModule.Settings);
-            }
-
-            [Fact]
-            public void ComponentsShouldBeAssigned()
-            {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
-
-                Assert.NotNull(NinjectModule.Components);
-                Assert.Same(ComponentsMock.Object, NinjectModule.Components);
-
-                KernelConfigurationMock.Verify(p => p.Components, Times.Once());
-            }
-
-            [Fact]
             public void LoadShouldBeCalled()
             {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
+                ((INinjectModule) NinjectModule).OnLoad(KernelConfigurationMock.Object);
 
                 Assert.Equal(1, NinjectModule.LoadCount);
             }
         }
 
-        public class WhenOnUnloadIsCalledAfterOnLoad : NinjectModuleTests
+        public class WhenUnbindIsCalledBeforeOnLoad : NinjectModuleTests
         {
-            public WhenOnUnloadIsCalledAfterOnLoad()
-            {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
-            }
-
             [Fact]
-            public void UnloadShouldBeCalled()
+            public void InvalidOperationExceptionShouldBeThrown()
             {
-                NinjectModule.OnUnload();
-
-                Assert.Equal(1, NinjectModule.UnloadCount);
-            }
-
-            [Fact]
-            public void BindingsShouldBeRemovedFromKernelConfiguration()
-            {
-                NinjectModule.Bindings.Add(BindingMock.Object);
-
-                KernelConfigurationMock.Setup(p => p.RemoveBinding(BindingMock.Object));
-
-                NinjectModule.OnUnload();
-
-                KernelConfigurationMock.Verify(p => p.RemoveBinding(BindingMock.Object), Times.Once());
-            }
-
-            [Fact(Skip="https://github.com/ninject/Ninject/issues/311")]
-            public void BindingsShouldCleared()
-            {
-                NinjectModule.Bindings.Add(BindingMock.Object);
-
-                KernelConfigurationMock.Setup(p => p.RemoveBinding(BindingMock.Object));
-
-                NinjectModule.OnUnload();
-
-                Assert.Empty(NinjectModule.Bindings);
-            }
-
-            [Fact]
-            public void ComponentsShouldBeReset()
-            {
-                NinjectModule.OnUnload();
-
-                Assert.Null(NinjectModule.Components);
-            }
-
-            [Fact]
-            public void KernelConfigurationShouldBeReset()
-            {
-                NinjectModule.OnUnload();
-
-                Assert.Null(NinjectModule.KernelConfiguration);
-            }
-        }
-
-        public class WhenRemoveBindingIsCalledAfterOnLoad : NinjectModuleTests
-        {
-            public WhenRemoveBindingIsCalledAfterOnLoad()
-            {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
-            }
-
-            [Fact]
-            public void NoArgumentNullCheckShouldBePerformed()
-            {
-                const IBinding binding = null;
-
-                KernelConfigurationMock.Setup(p => p.RemoveBinding(binding));
-
-                NinjectModule.RemoveBinding(binding);
-
-                KernelConfigurationMock.Verify(p => p.RemoveBinding(binding), Times.Once());
-            }
-
-            [Fact]
-            public void CallShouldBeDelegatedToKernelConfiguration()
-            {
-                KernelConfigurationMock.Setup(p => p.RemoveBinding(BindingMock.Object));
-
-                NinjectModule.RemoveBinding(BindingMock.Object);
-
-                KernelConfigurationMock.Verify(p => p.RemoveBinding(BindingMock.Object), Times.Once());
-            }
-
-            [Fact]
-            public void BindingShouldBeRemovedFromBindings()
-            {
-                NinjectModule.Bindings.Add(BindingMock.Object);
-
-                KernelConfigurationMock.Setup(p => p.RemoveBinding(BindingMock.Object));
-
-                NinjectModule.RemoveBinding(BindingMock.Object);
-
-                Assert.Empty(NinjectModule.Bindings);
+                Assert.Throws<InvalidOperationException>(() => NinjectModule.Unbind<string>());
             }
         }
 
@@ -260,39 +100,26 @@ namespace Ninject.Tests.Unit.Modules
         {
             public WhenUnbindIsCalledAfterOnLoad()
             {
-                KernelConfigurationMock.Setup(p => p.Components).Returns(ComponentsMock.Object);
-                NinjectModule.OnLoad(KernelConfigurationMock.Object, SettingsMock.Object);
-            }
-
-            [Fact]
-            public void NoArgumentNullCheckShouldBePerformed()
-            {
-                const Type service = null;
-
-                KernelConfigurationMock.Setup(p => p.Unbind(service));
-
-                NinjectModule.Unbind(service);
-
-                KernelConfigurationMock.Verify(p => p.Unbind(service), Times.Once());
+                ((INinjectModule) NinjectModule).OnLoad(KernelConfigurationMock.Object);
             }
 
             [Fact]
             public void CallShouldBeDelegatedToKernelConfiguration()
             {
-                var service = typeof(string);
+                KernelConfigurationMock.Setup(p => p.Bindings(It.IsAny<Action<INewBindingRoot>>()))
+                                       .Callback((Action<INewBindingRoot> action) => action(BindingRootMock.Object));
+                BindingRootMock.Setup(p => p.Unbind<string>());
 
-                KernelConfigurationMock.Setup(p => p.Unbind(service));
+                NinjectModule.Unbind<string>();
 
-                NinjectModule.Unbind(service);
-
-                KernelConfigurationMock.Verify(p => p.Unbind(service), Times.Once());
+                BindingRootMock.Verify(p => p.Unbind<string>(), Times.Once);
             }
         }
 
         public class MyNinjectModule : NinjectModule
         {
+            private Builder.IKernelConfiguration _kernelConfiguration;
             private int _loadCount;
-            private int _unloadCount;
 
             public int LoadCount
             {
@@ -304,24 +131,24 @@ namespace Ninject.Tests.Unit.Modules
                 get { return _loadCount; }
             }
 
-            public new IKernelConfiguration KernelConfiguration
+            public Builder.IKernelConfiguration KernelConfiguration
             {
-                get { return base.KernelConfiguration; }
+                get { return _kernelConfiguration; }
             }
 
-            public new INinjectSettings Settings
+            protected override void OnLoad(Builder.IKernelConfiguration kernelConfiguration)
             {
-                get { return base.Settings; }
-            }
-
-            public override void Load()
-            {
+                _kernelConfiguration = kernelConfiguration;
                 Interlocked.Increment(ref _loadCount);
             }
 
-            public override void Unload()
+            public new INewBindingToSyntax<T> Bind<T>()
             {
-                Interlocked.Increment(ref _unloadCount);
+                return base.Bind<T>();
+            }
+            public new void Unbind<T>()
+            {
+                base.Unbind<T>();
             }
         }
     }

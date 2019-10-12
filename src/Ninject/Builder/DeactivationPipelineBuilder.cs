@@ -27,6 +27,12 @@ namespace Ninject.Builder
             return this;
         }
 
+        public IDeactivationPipelineBuilder Stoppable()
+        {
+            components.Add(new ComponentBuilder<IDeactivationStrategy, StoppableStrategy>());
+            return this;
+        }
+
         public void Build(IComponentBindingRoot root)
         {
             if (this.components.Count == 0)

@@ -41,8 +41,10 @@ namespace Ninject.Components
         /// <summary>
         /// Generates a message saying that modules without names are not supported.
         /// </summary>
-        /// <returns>The exception message.</returns>
-        public static string ModulesWithNullOrEmptyNamesAreNotSupported()
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        public string ModulesWithNullNameAreNotSupported()
         {
             return "Modules with null or empty names are not supported";
         }
@@ -62,8 +64,10 @@ namespace Ninject.Components
         /// </summary>
         /// <param name="newModule">The new module.</param>
         /// <param name="existingModule">The existing module.</param>
-        /// <returns>The exception message.</returns>
-        public static string ModuleWithSameNameIsAlreadyLoaded(INinjectModule newModule, INinjectModule existingModule)
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        public string ModuleWithSameNameIsAlreadyLoaded(INinjectModule newModule, INinjectModule existingModule)
         {
             using (var sw = new StringWriter())
             {
@@ -83,8 +87,10 @@ namespace Ninject.Components
         /// Generates a message saying that no module has been loaded with the specified name.
         /// </summary>
         /// <param name="name">The module name.</param>
-        /// <returns>The exception message.</returns>
-        public static string NoModuleLoadedWithTheSpecifiedName(string name)
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        public string NoModuleLoadedWithTheSpecifiedName(string name)
         {
             using (var sw = new StringWriter())
             {

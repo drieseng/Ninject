@@ -1,5 +1,5 @@
-// -------------------------------------------------------------------------------------------------
-// <copyright file="IBindingNamedSyntax.cs" company="Ninject Project Contributors">
+﻿// -------------------------------------------------------------------------------------------------
+// <copyright file="IPropertyInjectionBuilder.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,20 +19,27 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Syntax
+namespace Ninject.Builder
 {
-    /// <summary>
-    /// Used to define the name of a binding.
-    /// </summary>
-    /// <typeparam name="T">The service being bound.</typeparam>
-    public interface IBindingNamedSyntax<T> : IBindingSyntax
+    using Ninject.Builder.Syntax;
+    using System.Collections.Generic;
+
+    public interface IPropertyInjectionBuilder : IPropertyInjectionHeuristicsSyntax, IPropertySelectorSyntax
     {
         /// <summary>
-        /// Indicates that the binding should be registered with the specified name. Names are not
-        /// necessarily unique; multiple bindings for a given service may be registered with the same name.
+        /// Gets the component bindings that make up the activation pipeline.
         /// </summary>
-        /// <param name="name">The name to give the binding.</param>
-        /// <returns>The fluent syntax.</returns>
-        IBindingWithOrOnSyntax<T> Named(string name);
+        /// <value>
+        /// The component bindings that make up the activation pipeline.
+        /// </value>
+        IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        IDictionary<string, object> Properties { get; }
     }
 }

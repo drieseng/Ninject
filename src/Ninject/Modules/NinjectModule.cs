@@ -23,6 +23,7 @@ namespace Ninject.Modules
 {
     using System;
     using Ninject.Builder;
+    using Ninject.Infrastructure;
     using Ninject.Syntax;
 
     /// <summary>
@@ -54,11 +55,14 @@ namespace Ninject.Modules
         }
 
         /// <summary>
-        /// Called when the module is loaded into a kernel configuration.
+        /// Called when the module is loaded into a kernel.
         /// </summary>
         /// <param name="kernelConfiguration">The configuration of the kernel that is loading the module.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
         void INinjectModule.OnLoad(IKernelConfiguration kernelConfiguration)
         {
+            Ensure.ArgumentNotNull(kernelConfiguration, nameof(kernelConfiguration));
+
             kernelConfiguration.Bindings(a => _bindingRoot = a);
             OnLoad(kernelConfiguration);
         }
@@ -67,11 +71,14 @@ namespace Ninject.Modules
         /// Called after all modules are loaded.
         /// </summary>
         /// <param name="kernelConfiguration">The configuration of the kernel that has loaded the modules.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
         /// <remarks>
         /// A module can verify here if all other required bindings are available.
         /// </remarks>
         void INinjectModule.OnLoadCompleted(IKernelConfiguration kernelConfiguration)
         {
+            Ensure.ArgumentNotNull(kernelConfiguration, nameof(kernelConfiguration));
+
             OnLoadCompleted(kernelConfiguration);
         }
 

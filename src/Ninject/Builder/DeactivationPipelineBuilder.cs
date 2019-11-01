@@ -1,59 +1,53 @@
 ﻿using Ninject.Activation.Strategies;
-using Ninject.Builder.Components;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace Ninject.Builder
 {
     internal class DeactivationPipelineBuilder : IDeactivationPipelineBuilder
     {
-        private readonly List<IComponentBuilder> components;
-
-        public DeactivationPipelineBuilder()
+        public DeactivationPipelineBuilder(IComponentBindingRoot componentBindingRoot, IDictionary<string, object> properties)
         {
-            this.components = new List<IComponentBuilder>();
+            this.Components = componentBindingRoot;
+            this.Properties = properties;
         }
+
+        /// <summary>
+        /// Gets the component bindings that make up the activation pipeline.
+        /// </summary>
+        /// <value>
+        /// The component bindings that make up the activation pipeline.
+        /// </value>
+        public IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        public IDictionary<string, object> Properties { get; }
 
         public IDeactivationPipelineBuilder BindingAction()
         {
-            components.Add(new ComponentBuilder<IDeactivationStrategy, BindingActionStrategy>());
+            this.Components.Bind<IDeactivationStrategy>()
+                           .To<BindingActionStrategy>()
+                           .InSingletonScope();
             return this;
         }
 
         public IDeactivationPipelineBuilder Disposable()
         {
-            components.Add(new ComponentBuilder<IDeactivationStrategy, DisposableStrategy>());
+            this.Components.Bind<IDeactivationStrategy>()
+                           .To<DisposableStrategy>()
+                           .InSingletonScope();
             return this;
         }
 
         public IDeactivationPipelineBuilder Stoppable()
         {
-            components.Add(new ComponentBuilder<IDeactivationStrategy, StoppableStrategy>());
-            return this;
-        }
-
-        public void Build(IComponentBindingRoot root)
-        {
-            if (this.components.Count == 0)
-            {
-                return;
-            }
-
-            // If any deactivation strategy is defined, make sure to register the DeactivationCacheStrategy as
-            // first in the deactivation pipeline
-            root.Bind<IDeactivationStrategy>().To<DeactivationCacheStrategy>();
-
-            foreach (var component in this.components)
-            {
-                component.Build(root);
-            }
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IDeactivationPipelineBuilder IDeactivationPipelineBuilder.AddStage(Func<IComponentBuilder> componentDelegate)
-        {
-            this.components.Add(componentDelegate());
+            this.Components.Bind<IDeactivationStrategy>()
+                           .To<StoppableStrategy>()
+                           .InSingletonScope();
             return this;
         }
     }

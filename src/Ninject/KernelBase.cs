@@ -23,8 +23,6 @@ namespace Ninject
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
 
     using Ninject.Activation;
     using Ninject.Activation.Blocks;
@@ -32,7 +30,6 @@ namespace Ninject
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Disposal;
-    using Ninject.Infrastructure.Language;
     using Ninject.Modules;
     using Ninject.Parameters;
     using Ninject.Planning.Bindings;
@@ -73,7 +70,13 @@ namespace Ninject
         /// <summary>
         /// Gets the component container, which holds components that contribute to Ninject.
         /// </summary>
-        public IComponentContainer Components { get; }
+        public IComponentContainer Components
+        {
+            get
+            {
+                return this.kernelBuilder.AsComponentContainer();
+            }
+        }
 
         private IReadOnlyKernel ReadOnlyKernel
         {

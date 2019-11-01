@@ -22,6 +22,7 @@
 namespace Ninject.Activation
 {
     using Ninject.Activation.Strategies;
+    using System;
 
     /// <summary>
     /// An <see cref="IPipelineDeactivator"/> that does not execute any <see cref="IDeactivationStrategy"/>.
@@ -34,6 +35,13 @@ namespace Ninject.Activation
         /// <param name="context">The context.</param>
         /// <param name="reference">The instance reference.</param>
         public void Deactivate(IContext context, InstanceReference reference)
+        {
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        void IDisposable.Dispose()
         {
         }
     }

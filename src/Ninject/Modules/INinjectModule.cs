@@ -20,6 +20,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Ninject.Builder;
+using System;
 
 namespace Ninject.Modules
 {
@@ -37,12 +38,14 @@ namespace Ninject.Modules
         /// Called when the module is loaded into a kernel.
         /// </summary>
         /// <param name="kernelConfiguration">The configuration of the kernel that is loading the module.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
         void OnLoad(Builder.IKernelConfiguration kernelConfiguration);
 
         /// <summary>
         /// Called after all modules are loaded.
         /// </summary>
         /// <param name="kernelConfiguration">The configuration of the kernel that has loaded the modules.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
         /// <remarks>
         /// A module can verify here if all other required bindings are available.
         /// </remarks>

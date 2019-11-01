@@ -19,48 +19,49 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using Ninject.Activation.Strategies;
-using Ninject.Builder.Components;
-using Ninject.Syntax;
-
 namespace Ninject.Builder
 {
-    public class InitializationPipelineBuilder : IInitializationPipelineBuilder, IComponentBuilder
-    {
-        private List<IComponentBuilder> components;
+    using System;
+    using System.Collections.Generic;
+    using Ninject.Activation.Strategies;
 
-        public InitializationPipelineBuilder()
+    internal class InitializationPipelineBuilder : IInitializationPipelineBuilder
+    {
+        public InitializationPipelineBuilder(IComponentBindingRoot componentBindingRoot, IDictionary<string, object> properties)
         {
-            this.components = new List<IComponentBuilder>();
+            this.Components = componentBindingRoot;
+            this.Properties = properties;
         }
+
+        /// <summary>
+        /// Gets the component bindings that make up the activation pipeline.
+        /// </summary>
+        /// <value>
+        /// The component bindings that make up the activation pipeline.
+        /// </value>
+        public IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        public IDictionary<string, object> Properties { get; }
 
         public IInitializationPipelineBuilder BindingAction()
         {
-            components.Add(new ComponentBuilder<IInitializationStrategy, BindingActionStrategy>());
+            this.Components.Bind<IInitializationStrategy>()
+                           .To<BindingActionStrategy>()
+                           .InSingletonScope();
             return this;
         }
 
         public IInitializationPipelineBuilder Initializable()
         {
-            components.Add(new ComponentBuilder<IInitializationStrategy, InitializableStrategy>());
-            return this;
-        }
-
-        public void Build(IComponentBindingRoot root)
-        {
-            foreach (var component in this.components)
-            {
-                component.Build(root);
-            }
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IInitializationPipelineBuilder IInitializationPipelineBuilder.AddStage(Func<IComponentBuilder> componentDelegate)
-        {
-            this.components.Add(componentDelegate());
+            this.Components.Bind<IInitializationStrategy>()
+                           .To<InitializableStrategy>()
+                           .InSingletonScope();
             return this;
         }
     }

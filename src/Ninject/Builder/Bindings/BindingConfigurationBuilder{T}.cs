@@ -41,9 +41,12 @@ namespace Ninject.Builder
     internal sealed class BindingConfigurationBuilder<T> : BindingConfigurationBuilder,
                                                            INewBindingWhenInSyntax<T>,
                                                            INewBindingWhenWithOrOnSyntax<T>,
+                                                           INewBindingWhenNamedWithOrOnSyntax<T>,
+                                                           INewBindingWhenNamedWithOrOnInitialization<T>,
+                                                           INewBindingWhenInNamedWithOrOnInitializationSyntax<T>,
                                                            INewBindingWhenInWithOrOnInitializationSyntax<T>,
                                                            INewBindingWhenInNamedSyntax<T>,
-                                                           INewBindingWhenNamedSyntax<T>,
+                                                           INewBindingWhenNamedSyntax<T>, 
                                                            INewBindingWhenSyntax<T>,
                                                            INewBindingWhenOrOnActivationSyntax<T>,
                                                            INewBindingWhenNamedOrOnActivationSyntax<T>,
@@ -3476,6 +3479,1417 @@ namespace Ninject.Builder
 
         #endregion INewBindingWhenSyntax
 
+        #region INewBindingWhenInNamedWithOrOnInitializationSyntax
+
+        /// <summary>
+        /// Indicates that only a single instance of the binding should be created, and then
+        /// should be re-used for all subsequent requests.
+        /// </summary>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.InSingletonScope()
+        {
+            return InSingletonScope();
+        }
+
+        /// <summary>
+        /// Indicates that instances activated via the binding should not be re-used, nor have
+        /// their lifecycle managed by Ninject.
+        /// </summary>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.InTransientScope()
+        {
+            return this.InTransientScope();
+        }
+
+        /// <summary>
+        /// Indicates that instances activated via the binding should be re-used within the same thread.
+        /// </summary>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.InThreadScope()
+        {
+            return this.InThreadScope();
+        }
+
+        /// <summary>
+        /// Indicates that instances activated via the binding should be re-used as long as the object
+        /// returned by the provided callback remains alive (that is, has not been garbage collected).
+        /// </summary>
+        /// <param name="scope">The callback that returns the scope.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.InScope(Func<IContext, object> scope)
+        {
+            return this.InScope(scope);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.OnInitialization(Action<T> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.OnInitialization<TImplementation>(Action<TImplementation> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.OnInitialization(Action<IContext, T> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.OnInitialization<TImplementation>(Action<IContext, TImplementation> action)
+        {
+            return this.OnInitialization<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.OnInitialization<TImplementation>(Func<IContext, TImplementation, TImplementation> action)
+        {
+            return this.OnInitialization<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument(string name, object value)
+        {
+            return this.WithConstructorArgument(name, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument(string name, Func<IContext, object> callback)
+        {
+            return this.WithConstructorArgument(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument(string name, Func<IContext, ITarget<ParameterInfo>, object> callback)
+        {
+            return this.WithConstructorArgument(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">Specifies the argument type to override.</typeparam>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument<TValue>(TValue value)
+        {
+            return this.WithConstructorArgument(value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument(Type type, object value)
+        {
+            return this.WithConstructorArgument(type, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the argument to override.</typeparam>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument<TValue>(Func<IContext, TValue> callback)
+        {
+            return this.WithConstructorArgument<TValue>(callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument(Type type, Func<IContext, object> callback)
+        {
+            return this.WithConstructorArgument(type, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the argument to override.</typeparam>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument<TValue>(Func<IContext, ITarget<ParameterInfo>, TValue> callback)
+        {
+            return this.WithConstructorArgument(callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> callback)
+        {
+            return this.WithConstructorArgument(type, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="value">The value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithPropertyValue(string name, object value)
+        {
+            return this.WithPropertyValue(name, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithPropertyValue(string name, Func<IContext, object> callback)
+        {
+            return this.WithPropertyValue(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithPropertyValue(string name, Func<IContext, ITarget<PropertyInfo>, object> callback)
+        {
+            return this.WithPropertyValue(name, callback);
+        }
+
+        /// <summary>
+        /// Adds a custom parameter to the binding.
+        /// </summary>
+        /// <param name="parameter">The parameter.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithParameter(IParameter parameter)
+        {
+            return this.WithParameter(parameter);
+        }
+
+        /// <summary>
+        /// Sets the value of a piece of metadata on the binding.
+        /// </summary>
+        /// <param name="key">The metadata key.</param>
+        /// <param name="value">The metadata value.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WithMetadata(string key, object value)
+        {
+            return this.WithMetadata(key, value);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for requests that support the specified condition.
+        /// </summary>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.When(Func<IRequest, bool> condition)
+        {
+            return this.When(condition);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// Types that derive from the specified type are considered as valid targets.
+        /// </summary>
+        /// <typeparam name="TParent">The type.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenInjectedInto<TParent>()
+        {
+            return this.WhenInjectedInto(typeof(TParent));
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// Types that derive from the specified type are considered as valid targets.
+        /// </summary>
+        /// <param name="parent">The type.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenInjectedInto(Type parent)
+        {
+            return this.WhenInjectedInto(parent);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified types.
+        /// Types that derive from one of the specified types are considered as valid targets.
+        /// Should match at lease one of the targets.
+        /// </summary>
+        /// <param name="parents">The types to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenInjectedInto(params Type[] parents)
+        {
+            return this.WhenInjectedInto(parents);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match exactly the specified type. Types that derive from the specified type
+        /// will not be considered as valid target.
+        /// </summary>
+        /// <typeparam name="TParent">The type.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenInjectedExactlyInto<TParent>()
+        {
+            return this.WhenInjectedExactlyInto(typeof(TParent));
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match exactly the specified type. Types that derive from the specified type
+        /// will not be considered as valid target.
+        /// </summary>
+        /// <param name="parent">The type.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenInjectedExactlyInto(Type parent)
+        {
+            return this.WhenInjectedExactlyInto(parent);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match one of the specified types exactly. Types that derive from one of the specified types
+        /// will not be considered as valid target.
+        /// Should match at least one of the specified targets.
+        /// </summary>
+        /// <param name="parents">The types.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenInjectedExactlyInto(params Type[] parents)
+        {
+            return this.WhenInjectedExactlyInto(parents);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the class being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenClassHas<TAttribute>()
+        {
+            return this.WhenClassHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the member being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenMemberHas<TAttribute>()
+        {
+            return this.WhenMemberHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the target being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenTargetHas<TAttribute>()
+        {
+            return this.WhenTargetHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the class being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenClassHas(Type attributeType)
+        {
+            return this.WhenClassHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the member being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenMemberHas(Type attributeType)
+        {
+            return this.WhenMemberHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the target being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenTargetHas(Type attributeType)
+        {
+            return this.WhenTargetHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the service is being requested
+        /// by a service bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenParentNamed(string name)
+        {
+            return this.WhenParentNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when any ancestor is bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenAnyAncestorNamed(string name)
+        {
+            return this.WhenAnyAncestorNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when no ancestor is bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenNoAncestorNamed(string name)
+        {
+            return this.WhenNoAncestorNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when any ancestor matches the specified predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenAnyAncestorMatches(Predicate<IContext> predicate)
+        {
+            return this.WhenAnyAncestorMatches(predicate);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when no ancestor matches the specified predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInNamedWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.WhenNoAncestorMatches(Predicate<IContext> predicate)
+        {
+            return this.WhenNoAncestorMatches(predicate);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be registered with the specified name. Names are not
+        /// necessarily unique; multiple bindings for a given service may be registered with the same name.
+        /// </summary>
+        /// <param name="name">The name to give the binding.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenInWithOrOnInitializationSyntax<T> INewBindingWhenInNamedWithOrOnInitializationSyntax<T>.Named(string name)
+        {
+            return this.Named(name);
+        }
+
+        #endregion INewBindingWhenInNamedWithOrOnInitializationSyntax
+
+        #region INewBindingWhenNamedWithOrOnSyntax
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are activated.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnActivation(Action<T> action)
+        {
+            return this.OnActivation(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are activated.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnActivation<TImplementation>(Action<TImplementation> action)
+        {
+            return this.OnActivation<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are activated.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnActivation(Action<IContext, T> action)
+        {
+            return this.OnActivation(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are activated.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnActivation<TImplementation>(Action<IContext, TImplementation> action)
+        {
+            return this.OnActivation<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are deactivated.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnDeactivation(Action<T> action)
+        {
+            return this.OnDeactivation(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are deactivated.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnDeactivation<TImplementation>(Action<TImplementation> action)
+        {
+            return this.OnDeactivation<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are deactivated.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnDeactivation(Action<IContext, T> action)
+        {
+            return this.OnDeactivation(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are deactivated.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnDeactivation<TImplementation>(Action<IContext, TImplementation> action)
+        {
+            return this.OnDeactivation<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnInitialization(Action<T> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnInitialization<TImplementation>(Action<TImplementation> action)
+        {
+            return this.OnInitialization<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnInitialization(Action<IContext, T> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnInitialization<TImplementation>(Action<IContext, TImplementation> action)
+        {
+            return this.OnInitialization<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.OnInitialization<TImplementation>(Func<IContext, TImplementation, TImplementation> action)
+        {
+            return this.OnInitialization<TImplementation>(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument(string name, object value)
+        {
+            return this.WithConstructorArgument(name, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument(string name, Func<IContext, object> callback)
+        {
+            return this.WithConstructorArgument(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument(string name, Func<IContext, ITarget<ParameterInfo>, object> callback)
+        {
+            return this.WithConstructorArgument(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">Specifies the argument type to override.</typeparam>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument<TValue>(TValue value)
+        {
+            return this.WithConstructorArgument(value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument(Type type, object value)
+        {
+            return this.WithConstructorArgument(type, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the argument to override.</typeparam>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument<TValue>(Func<IContext, TValue> callback)
+        {
+            return this.WithConstructorArgument(callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument(Type type, Func<IContext, object> callback)
+        {
+            return this.WithConstructorArgument(type, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the argument to override.</typeparam>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument<TValue>(Func<IContext, ITarget<ParameterInfo>, TValue> callback)
+        {
+            return this.WithConstructorArgument(callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> callback)
+        {
+            return this.WithConstructorArgument(type, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="value">The value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithPropertyValue(string name, object value)
+        {
+            return this.WithPropertyValue(name, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithPropertyValue(string name, Func<IContext, object> callback)
+        {
+            return this.WithPropertyValue(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithPropertyValue(string name, Func<IContext, ITarget<PropertyInfo>, object> callback)
+        {
+            return this.WithPropertyValue(name, callback);
+        }
+
+        /// <summary>
+        /// Adds a custom parameter to the binding.
+        /// </summary>
+        /// <param name="parameter">The parameter.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithParameter(IParameter parameter)
+        {
+            return this.WithParameter(parameter);
+        }
+
+        /// <summary>
+        /// Sets the value of a piece of metadata on the binding.
+        /// </summary>
+        /// <param name="key">The metadata key.</param>
+        /// <param name="value">The metadata value.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WithMetadata(string key, object value)
+        {
+            return this.WithMetadata(key, value);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for requests that support the specified condition.
+        /// </summary>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.When(Func<IRequest, bool> condition)
+        {
+            return this.When(condition);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// Types that derive from the specified type are considered as valid targets.
+        /// </summary>
+        /// <typeparam name="TParent">The type.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenInjectedInto<TParent>()
+        {
+            return this.WhenInjectedInto(typeof(TParent));
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// Types that derive from the specified type are considered as valid targets.
+        /// </summary>
+        /// <param name="parent">The type.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenInjectedInto(Type parent)
+        {
+            return this.WhenInjectedInto(parent);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified types.
+        /// Types that derive from one of the specified types are considered as valid targets.
+        /// Should match at lease one of the targets.
+        /// </summary>
+        /// <param name="parents">The types to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenInjectedInto(params Type[] parents)
+        {
+            return this.WhenInjectedInto(parents);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match exactly the specified type. Types that derive from the specified type
+        /// will not be considered as valid target.
+        /// </summary>
+        /// <typeparam name="TParent">The type.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenInjectedExactlyInto<TParent>()
+        {
+            return this.WhenInjectedExactlyInto(typeof(TParent));
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match exactly the specified type. Types that derive from the specified type
+        /// will not be considered as valid target.
+        /// </summary>
+        /// <param name="parent">The type.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenInjectedExactlyInto(Type parent)
+        {
+            return this.WhenInjectedExactlyInto(parent);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match one of the specified types exactly. Types that derive from one of the specified types
+        /// will not be considered as valid target.
+        /// Should match at least one of the specified targets.
+        /// </summary>
+        /// <param name="parents">The types.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenInjectedExactlyInto(params Type[] parents)
+        {
+            return this.WhenInjectedExactlyInto(parents);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the class being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenClassHas<TAttribute>()
+        {
+            return this.WhenClassHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the member being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenMemberHas<TAttribute>()
+        {
+            return this.WhenMemberHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the target being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenTargetHas<TAttribute>()
+        {
+            return this.WhenTargetHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the class being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenClassHas(Type attributeType)
+        {
+            return this.WhenClassHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the member being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenMemberHas(Type attributeType)
+        {
+            return this.WhenMemberHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the target being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenTargetHas(Type attributeType)
+        {
+            return this.WhenTargetHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the service is being requested
+        /// by a service bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenParentNamed(string name)
+        {
+            return this.WhenParentNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when any ancestor is bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenAnyAncestorNamed(string name)
+        {
+            return this.WhenAnyAncestorNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when no ancestor is bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenNoAncestorNamed(string name)
+        {
+            return this.WhenNoAncestorNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when any ancestor matches the specified predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenAnyAncestorMatches(Predicate<IContext> predicate)
+        {
+            return this.WhenAnyAncestorMatches(predicate);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when no ancestor matches the specified predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.WhenNoAncestorMatches(Predicate<IContext> predicate)
+        {
+            return this.WhenNoAncestorMatches(predicate);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be registered with the specified name. Names are not
+        /// necessarily unique; multiple bindings for a given service may be registered with the same name.
+        /// </summary>
+        /// <param name="name">The name to give the binding.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenWithOrOnSyntax<T> INewBindingWhenNamedWithOrOnSyntax<T>.Named(string name)
+        {
+            return this.Named(name);
+        }
+
+        #endregion INewBindingWhenNamedWithOrOnSyntax
+
+        #region INewBindingWhenNamedWithOrOnInitialization
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.OnInitialization(Action<T> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.OnInitialization<TImplementation>(Action<TImplementation> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.OnInitialization(Action<IContext, T> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.OnInitialization<TImplementation>(Action<IContext, TImplementation> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified callback should be invoked when instances are initialized.
+        /// </summary>
+        /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
+        /// <param name="action">The action callback.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.OnInitialization<TImplementation>(Func<IContext, TImplementation, TImplementation> action)
+        {
+            return this.OnInitialization(action);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument(string name, object value)
+        {
+            return this.WithConstructorArgument(name, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument(string name, Func<IContext, object> callback)
+        {
+            return this.WithConstructorArgument(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument(string name, Func<IContext, ITarget<ParameterInfo>, object> callback)
+        {
+            return this.WithConstructorArgument(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">Specifies the argument type to override.</typeparam>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument<TValue>(TValue value)
+        {
+            return this.WithConstructorArgument(value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="value">The value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument(Type type, object value)
+        {
+            return this.WithConstructorArgument(type, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the argument to override.</typeparam>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument<TValue>(Func<IContext, TValue> callback)
+        {
+            return this.WithConstructorArgument(callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument(Type type, Func<IContext, object> callback)
+        {
+            return this.WithConstructorArgument(type, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <typeparam name="TValue">The type of the argument to override.</typeparam>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument<TValue>(Func<IContext, ITarget<ParameterInfo>, TValue> callback)
+        {
+            return this.WithConstructorArgument(callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> callback)
+        {
+            return this.WithConstructorArgument(type, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="value">The value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithPropertyValue(string name, object value)
+        {
+            return this.WithPropertyValue(name, value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithPropertyValue(string name, Func<IContext, object> callback)
+        {
+            return this.WithPropertyValue(name, callback);
+        }
+
+        /// <summary>
+        /// Indicates that the specified property should be injected with the specified value.
+        /// </summary>
+        /// <param name="name">The name of the property to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the property.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithPropertyValue(string name, Func<IContext, ITarget<PropertyInfo>, object> callback)
+        {
+            return this.WithPropertyValue(name, callback);
+        }
+
+        /// <summary>
+        /// Adds a custom parameter to the binding.
+        /// </summary>
+        /// <param name="parameter">The parameter.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithParameter(IParameter parameter)
+        {
+            return this.WithParameter(parameter);
+        }
+
+        /// <summary>
+        /// Sets the value of a piece of metadata on the binding.
+        /// </summary>
+        /// <param name="key">The metadata key.</param>
+        /// <param name="value">The metadata value.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WithMetadata(string key, object value)
+        {
+            return this.WithMetadata(key, value);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for requests that support the specified condition.
+        /// </summary>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.When(Func<IRequest, bool> condition)
+        {
+            return this.When(condition);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// Types that derive from the specified type are considered as valid targets.
+        /// </summary>
+        /// <typeparam name="TParent">The type.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenInjectedInto<TParent>()
+        {
+            return this.WhenInjectedInto(typeof(TParent));
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// Types that derive from the specified type are considered as valid targets.
+        /// </summary>
+        /// <param name="parent">The type.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenInjectedInto(Type parent)
+        {
+            return this.WhenInjectedInto(parent);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified types.
+        /// Types that derive from one of the specified types are considered as valid targets.
+        /// Should match at lease one of the targets.
+        /// </summary>
+        /// <param name="parents">The types to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenInjectedInto(params Type[] parents)
+        {
+            return this.WhenInjectedInto(parents);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match exactly the specified type. Types that derive from the specified type
+        /// will not be considered as valid target.
+        /// </summary>
+        /// <typeparam name="TParent">The type.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenInjectedExactlyInto<TParent>()
+        {
+            return this.WhenInjectedExactlyInto(typeof(TParent));
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match exactly the specified type. Types that derive from the specified type
+        /// will not be considered as valid target.
+        /// </summary>
+        /// <param name="parent">The type.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenInjectedExactlyInto(Type parent)
+        {
+            return this.WhenInjectedExactlyInto(parent);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only for injections on the specified type.
+        /// The type must match one of the specified types exactly. Types that derive from one of the specified types
+        /// will not be considered as valid target.
+        /// Should match at least one of the specified targets.
+        /// </summary>
+        /// <param name="parents">The types.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenInjectedExactlyInto(params Type[] parents)
+        {
+            return this.WhenInjectedExactlyInto(parents);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the class being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenClassHas<TAttribute>()
+        {
+            return this.WhenClassHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the member being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenMemberHas<TAttribute>()
+        {
+            return this.WhenMemberHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the target being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of attribute.</typeparam>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenTargetHas<TAttribute>()
+        {
+            return this.WhenTargetHas<TAttribute>();
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the class being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenClassHas(Type attributeType)
+        {
+            return this.WhenClassHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the member being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenMemberHas(Type attributeType)
+        {
+            return this.WhenMemberHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the target being injected has
+        /// an attribute of the specified type.
+        /// </summary>
+        /// <param name="attributeType">The type of attribute.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenTargetHas(Type attributeType)
+        {
+            return this.WhenTargetHas(attributeType);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when the service is being requested
+        /// by a service bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenParentNamed(string name)
+        {
+            return this.WhenParentNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when any ancestor is bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenAnyAncestorNamed(string name)
+        {
+            return this.WhenAnyAncestorNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when no ancestor is bound with the specified name.
+        /// </summary>
+        /// <param name="name">The name to expect.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenNoAncestorNamed(string name)
+        {
+            return this.WhenNoAncestorNamed(name);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when any ancestor matches the specified predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenAnyAncestorMatches(Predicate<IContext> predicate)
+        {
+            return this.WhenAnyAncestorMatches(predicate);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be used only when no ancestor matches the specified predicate.
+        /// </summary>
+        /// <param name="predicate">The predicate to match.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenNamedWithOrOnInitialization<T> INewBindingWhenNamedWithOrOnInitialization<T>.WhenNoAncestorMatches(Predicate<IContext> predicate)
+        {
+            return this.WhenNoAncestorMatches(predicate);
+        }
+
+        /// <summary>
+        /// Indicates that the binding should be registered with the specified name. Names are not
+        /// necessarily unique; multiple bindings for a given service may be registered with the same name.
+        /// </summary>
+        /// <param name="name">The name to give the binding.</param>
+        /// <returns>The fluent syntax.</returns>
+        INewBindingWhenWithOrOnInitializationSyntax<T> INewBindingWhenNamedWithOrOnInitialization<T>.Named(string name)
+        {
+            return this.Named(name);
+        }
+
+        #endregion INewBindingWhenNamedWithOrOnInitialization
+
         /// <summary>
         /// Indicates that the binding should be used only for requests that support the specified condition.
         /// </summary>
@@ -3727,7 +5141,7 @@ namespace Ninject.Builder
         /// </returns>
         private BindingConfigurationBuilder<T> OnInitialization<TImplementation>(Action<TImplementation> action)
         {
-            this.initializationActions.Add((instance, context) =>
+            this.initializationActions.Add((context, instance) =>
                 {
                     action((TImplementation)instance);
                     return instance;
@@ -3758,10 +5172,10 @@ namespace Ninject.Builder
         private BindingConfigurationBuilder<T> OnInitialization<TImplementation>(Action<IContext, TImplementation> action)
         {
             this.initializationActions.Add((context, instance) =>
-            {
-                action(context, (TImplementation)instance);
-                return instance;
-            });
+                {
+                    action(context, (TImplementation)instance);
+                    return instance;
+                });
             return this;
         }
 
@@ -3941,6 +5355,12 @@ namespace Ninject.Builder
             return this;
         }
 
+        private BindingConfigurationBuilder<T> WithConstructorArgument<TValue>(Func<IContext, ITarget<ParameterInfo>, TValue> callback)
+        {
+            this.parameters.Add(new TypeMatchingConstructorArgument(typeof(TValue), (context, target) => callback(context, target)));
+            return this;
+        }
+
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
         /// </summary>
@@ -3951,7 +5371,7 @@ namespace Ninject.Builder
         /// </returns>
         private BindingConfigurationBuilder<T> WithConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> callback)
         {
-            this.parameters.Add(new TypeMatchingConstructorArgument(type, callback));
+            this.parameters.Add(new TypeMatchingConstructorArgument(type, (context, target) => callback(context, target)));
             return this;
         }
 
@@ -3966,6 +5386,19 @@ namespace Ninject.Builder
         private BindingConfigurationBuilder<T> WithConstructorArgument(Type type, object value)
         {
             return this.WithConstructorArgument(type, (context, target) => value);
+        }
+
+        /// <summary>
+        /// Indicates that the specified constructor argument should be overridden with the specified value.
+        /// </summary>
+        /// <param name="type">The type of the argument to override.</param>
+        /// <param name="callback">The callback to invoke to get the value for the argument.</param>
+        /// <returns>
+        /// The fluent syntax.
+        /// </returns>
+        private BindingConfigurationBuilder<T> WithConstructorArgument(Type type, Func<IContext, object> callback)
+        {
+            return this.WithConstructorArgument(type, (context, target) => callback(context));
         }
 
         /// <summary>

@@ -23,17 +23,19 @@ namespace Ninject.Selection.Heuristics
 {
     using System;
     using System.Reflection;
-
+    using Ninject.Infrastructure;
     using Ninject.Infrastructure.Language;
 
     public class AttributeBasedInjectionHeuristic : IPropertyInjectionHeuristic, IMethodInjectionHeuristic
     {
-        public AttributeBasedInjectionHeuristic()
+        public AttributeBasedInjectionHeuristic(Type injectAttribute)
         {
-            this.InjectAttribute = typeof(InjectAttribute);
+            Ensure.ArgumentNotNull(injectAttribute, nameof(injectAttribute));
+
+            this.InjectAttribute = injectAttribute;
         }
 
-        public Type InjectAttribute { get; set; }
+        public Type InjectAttribute { get; }
 
         public bool ShouldInject(PropertyInfo property)
         {

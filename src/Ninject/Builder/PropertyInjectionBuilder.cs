@@ -24,43 +24,55 @@ namespace Ninject.Builder
     using System;
     using System.Collections.Generic;
 
-    using Ninject.Activation.Providers;
     using Ninject.Activation.Strategies;
     using Ninject.Builder.Syntax;
     using Ninject.Planning.Strategies;
     using Ninject.Selection;
 
-    internal class PropertyInjectionBuilder : IComponentBuilder, IPropertyInjectionHeuristicsSyntax, IPropertySelectorSyntax
+    internal class PropertyInjectionBuilder : IPropertyInjectionBuilder
     {
         private IComponentBuilder selectorBuilder;
-        private List<IComponentBuilder> injectionHeuristicBuilders;
+        private readonly List<IComponentBuilder> injectionHeuristicBuilders;
 
-        public PropertyInjectionBuilder()
+        public PropertyInjectionBuilder(IComponentBindingRoot componentBindingRoot, IDictionary<string, object> properties)
         {
-            injectionHeuristicBuilders = new List<IComponentBuilder>();
+            this.Components = componentBindingRoot;
+            this.Properties = properties;
+            this.injectionHeuristicBuilders = new List<IComponentBuilder>();
         }
 
-        public void Build(IComponentBindingRoot root)
+        /// <summary>
+        /// Gets the root of the component bindings.
+        /// </summary>
+        /// <value>
+        /// The root of the component binding.
+        /// </value>
+        public IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        public IDictionary<string, object> Properties { get; }
+
+        public void Build()
         {
-            if (this.selectorBuilder == null)
-            {
-                throw new Exception("TODO specifiy at least one ...");
-            }
-
-            if (this.injectionHeuristicBuilders.Count == 0)
-            {
-                throw new Exception("TODO specifiy at least one ...");
-            }
-
-            this.selectorBuilder.Build(root);
-
             foreach (var injectionHeuristicBuilder in this.injectionHeuristicBuilders)
             {
-                injectionHeuristicBuilder.Build(root);
+                injectionHeuristicBuilder.Build(this.Components);
             }
 
-            root.Bind<IPlanningStrategy>().To<PropertyReflectionStrategy>();
-            root.Bind<IInitializationStrategy>().To<PropertyInjectionStrategy>();
+            this.selectorBuilder?.Build(this.Components);
+
+            if (!this.Components.IsBound<IPropertyReflectionSelector>())
+            {
+                throw new Exception("TODO");
+            }
+
+            this.Components.Bind<IPlanningStrategy>().To<PropertyPlanningStrategy>();
+            this.Components.Bind<IInitializationStrategy>().To<PropertyInjectionStrategy>();
         }
 
         public IPropertyInjectionHeuristicsSyntax InjectionHeuristic(Action<IAttributeBasedPropertyInjectionHeuristicBuilder> heuristic)

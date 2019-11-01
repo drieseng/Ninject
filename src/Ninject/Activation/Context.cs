@@ -41,11 +41,6 @@ namespace Ninject.Activation
     public sealed class Context : IContext
     {
         /// <summary>
-        /// The ninject settings.
-        /// </summary>
-        private readonly INinjectSettings settings;
-
-        /// <summary>
         /// The <see cref="IExceptionFormatter"/> component.
         /// </summary>
         private readonly IExceptionFormatter exceptionFormatter;
@@ -59,33 +54,39 @@ namespace Ninject.Activation
         /// Initializes a new instance of the <see cref="Context"/> class.
         /// </summary>
         /// <param name="kernel">The kernel managing the resolution.</param>
-        /// <param name="settings">The ninject settings.</param>
         /// <param name="request">The context's request.</param>
         /// <param name="binding">The context's binding.</param>
         /// <param name="cache">The cache component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        /// <param name="allowNullInjection"><see langword="true"/> if <see langword="null"/> is allowed as injected value; otherwise, <see langword="false"/>.</param>
+        /// <param name="detectCyclicDependencies"><see langword="true"/> if cyclic dependencies should be detected; otherwise, <see langword="false"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="kernel"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="settings"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="cache"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="exceptionFormatter"/> is <see langword="null"/>.</exception>
-        public Context(IReadOnlyKernel kernel, INinjectSettings settings, IRequest request, IBinding binding, ICache cache, IExceptionFormatter exceptionFormatter)
+        public Context(IReadOnlyKernel kernel,
+                       IRequest request,
+                       IBinding binding,
+                       ICache cache,
+                       IExceptionFormatter exceptionFormatter,
+                       bool allowNullInjection,
+                       bool detectCyclicDependencies)
         {
             Ensure.ArgumentNotNull(kernel, nameof(kernel));
-            Ensure.ArgumentNotNull(settings, nameof(settings));
             Ensure.ArgumentNotNull(cache, nameof(cache));
             Ensure.ArgumentNotNull(exceptionFormatter, nameof(exceptionFormatter));
             Ensure.ArgumentNotNull(request, nameof(request));
             Ensure.ArgumentNotNull(binding, nameof(binding));
 
             this.Kernel = kernel;
-            this.settings = settings;
             this.Request = request;
             this.Binding = binding;
             this.Cache = cache;
             this.Parameters = request.Parameters.Concat(binding.Parameters);
             this.exceptionFormatter = exceptionFormatter;
+            this.AllowNullInjection = allowNullInjection;
+            this.DetectCyclicDependencies = detectCyclicDependencies;
         }
 
         /// <summary>
@@ -107,6 +108,37 @@ namespace Ninject.Activation
         /// Gets or sets the activation plan.
         /// </summary>
         public IPlan Plan { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether <see langword="null"/> is a valid value for injection.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if <see langword="null"/> is allowed as injected value; otherwise, <see langword="false"/>.
+        /// The default is <see langword="false"/>.
+        /// </value>
+        /// <remarks>
+        /// When <see langword="false"/>, an <see cref="ActivationException"/> is thrown whenever a provider returns <see langword="null"/>.
+        /// </remarks>
+        public bool AllowNullInjection { get; }
+
+        /// <summary>
+        /// Gets a value whether cyclic dependencies should be detected.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if cyclic dependencies should be detected; otherwise, <see langword="false"/>.
+        /// The default is <see langword="true"/>.
+        /// </value>
+        /// <remarks>
+        /// <para>
+        /// When <see langword="true"/>, an <see cref="ActivationException"/> is thrown whenever a cyclic dependency
+        /// is detected.
+        /// </para>
+        /// <para>
+        /// When <see cref="DetectCyclicDependencies"/> is <see langword="false"/>, the CLR may throw a
+        /// <see cref="StackOverflowException"/> and terminate the process in case of cyclic dependencies.
+        /// </para>
+        /// </remarks>
+        public bool DetectCyclicDependencies { get; }
 
         /// <summary>
         /// Gets the provider that should be used to create the instance for this context.
@@ -145,7 +177,7 @@ namespace Ninject.Activation
         {
             get
             {
-                return this.Request.Service.IsGenericTypeDefinition;
+                return this.Binding.Service.IsGenericTypeDefinition;
             }
         }
 
@@ -185,8 +217,7 @@ namespace Ninject.Activation
         {
             try
             {
-                 this.cachedScope = this.Request.GetScope() ?? this.Binding.GetScope(this);
-                // this.cachedScope = this.Binding.GetScope(this);
+                this.cachedScope = this.Request.GetScope() ?? this.Binding.GetScope(this);
                 if (this.cachedScope != null)
                 {
                     return this.ResolveInScope(this.cachedScope);
@@ -219,68 +250,65 @@ namespace Ninject.Activation
 
         private object ResolveWithoutScope()
         {
-#if CYCLIC
-            EnsureNotCyclic();
+            if (DetectCyclicDependencies)
+            {
+                EnsureNotCyclic();
 
-            this.Request.ActiveBindings.Push(this.Binding);
-#endif
+                this.Request.ActiveBindings.Push(this.Binding);
+            }
 
             var instance = this.Provider.Create(this);
 
-#if CYCLIC
-
-            this.Request.ActiveBindings.Pop();
-#endif
-
-            if (instance == null)
+            if (DetectCyclicDependencies)
             {
-                if (!this.settings.AllowNullInjection)
-                {
-                    throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
-                }
-
+                this.Request.ActiveBindings.Pop();
             }
+
+            if (instance == null && !AllowNullInjection)
+            {
+                throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
+            }
+
+            // TODO: do we want to check here if context.Plan was assigned?
 
             return instance;
         }
 
         private object ResolveInScope(object scope)
         {
-            var cachedInstance = this.Cache.TryGet(this, scope);
-            if (cachedInstance != null)
-            {
-                return cachedInstance;
-            }
-
             lock (scope)
             {
-                cachedInstance = this.Cache.TryGet(this, scope);
+                var cachedInstance = this.Cache.TryGet(this, scope);
                 if (cachedInstance != null)
                 {
                     return cachedInstance;
                 }
 
-#if CYCLIC
-                EnsureNotCyclic();
+                if (DetectCyclicDependencies)
+                {
+                    EnsureNotCyclic();
 
-                this.Request.ActiveBindings.Push(this.Binding);
-#endif
+                    this.Request.ActiveBindings.Push(this.Binding);
+                }
 
                 var reference = new InstanceReference { Instance = this.Provider.Create(this) };
 
-#if CYCLIC
-                this.Request.ActiveBindings.Pop();
-#endif
+                if (DetectCyclicDependencies)
+                {
+                    this.Request.ActiveBindings.Pop();
+                }
 
                 if (reference.Instance == null)
                 {
-                    if (!this.settings.AllowNullInjection)
+                    if (!AllowNullInjection)
                     {
                         throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
                     }
 
                     return null;
                 }
+
+                // TODO: do we want to check here if context.Plan was assigned?
 
                 this.Cache.Remember(this, scope, reference);
 

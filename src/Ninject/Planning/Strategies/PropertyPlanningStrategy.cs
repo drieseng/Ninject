@@ -22,6 +22,7 @@
 namespace Ninject.Planning.Strategies
 {
     using System;
+    using System.Collections.Generic;
     using System.Reflection;
 
     using Ninject.Components;
@@ -33,21 +34,27 @@ namespace Ninject.Planning.Strategies
     /// <summary>
     /// Adds directives to plans indicating which properties should be injected during activation.
     /// </summary>
-    public class PropertyReflectionStrategy : NinjectComponent, IPlanningStrategy
+    public class PropertyPlanningStrategy : NinjectComponent, IPlanningStrategy
     {
+        private List<IPropertyInjectionHeuristic> injectionHeuristics;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="PropertyReflectionStrategy"/> class.
+        /// Initializes a new instance of the <see cref="PropertyPlanningStrategy"/> class.
         /// </summary>
         /// <param name="selector">The <see cref="IPropertyReflectionSelector"/> component.</param>
+        /// <param name="injectionHeuristics">The injection heuristics.</param>
         /// <param name="injectorFactory">The injector factory component.</param>
         /// <exception cref="ArgumentNullException"><paramref name="selector"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="injectionHeuristics"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="injectorFactory"/> is <see langword="null"/>.</exception>
-        public PropertyReflectionStrategy(IPropertyReflectionSelector selector, IInjectorFactory injectorFactory)
+        public PropertyPlanningStrategy(IPropertyReflectionSelector selector, IEnumerable<IPropertyInjectionHeuristic> injectionHeuristics, IInjectorFactory injectorFactory)
         {
             Ensure.ArgumentNotNull(selector, nameof(selector));
+            Ensure.ArgumentNotNull(injectionHeuristics, nameof(injectionHeuristics));
             Ensure.ArgumentNotNull(injectorFactory, nameof(injectorFactory));
 
             this.Selector = selector;
+            this.injectionHeuristics = new List<IPropertyInjectionHeuristic>(injectionHeuristics);
             this.InjectorFactory = injectorFactory;
         }
 
@@ -57,7 +64,18 @@ namespace Ninject.Planning.Strategies
         public IPropertyReflectionSelector Selector { get; }
 
         /// <summary>
-        /// Gets or sets the injector factory component.
+        /// Gets the injection heuristics.
+        /// </summary>
+        public IReadOnlyList<IPropertyInjectionHeuristic> InjectionHeuristics
+        {
+            get
+            {
+                return this.injectionHeuristics;
+            }
+        }
+
+        /// <summary>
+        /// Gets the injector factory component.
         /// </summary>
         public IInjectorFactory InjectorFactory { get; }
 
@@ -71,10 +89,31 @@ namespace Ninject.Planning.Strategies
         {
             Ensure.ArgumentNotNull(plan, nameof(plan));
 
-            foreach (PropertyInfo property in this.Selector.Select(plan.Type))
+            foreach (var property in this.Selector.Select(plan.Type))
             {
+                if (!ShouldInject(this.injectionHeuristics, property))
+                {
+                    continue;
+                }
+
                 plan.Add(new PropertyInjectionDirective(property, this.InjectorFactory.Create(property)));
             }
+        }
+
+        private static bool ShouldInject(List<IPropertyInjectionHeuristic> injectionHeuristics, PropertyInfo property)
+        {
+            var shouldInject = false;
+
+            for (var i = 0; i < injectionHeuristics.Count; i++)
+            {
+                if (injectionHeuristics[i].ShouldInject(property))
+                {
+                    shouldInject = true;
+                    break;
+                }
+            }
+
+            return shouldInject;
         }
     }
 }

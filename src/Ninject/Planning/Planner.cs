@@ -102,6 +102,21 @@ namespace Ninject.Planning
         }
 
         /// <summary>
+        /// Releases resources held by the object.
+        /// </summary>
+        /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                plans?.Clear();
+                strategies?.Clear();
+            }
+
+            base.Dispose(disposing);
+        }
+
+        /// <summary>
         /// Creates a new plan for the specified type.
         /// </summary>
         /// <param name="type">The type.</param>

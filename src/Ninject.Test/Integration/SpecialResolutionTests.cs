@@ -3,65 +3,57 @@
     using System;
 
     using FluentAssertions;
+    using Ninject.Builder;
     using Ninject.Syntax;
     using Xunit;
 
-    public class SpecialResolutionContext : IDisposable
-    {
-        protected IKernelConfiguration kernelConfiguration;
-
-        public SpecialResolutionContext()
-        {
-            this.kernelConfiguration = new KernelConfiguration();
-        }
-
-        public void Dispose()
-        {
-            this.kernelConfiguration.Dispose();
-        }
-    }
-
-    public class WhenServiceRequestsKernel : SpecialResolutionContext
+    public class WhenServiceRequestsKernel
     {
         [Fact]
         public void InstanceOfKernelIsInjected()
         {
-            this.kernelConfiguration.Bind<RequestsKernel>().ToSelf();
-            var kernel = this.kernelConfiguration.BuildReadOnlyKernel();
+            var kernelBuilder = new KernelBuilder().Bindings(bindings => bindings.Bind<RequestsKernel>().ToSelf());
 
-            var instance = kernel.Get<RequestsKernel>();
+            using (var kernel = kernelBuilder.Build())
+            {
+                var instance = kernel.Get<RequestsKernel>();
 
-            instance.Should().NotBeNull();
-            instance.Kernel.Should().NotBeNull();
-            instance.Kernel.Should().BeSameAs(kernel);
+                instance.Should().NotBeNull();
+                instance.Kernel.Should().NotBeNull();
+                instance.Kernel.Should().BeSameAs(kernel);
+            }
         }
     }
 
-    public class WhenServiceRequestsResolutionRoot : SpecialResolutionContext
+    public class WhenServiceRequestsResolutionRoot
     {
         [Fact]
         public void InstanceOfKernelIsInjected()
         {
-            this.kernelConfiguration.Bind<RequestsResolutionRoot>().ToSelf();
-            var kernel = this.kernelConfiguration.BuildReadOnlyKernel();
+            var kernelBuilder = new KernelBuilder().Bindings(bindings => bindings.Bind<RequestsResolutionRoot>().ToSelf());
 
-            var instance = kernel.Get<RequestsResolutionRoot>();
+            using (var kernel = kernelBuilder.Build())
+            {
+                var instance = kernel.Get<RequestsResolutionRoot>();
 
-            instance.Should().NotBeNull();
-            instance.ResolutionRoot.Should().NotBeNull();
-            instance.ResolutionRoot.Should().BeSameAs(kernel);
+                instance.Should().NotBeNull();
+                instance.ResolutionRoot.Should().NotBeNull();
+                instance.ResolutionRoot.Should().BeSameAs(kernel);
+            }
         }
     }
 
-    public class WhenServiceRequestsString : SpecialResolutionContext
+    public class WhenServiceRequestsString
     {
         [Fact]
         public void InstanceOfStringIsInjected()
         {
-            this.kernelConfiguration.Bind<RequestsString>().ToSelf();
-            var kernel = this.kernelConfiguration.BuildReadOnlyKernel();
+            var kernelBuilder = new KernelBuilder().Bindings(bindings => bindings.Bind<RequestsString>().ToSelf());
 
-            Assert.Throws<ActivationException>(() => kernel.Get<RequestsString>());
+            using (var kernel = kernelBuilder.Build())
+            {
+                Assert.Throws<ActivationException>(() => kernel.Get<RequestsString>());
+            }
         }
     }
 

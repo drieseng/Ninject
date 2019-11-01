@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿#if false
+using System.Linq;
 using Xunit;
 using Ninject.Tests.Fakes;
 using Ninject.Planning.Strategies;
@@ -101,3 +102,4 @@ namespace Ninject.Test.Unit
         }
     }
 }
+#endif

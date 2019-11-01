@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Moq;
 using Ninject.Activation;
 using Ninject.Activation.Caching;
@@ -9,7 +8,6 @@ using Ninject.Parameters;
 using Ninject.Planning;
 using Ninject.Planning.Bindings;
 using Ninject.Planning.Bindings.Resolvers;
-using Ninject.Selection.Heuristics;
 using Ninject.Syntax;
 using Ninject.Tests.Fakes;
 using Xunit;
@@ -18,12 +16,11 @@ namespace Ninject.Test.Unit
 {
     public class ReadOnlyKernelTests
     {
-        protected Mock<INinjectSettings> NinjectSettingsMock { get; }
         protected Mock<ICache> CacheMock { get; }
         protected Mock<IPlanner> PlannerMock { get; }
-        protected Mock<IConstructorInjectionScorer> ConstructorScorerMock { get; }
         protected Mock<IPipeline> PipelineMock { get; }
         protected Mock<IExceptionFormatter> ExceptionFormatterMock { get; }
+        protected Mock<IContextFactory> ContextFactoryMock { get; }
         protected Mock<IBindingPrecedenceComparer> BindingPrecedenceComparerMock { get; }
         protected Mock<IBindingResolver> BindingResolverMock1 { get; }
         protected Mock<IBindingResolver> BindingResolverMock2 { get; }
@@ -34,12 +31,11 @@ namespace Ninject.Test.Unit
 
         public ReadOnlyKernelTests()
         {
-            NinjectSettingsMock = new Mock<INinjectSettings>(MockBehavior.Strict);
             CacheMock = new Mock<ICache>(MockBehavior.Strict);
             PlannerMock = new Mock<IPlanner>(MockBehavior.Strict);
-            ConstructorScorerMock = new Mock<IConstructorInjectionScorer>(MockBehavior.Strict);
             PipelineMock = new Mock<IPipeline>(MockBehavior.Strict);
             ExceptionFormatterMock = new Mock<IExceptionFormatter>(MockBehavior.Strict);
+            ContextFactoryMock = new Mock<IContextFactory>(MockBehavior.Strict);
             BindingPrecedenceComparerMock = new Mock<IBindingPrecedenceComparer>(MockBehavior.Strict);
             BindingResolverMock1 = new Mock<IBindingResolver>(MockBehavior.Strict);
             BindingResolverMock2 = new Mock<IBindingResolver>(MockBehavior.Strict);
@@ -60,7 +56,7 @@ namespace Ninject.Test.Unit
 
         public class WhenCanResolveIsCalled : ReadOnlyKernelTests
         {
-            private MyReadOnlyKernel _readOnlyKernel;
+            private ReadOnlyKernel _readOnlyKernel;
 
             public WhenCanResolveIsCalled()
             {
@@ -135,71 +131,6 @@ namespace Ninject.Test.Unit
             }
         }
 
-        public class WhenCreateContextIsCalled : ReadOnlyKernelTests
-        {
-            [Fact]
-            public void CreateContext_ShouldThrowArgumentNullExceptionWhenRequestIsNull()
-            {
-                var bindings = new Dictionary<Type, ICollection<IBinding>>();
-                var readOnlyKernel = CreateReadOnlyKernel(bindings);
-
-                const IRequest request = null;
-                var bindingMock = new Mock<IBinding>(MockBehavior.Strict);
-
-                var actual = Assert.Throws<ArgumentNullException>(() => readOnlyKernel.CreateContext(request, bindingMock.Object));
-
-                Assert.Null(actual.InnerException);
-                Assert.Equal(nameof(request), actual.ParamName);
-            }
-
-            [Fact]
-            public void CreateContext_ShouldThrowArgumentNullExceptionWhenBindingIsNull()
-            {
-                var bindings = new Dictionary<Type, ICollection<IBinding>>();
-                var readOnlyKernel = CreateReadOnlyKernel(bindings);
-
-                var requestMock = new Mock<IRequest>(MockBehavior.Strict);
-                const IBinding binding = null;
-
-                var actual = Assert.Throws<ArgumentNullException>(() => readOnlyKernel.CreateContext(requestMock.Object, binding));
-
-                Assert.Null(actual.InnerException);
-                Assert.Equal(nameof(binding), actual.ParamName);
-            }
-
-            [Fact]
-            public void CreateRequest_ShouldThrowArgumentNullExceptionWhenServiceIsNull()
-            {
-                var bindings = new Dictionary<Type, ICollection<IBinding>>();
-                var readOnlyKernel = CreateReadOnlyKernel(bindings);
-
-                const Type service = null;
-                Func<IBindingMetadata, bool> constraint = bindingMetadata => true;
-                var parameters = new IParameter[0];
-
-                var actual = Assert.Throws<ArgumentNullException>(() => readOnlyKernel.CreateRequest(service, constraint, parameters, true, false));
-
-                Assert.Null(actual.InnerException);
-                Assert.Equal(nameof(service), actual.ParamName);
-            }
-
-            [Fact]
-            public void CreateRequest_ShouldThrowArgumentNullExceptionWhenParametersIsNull()
-            {
-                var bindings = new Dictionary<Type, ICollection<IBinding>>();
-                var readOnlyKernel = CreateReadOnlyKernel(bindings);
-
-                var service = typeof(string);
-                Func<IBindingMetadata, bool> constraint = bindingMetadata => true;
-                const IParameter[] parameters = null;
-
-                var actual = Assert.Throws<ArgumentNullException>(() => readOnlyKernel.CreateRequest(service, constraint, parameters, true, false));
-
-                Assert.Null(actual.InnerException);
-                Assert.Equal(nameof(parameters), actual.ParamName);
-            }
-        }
-
         public class WhenInjectIsCalled : ReadOnlyKernelTests
         {
             [Fact]
@@ -267,9 +198,10 @@ namespace Ninject.Test.Unit
             }
         }
 
-        private MyReadOnlyKernel CreateReadOnlyKernel(Dictionary<Type, ICollection<IBinding>> bindings)
+        private ReadOnlyKernel CreateReadOnlyKernel(Dictionary<Type, ICollection<IBinding>> bindings)
         {
             var sequence = new MockSequence();
+
             BindingResolverMock1.InSequence(sequence)
                                  .Setup(p => p.Resolve(It.IsAny<Dictionary<Type, ICollection<IBinding>>>(), typeof(IReadOnlyKernel)))
                                  .Returns(Array.Empty<IBinding>);
@@ -283,47 +215,15 @@ namespace Ninject.Test.Unit
                                  .Setup(p => p.Resolve(It.IsAny<Dictionary<Type, ICollection<IBinding>>>(), typeof(IResolutionRoot)))
                                  .Returns(Array.Empty<IBinding>);
 
-            return new MyReadOnlyKernel(NinjectSettingsMock.Object,
-                                        bindings,
-                                        CacheMock.Object,
-                                        PlannerMock.Object,
-                                        ConstructorScorerMock.Object,
-                                        PipelineMock.Object,
-                                        ExceptionFormatterMock.Object,
-                                        BindingPrecedenceComparerMock.Object,
-                                        BindingResolvers,
-                                        MissingBindingResolvers);
-        }
-
-        private class MyReadOnlyKernel : ReadOnlyKernel
-        {
-            internal MyReadOnlyKernel(INinjectSettings settings,
-                                      Dictionary<Type, ICollection<IBinding>> bindings,
-                                      ICache cache,
-                                      IPlanner planner,
-                                      IConstructorInjectionScorer constructorScorer,
-                                      IPipeline pipeline,
-                                      IExceptionFormatter exceptionFormatter,
-                                      IBindingPrecedenceComparer bindingPrecedenceComparer,
-                                      List<IBindingResolver> bindingResolvers,
-                                      List<IMissingBindingResolver> missingBindingResolvers)
-                : base(settings,
-                       bindings,
-                       cache,
-                       planner,
-                       constructorScorer,
-                       pipeline,
-                       exceptionFormatter,
-                       bindingPrecedenceComparer,
-                       bindingResolvers,
-                       missingBindingResolvers)
-            {
-            }
-
-            public new IContext CreateContext(IRequest request, IBinding binding)
-            {
-                return base.CreateContext(request, binding);
-            }
+            return new ReadOnlyKernel(bindings,
+                                      CacheMock.Object,
+                                      PlannerMock.Object,
+                                      PipelineMock.Object,
+                                      ExceptionFormatterMock.Object,
+                                      ContextFactoryMock.Object,
+                                      BindingPrecedenceComparerMock.Object,
+                                      BindingResolvers,
+                                      MissingBindingResolvers);
         }
     }
 }

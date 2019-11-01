@@ -30,7 +30,7 @@ namespace Ninject.Selection
     using Ninject.Infrastructure.Language;
 
     /// <summary>
-    /// Selects properties to inject services into.
+    /// Selects properties to either inject services into or assign values to.
     /// </summary>
     public sealed class PropertyReflectionSelector : IPropertyReflectionSelector
     {
@@ -40,45 +40,30 @@ namespace Ninject.Selection
         private const BindingFlags DefaultBindingFlags = BindingFlags.Public | BindingFlags.Instance;
 
         /// <summary>
-        /// The injection heuristics.
-        /// </summary>
-        private readonly List<IPropertyInjectionHeuristic> injectionHeuristics;
-
-        /// <summary>
         /// The binding flags.
         /// </summary>
-        private BindingFlags bindingFlags;
+        private readonly BindingFlags bindingFlags;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyReflectionSelector"/> class.
         /// </summary>
-        /// <param name="injectionHeuristics">The injection heuristics.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="injectionHeuristics"/> is <see langword="null"/>.</exception>
-        public PropertyReflectionSelector(IEnumerable<IPropertyInjectionHeuristic> injectionHeuristics)
+        /// <param name="injectNonPublic"><see langword="true"/> to include non-public properties; otherwise, <see langword="false"/>.</param>
+        public PropertyReflectionSelector(bool injectNonPublic)
         {
-            Ensure.ArgumentNotNull(injectionHeuristics, nameof(injectionHeuristics));
-
-            this.injectionHeuristics = injectionHeuristics.ToList();
-            this.InjectNonPublic = false;
+            this.bindingFlags = injectNonPublic ? (DefaultBindingFlags | BindingFlags.NonPublic) : DefaultBindingFlags;
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to include non-public constructors.
+        /// Gets or sets a value indicating whether to include non-public properties.
         /// </summary>
         /// <value>
-        /// <see langword="true"/> to include include non-public constructors; otherwise, <see langword="false"/>.
-        /// The default is <see langword="false"/>.
+        /// <see langword="true"/> if non-public properties are included; otherwise, <see langword="false"/>.
         /// </value>
         public bool InjectNonPublic
         {
             get
             {
                 return (this.bindingFlags & BindingFlags.NonPublic) != 0;
-            }
-
-            set
-            {
-                this.bindingFlags = value ? (DefaultBindingFlags | BindingFlags.NonPublic) : DefaultBindingFlags;
             }
         }
 
@@ -94,32 +79,12 @@ namespace Ninject.Selection
         {
             Ensure.ArgumentNotNull(type, nameof(type));
 
+            // Cache locally to avoid evaluation for each property
+            var injectNonPublic = InjectNonPublic;
+
             return type.GetProperties(this.bindingFlags)
                        .Select(p => p.GetPropertyFromDeclaredType(p, this.bindingFlags))
-                       .Where(p => p != null && p.GetSetMethod(this.InjectNonPublic) != null && ShouldInject(this.injectionHeuristics, p));
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        void IDisposable.Dispose()
-        {
-        }
-
-        private static bool ShouldInject(List<IPropertyInjectionHeuristic> injectionHeuristics, PropertyInfo property)
-        {
-            var shouldInject = false;
-
-            foreach (var injectionHeuristic in injectionHeuristics)
-            {
-                if (injectionHeuristic.ShouldInject(property))
-                {
-                    shouldInject = true;
-                    break;
-                }
-            }
-
-            return shouldInject;
+                       .Where(p => p != null && p.GetSetMethod(injectNonPublic) != null);
         }
     }
 }

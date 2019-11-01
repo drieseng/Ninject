@@ -29,6 +29,7 @@ namespace Ninject.Injection
     /// Creates injectors from members via reflective invocation.
     /// </summary>
     public class ReflectionInjectorFactory : NinjectComponent, IInjectorFactory
+
     {
         /// <summary>
         /// Gets or creates an injector for the specified constructor.

@@ -113,6 +113,33 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
+        public void ConstructorArgumentOfTypeTShouldBeUsedIfUsingCallbackWithContext()
+        {
+            var expectedWeapon = new Shuriken();
+
+            _kernel = this._kernelBuilder.Bindings(b => b.Bind<Samurai>().ToSelf().WithConstructorArgument<IWeapon>((context) => expectedWeapon))
+                                         .Build();
+
+            var samurai = _kernel.Get<Samurai>();
+
+            samurai.Weapon.Should().Be(expectedWeapon);
+        }
+
+        [Fact]
+        public void ConstructorArgumentTShouldBeUsedIfUsingCallbackWithContextAndTarget()
+        {
+            var expectedWeapon = new Shuriken();
+
+            _kernel = this._kernelBuilder.Bindings(b => b.Bind<Samurai>().ToSelf().WithConstructorArgument<IWeapon>((context, target) => expectedWeapon))
+                                         .Build();
+
+            var samurai = _kernel.Get<Samurai>();
+
+            samurai.Weapon.Should().Be(expectedWeapon);
+        }
+
+
+        [Fact]
         public void ConstructorArgumentWithMatchingTypeShouldBeUsedIfUsingExplicitTypeArgumentSyntax()
         {
             var expectedWeapon = new Dagger();

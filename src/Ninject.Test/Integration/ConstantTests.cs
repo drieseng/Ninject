@@ -87,6 +87,7 @@
             weapon.Should().BeOfType<Shuriken>();
         }
 
+#if false
         [Fact]
         public void TheBindingShouldOnlyBeResolvedOnce()
         {
@@ -99,6 +100,7 @@
 
             provider.Count.Should().Be(1);
         }
+#endif
     }
 
     public class WhenTypeIsBoundToAGenericList : ConstantContext
@@ -117,6 +119,7 @@
             weapon.Should().BeOfType<Shuriken>();
         }
 
+#if false
         [Fact]
         public void TheBindingShouldOnlyBeResolvedOnce()
         {
@@ -130,5 +133,6 @@
 
             provider.Count.Should().Be(1);
         }
+#endif
     }
 }

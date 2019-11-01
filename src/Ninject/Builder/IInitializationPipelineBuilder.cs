@@ -19,19 +19,31 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-using Ninject.Syntax;
-using System;
-using System.ComponentModel;
-
 namespace Ninject.Builder
 {
+    using Ninject.Syntax;
+    using System.Collections.Generic;
+
     public interface IInitializationPipelineBuilder : IFluentSyntax
     {
+        /// <summary>
+        /// Gets the root of the component bindings.
+        /// </summary>
+        /// <value>
+        /// The root of the component binding.
+        /// </value>
+        IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        IDictionary<string, object> Properties { get; }
+
         IInitializationPipelineBuilder Initializable();
 
         IInitializationPipelineBuilder BindingAction();
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IInitializationPipelineBuilder AddStage(Func<IComponentBuilder> componentDelegate);
     }
 }

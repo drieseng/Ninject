@@ -47,9 +47,7 @@ namespace Ninject.Builder
             }
 
             root.Bind<IMethodInjectionHeuristic>()
-                .To<AttributeBasedInjectionHeuristic>()
-                .InTransientScope()
-                .WithPropertyValue(nameof(AttributeBasedInjectionHeuristic.InjectAttribute), this.attributeType);
+                .ToConstant(new AttributeBasedInjectionHeuristic(this.attributeType));
         }
     }
 }

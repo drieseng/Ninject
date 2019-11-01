@@ -15,7 +15,6 @@
 
         public void Dispose()
         {
-            this.KernelBuilder.Dispose();
         }
 
         protected INinjectSettings NinjectSettings { get; private set; }

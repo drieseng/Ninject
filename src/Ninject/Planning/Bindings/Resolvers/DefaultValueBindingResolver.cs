@@ -54,7 +54,7 @@ namespace Ninject.Planning.Bindings.Resolvers
                     new Binding(service)
                     {
                         Condition = r => HasDefaultValue(r.Target),
-                        Provider = new DefaultParameterValueProvider(service),
+                        Provider = new DefaultParameterValueProvider(service)
                     },
                 };
         }

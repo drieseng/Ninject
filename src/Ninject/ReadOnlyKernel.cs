@@ -1,4 +1,6 @@
-﻿// -------------------------------------------------------------------------------------------------
+﻿#if false
+
+// -------------------------------------------------------------------------------------------------
 // <copyright file="ReadOnlyKernel.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
@@ -97,6 +99,14 @@ namespace Ninject
             this.AddReadOnlyKernelBinding<IReadOnlyKernel>(this, bindings);
             this.AddReadOnlyKernelBinding<IResolutionRoot>(this, bindings);
         }
+
+        /// <summary>
+        /// Gets or sets the component container, which holds components that contribute to Ninject.
+        /// </summary>
+        /// <value>
+        /// The component container.
+        /// </value>
+        public IComponentContainerNew Components { get; }
 
         /// <summary>
         /// Injects the specified existing instance, without managing its lifecycle.
@@ -681,3 +691,5 @@ namespace Ninject
         }
     }
 }
+
+#endif

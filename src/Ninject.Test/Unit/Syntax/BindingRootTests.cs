@@ -7,11 +7,11 @@ namespace Ninject.Tests.Unit.Syntax
 {
     public class BindingRootTests
     {
-        private BindingRoot _bindingRoot;
+        private NewBindingRoot _bindingRoot;
 
         public BindingRootTests()
         {
-            _bindingRoot = new MyBindingRoot();
+            _bindingRoot = new NewBindingRoot();
         }
 
         [Fact]
@@ -60,23 +60,15 @@ namespace Ninject.Tests.Unit.Syntax
             Assert.Equal(nameof(services), actual.ParamName);
         }
 
-        public class MyBindingRoot : BindingRoot
+        [Fact]
+        public void Unbind_Service_ShouldThrowArgumentNullExceptionWhenServiceIsNull()
         {
-            public override void AddBinding(IBinding binding)
-            {
-                throw new NotImplementedException();
-            }
+            const Type service = null;
 
-            public override void RemoveBinding(IBinding binding)
-            {
-                throw new NotImplementedException();
-            }
+            var actual = Assert.Throws<ArgumentNullException>(() => _bindingRoot.Unbind(service));
 
-            public override void Unbind(Type service)
-            {
-                throw new NotImplementedException();
-            }
+            Assert.Null(actual.InnerException);
+            Assert.Equal(nameof(service), actual.ParamName);
         }
-
     }
 }

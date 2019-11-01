@@ -30,7 +30,7 @@ namespace Ninject.Selection
     /// <summary>
     /// Selects methods to inject services into.
     /// </summary>
-    public interface IMethodReflectionSelector : INinjectComponent
+    public interface IMethodReflectionSelector
     {
         /// <summary>
         /// Selects the method that could be injected into.

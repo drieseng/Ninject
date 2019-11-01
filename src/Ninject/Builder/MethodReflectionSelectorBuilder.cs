@@ -20,6 +20,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Ninject.Builder.Syntax;
+using Ninject.Selection;
 using Ninject.Selection.Heuristics;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace Ninject.Builder
 {
     internal class MethodReflectionSelectorBuilder : IMethodReflectionSelectorBuilder, IMethodInjectionHeuristicsSyntax
     {
+        private bool _injectNonPublic;
         private readonly List<IComponentBuilder> injectionHeuristicBuilders = new List<IComponentBuilder>();
 
         public void Build(IComponentBindingRoot root)
@@ -41,11 +43,14 @@ namespace Ninject.Builder
             {
                 injectionHeuristicBuilder.Build(root);
             }
+
+            root.Bind<IMethodReflectionSelector>()
+                .ToConstructor((s) => new MethodReflectionSelector(s.Inject<IEnumerable<IMethodInjectionHeuristic>>(), _injectNonPublic));
         }
 
         public void InjectNonPublic(bool value)
         {
-            throw new System.NotImplementedException();
+            _injectNonPublic = value;
         }
 
         IMethodInjectionHeuristicsSyntax IMethodInjectionHeuristicsSyntax.InjectionHeuristic(Action<IAttributeBasedMethodInjectionHeuristicBuilder> heuristic)

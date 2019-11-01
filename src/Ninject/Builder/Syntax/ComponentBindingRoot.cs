@@ -42,8 +42,10 @@ namespace Ninject.Builder
         /// <summary>
         /// Gets a key/value collection that can be used to share data between components.
         /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
         public IDictionary<string, object> Properties { get; }
-
 
         /// <inheritdoc/>
         public INewBindingToSyntax<T> Bind<T>()

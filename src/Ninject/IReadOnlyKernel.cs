@@ -22,6 +22,7 @@
 namespace Ninject
 {
     using System;
+    using Ninject.Components;
     using Ninject.Planning.Bindings;
     using Ninject.Syntax;
 
@@ -30,6 +31,14 @@ namespace Ninject
     /// </summary>
     public interface IReadOnlyKernel : IResolutionRoot, IServiceProvider, IDisposable
     {
+        /// <summary>
+        /// Gets or sets the component container, which holds components that contribute to Ninject.
+        /// </summary>
+        /// <value>
+        /// The component container.
+        /// </value>
+        IComponentContainerNew Components { get; }
+
         /// <summary>
         /// Gets an instance of the specified service.
         /// </summary>

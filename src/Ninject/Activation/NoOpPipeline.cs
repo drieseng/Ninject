@@ -23,10 +23,12 @@ namespace Ninject.Activation
 {
     using System;
 
+    using Ninject.Components;
+
     /// <summary>
     /// An <see cref="IPipeline"/> that does not execute any strategies.
     /// </summary>
-    internal sealed class NoOpPipeline : IPipeline
+    internal sealed class NoOpPipeline : NinjectComponent, IPipeline
     {
         /// <summary>
         /// Initializes an instance using the specified context.
@@ -56,13 +58,6 @@ namespace Ninject.Activation
         /// <param name="context">The context.</param>
         /// <param name="reference">The instance reference.</param>
         public void Deactivate(IContext context, InstanceReference reference)
-        {
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        void IDisposable.Dispose()
         {
         }
     }

@@ -23,7 +23,6 @@ namespace Ninject
 {
     using System;
     using System.Collections.Generic;
-    using System.Reflection;
     using Ninject.Activation.Blocks;
     using Ninject.Components;
     using Ninject.Modules;
@@ -33,7 +32,7 @@ namespace Ninject
     /// <summary>
     /// A super-factory that can create objects of all kinds, following hints provided by <see cref="IBinding"/>s.
     /// </summary>
-    public interface IKernel : INewBindingRoot, IReadOnlyKernel, IDisposable
+    public interface IKernel : INewBindingRoot, IResolutionRoot, IDisposable
     {
         /// <summary>
         /// Gets the kernel settings.
@@ -43,6 +42,9 @@ namespace Ninject
         /// <summary>
         /// Gets the component container, which holds components that contribute to Ninject.
         /// </summary>
+        /// <value>
+        /// The component container.
+        /// </value>
         IComponentContainer Components { get; }
 
         /// <summary>

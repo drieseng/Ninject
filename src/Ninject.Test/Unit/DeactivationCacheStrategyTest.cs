@@ -38,7 +38,7 @@
 
             this.testee.Deactivate(contextMock.Object, new InstanceReference { Instance = instance });
 
-            this.activationCacheMock.Verify(a => a.AddActivatedInstance(instance), Times.Once);
+            this.activationCacheMock.Verify(a => a.AddDeactivatedInstance(instance), Times.Once);
         }
     }
 }

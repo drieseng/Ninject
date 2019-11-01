@@ -25,12 +25,10 @@ namespace Ninject.Selection
     using System.Collections.Generic;
     using System.Reflection;
 
-    using Ninject.Components;
-
     /// <summary>
     /// Selects properties to inject services into.
     /// </summary>
-    public interface IPropertyReflectionSelector : INinjectComponent
+    public interface IPropertyReflectionSelector
     {
 
         /// <summary>

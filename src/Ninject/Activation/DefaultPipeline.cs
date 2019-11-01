@@ -21,12 +21,13 @@
 
 namespace Ninject.Activation
 {
+    using Ninject.Components;
     using System;
 
     /// <summary>
     /// The default pipeline.
     /// </summary>
-    internal sealed class DefaultPipeline : IPipeline
+    internal sealed class DefaultPipeline : NinjectComponent, IPipeline
     {
         private readonly IPipelineInitializer initializer;
         private readonly IPipelineActivator activator;
@@ -79,10 +80,19 @@ namespace Ninject.Activation
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// Releases resources held by the object.
         /// </summary>
-        void IDisposable.Dispose()
+        /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
+        protected override void Dispose(bool disposing)
         {
+            if (disposing)
+            {
+                initializer?.Dispose();
+                activator?.Dispose();
+                deactivator?.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

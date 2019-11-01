@@ -19,20 +19,23 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-using System;
-
 namespace Ninject.Builder
 {
+    using Ninject.Selection;
+
     internal class PropertyReflectionSelectorBuilder : IPropertyReflectionSelectorBuilder
     {
+        private bool _injectNonPublic;
+
         public void Build(IComponentBindingRoot root)
         {
-            throw new NotImplementedException();
+            root.Bind<IPropertyReflectionSelector>()
+                .ToConstructor((s) => new PropertyReflectionSelector(_injectNonPublic));
         }
 
         public void InjectNonPublic(bool value)
         {
-            throw new System.NotImplementedException();
+            _injectNonPublic = value;
         }
     }
 }

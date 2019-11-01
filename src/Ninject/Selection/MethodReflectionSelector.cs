@@ -41,27 +41,27 @@ namespace Ninject.Selection
         /// <summary>
         /// The binding flags.
         /// </summary>
-        private BindingFlags bindingFlags;
+        private readonly BindingFlags bindingFlags;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MethodReflectionSelector"/> class.
         /// </summary>
         /// <param name="injectionHeuristics">The injection heuristics.</param>
+        /// <param name="injectNonPublic"><see langword="true"/> to include non-public methods; otherwise, <see langword="false"/>.</param>
         /// <exception cref="ArgumentNullException"><paramref name="injectionHeuristics"/> is <see langword="null"/>.</exception>
-        public MethodReflectionSelector(IEnumerable<IMethodInjectionHeuristic> injectionHeuristics)
+        public MethodReflectionSelector(IEnumerable<IMethodInjectionHeuristic> injectionHeuristics, bool injectNonPublic)
         {
             Ensure.ArgumentNotNull(injectionHeuristics, nameof(injectionHeuristics));
 
             this.injectionHeuristics = injectionHeuristics.ToList();
-            this.InjectNonPublic = false;
+            this.bindingFlags = injectNonPublic ? (DefaultBindingFlags | BindingFlags.NonPublic) : DefaultBindingFlags;
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to include non-public constructors.
+        /// Gets or sets a value indicating whether to include non-public methods.
         /// </summary>
         /// <value>
-        /// <see langword="true"/> to include include non-public constructors; otherwise, <see langword="false"/>.
-        /// The default is <see langword="false"/>.
+        /// <see langword="true"/> if non-public methods are included; otherwise, <see langword="false"/>.
         /// </value>
         public bool InjectNonPublic
         {
@@ -69,20 +69,14 @@ namespace Ninject.Selection
             {
                 return (this.bindingFlags & BindingFlags.NonPublic) != 0;
             }
-
-            set
-            {
-                this.bindingFlags = value ? (DefaultBindingFlags | BindingFlags.NonPublic) : DefaultBindingFlags;
-            }
         }
-
 
         /// <summary>
         /// Selects the methods that could be injected.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>
-        /// A series of the methods properties.
+        /// A series of the selected methods.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is <see langword="null"/>.</exception>
         public IEnumerable<MethodInfo> Select(Type type)
@@ -90,13 +84,6 @@ namespace Ninject.Selection
             Ensure.ArgumentNotNull(type, nameof(type));
 
             return type.GetMethods(this.bindingFlags).Where(m => ShouldInject(this.injectionHeuristics, m));
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        void IDisposable.Dispose()
-        {
         }
 
         private static bool ShouldInject(List<IMethodInjectionHeuristic> injectionHeuristics, MethodInfo method)

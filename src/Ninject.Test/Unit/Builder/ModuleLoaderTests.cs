@@ -98,10 +98,8 @@ namespace Ninject.Tests.Unit.Builder
         [Fact]
         public void Load_ArrayOfINinjectModule_ShouldInvokeOnLoadOnEachLoadedModule()
         {
-            const string exceptionMessage = "DÜPLICATE";
-
             var moduleMock1 = CreateModuleMock("A");
-            var moduleMock2 = CreateModuleMock("A");
+            var moduleMock2 = CreateModuleMock("B");
 
             moduleMock1.Setup(p => p.OnLoad(_kernelConfigurationMock.Object));
             moduleMock2.Setup(p => p.OnLoad(_kernelConfigurationMock.Object));

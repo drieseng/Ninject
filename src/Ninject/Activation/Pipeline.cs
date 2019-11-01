@@ -175,5 +175,22 @@ namespace Ninject.Activation
                 this.deactivationStrategies.ForEach(s => s.Deactivate(context, reference));
             }
         }
+
+        /// <summary>
+        /// Releases resources held by the object.
+        /// </summary>
+        /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                activationCache?.Dispose();
+                strategies?.Clear();
+                deactivationStrategies?.Clear();
+                initializationStrategies?.Clear();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

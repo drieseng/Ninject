@@ -22,23 +22,27 @@
 namespace Ninject.Activation
 {
     using System.Collections.Generic;
-
+    using Ninject.Activation.Caching;
     using Ninject.Activation.Strategies;
+    using Ninject.Components;
 
     /// <summary>
     /// Activates instances in a given context.
     /// </summary>
-    internal sealed class PipelineActivator : IPipelineActivator
+    internal sealed class PipelineActivator : NinjectComponent, IPipelineActivator
     {
         private readonly List<IActivationStrategy> activationStrategies;
+        private readonly IActivationCache activationCache;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PipelineActivator"/> class.
         /// </summary>
         /// <param name="activationStrategies">The strategies to execute upon activation.</param>
-        public PipelineActivator(List<IActivationStrategy> activationStrategies)
+        /// <param name="activationCache">The activation cache.</param>
+        public PipelineActivator(List<IActivationStrategy> activationStrategies, IActivationCache activationCache)
         {
             this.activationStrategies = activationStrategies;
+            this.activationCache = activationCache;
         }
 
         /// <summary>
@@ -48,7 +52,24 @@ namespace Ninject.Activation
         /// <param name="reference">The instance reference.</param>
         public void Activate(IContext context, InstanceReference reference)
         {
-            this.activationStrategies.ForEach(a => a.Activate(context, reference));
+            if (!activationCache.IsActivated(reference.Instance))
+            {
+                this.activationStrategies.ForEach(a => a.Activate(context, reference));
+            }
+        }
+
+        /// <summary>
+        /// Releases resources held by the object.
+        /// </summary>
+        /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.activationStrategies.Clear();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

@@ -19,12 +19,14 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
+using Ninject.Components;
+
 namespace Ninject.Activation
 {
     /// <summary>
     /// Deactivates instances in a given context.
     /// </summary>
-    internal interface IPipelineDeactivator
+    internal interface IPipelineDeactivator : INinjectComponent
     {
         /// <summary>
         /// Deactivates the instance in the specified context.

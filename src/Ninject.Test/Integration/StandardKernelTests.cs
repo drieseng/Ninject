@@ -550,6 +550,7 @@
         }
     }
 
+#if false
     public class WhenDerivedClassWithPrivateGetterIsResolved
     {
         [Fact]
@@ -567,6 +568,7 @@
             }
         }
     }
+#endif
     
     public class InitializableA : IInitializable
     {

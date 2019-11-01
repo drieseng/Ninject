@@ -19,14 +19,28 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
+using Ninject.Planning.Bindings;
+
 namespace Ninject.Builder
 {
-    public class BindComponentBuilder<T,TImplementation> : IComponentBuilder
+    internal class BindComponentBuilder<T,TImplementation> : IComponentBuilder
         where TImplementation : T
     {
+        private bool _inSingletonScope;
+
+        public BindComponentBuilder<T, TImplementation> InSingletonScope()
+        {
+            _inSingletonScope = true;
+            return this;
+        }
+
         public void Build(IComponentBindingRoot root)
         {
-            root.Bind<T>().To<TImplementation>();
+            var binding = root.Bind<T>().To<TImplementation>();
+            if (_inSingletonScope)
+            {
+                binding.InSingletonScope();
+            }
         }
     }
 }

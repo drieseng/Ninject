@@ -24,7 +24,7 @@ namespace Ninject.Activation
     /// <summary>
     /// Provides instances ot the type T.
     /// </summary>
-    /// <typeparam name="T">The type provides by this implementation.</typeparam>
+    /// <typeparam name="T">The type provided by this implementation.</typeparam>
     public interface IProvider<T> : IProvider
     {
     }

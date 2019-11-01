@@ -1,5 +1,5 @@
-// -------------------------------------------------------------------------------------------------
-// <copyright file="IBindingInNamedWithOrOnSyntax.cs" company="Ninject Project Contributors">
+﻿// -------------------------------------------------------------------------------------------------
+// <copyright file="IInjectionBuilder.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,17 +19,19 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Syntax
+using Ninject.Syntax;
+using System;
+using System.ComponentModel;
+
+namespace Ninject.Builder
 {
-    /// <summary>
-    /// Used to set the scope, name, or add additional information or actions to a binding.
-    /// </summary>
-    /// <typeparam name="T">The service being bound.</typeparam>
-    public interface IBindingInNamedWithOrOnSyntax<T> :
-        IBindingInSyntax<T>,
-        IBindingNamedSyntax<T>,
-        IBindingWithSyntax<T>,
-        IBindingOnActivationSyntax<T>
+    public interface IInjectionBuilder : IFluentSyntax
     {
+        IInitializationPipelineBuilder Initializable();
+
+        IInitializationPipelineBuilder BindingAction();
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IInitializationPipelineBuilder AddStage(Func<IComponentBuilder> componentDelegate);
     }
 }

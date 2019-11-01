@@ -23,17 +23,29 @@ namespace Ninject.Activation.Strategies
 {
     using System;
     using System.Collections.Generic;
-
+    using System.Reflection;
     using Ninject.Components;
     using Ninject.Infrastructure;
+    using Ninject.Injection;
     using Ninject.Parameters;
     using Ninject.Planning.Directives;
+    using Ninject.Selection;
 
     /// <summary>
     /// Injects properties on an instance during activation.
     /// </summary>
     public class PropertyInjectionStrategy : IInitializationStrategy
     {
+        /// <summary>
+        /// Selects properties where <see cref="IPropertyValue"/> instances can be applied to.
+        /// </summary>
+        private readonly IPropertyReflectionSelector propertyReflectionSelector;
+
+        /// <summary>
+        /// The injector factory component.
+        /// </summary>
+        private readonly IInjectorFactory injectorFactory;
+
         /// <summary>
         /// The <see cref="IExceptionFormatter"/> component.
         /// </summary>
@@ -42,18 +54,28 @@ namespace Ninject.Activation.Strategies
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyInjectionStrategy"/> class.
         /// </summary>
+        /// <param name="propertyReflectionSelector">Selects properties where <see cref="IPropertyValue"/> instances can be applied to.</param>
+        /// <param name="injectorFactory">The injector factory component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyReflectionSelector"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="injectorFactory"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="exceptionFormatter"/> is <see langword="null"/>.</exception>
-        public PropertyInjectionStrategy(IExceptionFormatter exceptionFormatter)
+        public PropertyInjectionStrategy(IPropertyReflectionSelector propertyReflectionSelector,
+                                         IInjectorFactory injectorFactory,
+                                         IExceptionFormatter exceptionFormatter)
         {
+            Ensure.ArgumentNotNull(propertyReflectionSelector, nameof(propertyReflectionSelector));
+            Ensure.ArgumentNotNull(injectorFactory, nameof(injectorFactory));
             Ensure.ArgumentNotNull(exceptionFormatter, nameof(exceptionFormatter));
 
+            this.propertyReflectionSelector = propertyReflectionSelector;
+            this.injectorFactory = injectorFactory;
             this.exceptionFormatter = exceptionFormatter;
         }
 
         /// <summary>
-        /// Injects values into the properties as described by <see cref="PropertyInjectionDirective"/>s
-        /// contained in the plan.
+        /// Injects values into the properties as described by <see cref="PropertyInjectionDirective"/> instances
+        /// in the <see cref="Context.Plan"/>.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="instance">The instance being initialized.</param>
@@ -67,19 +89,22 @@ namespace Ninject.Activation.Strategies
             Ensure.ArgumentNotNull(context, nameof(context));
             Ensure.ArgumentNotNull(instance, nameof(instance));
 
-            var properties = context.Plan.GetProperties();
-            var propertyParameters = GetPropertyParameters(context);
+            var propertyDirectives = context.Plan.GetProperties();
+            var propertyValues = GetPropertyValues(context);
 
-            if (properties.Count > 0)
+            if (propertyDirectives.Count > 0)
             {
-                if (propertyParameters.Count > 0)
+                if (propertyValues.Count > 0)
                 {
-                    foreach (var directive in properties)
+                    for (var d = 0; d < propertyDirectives.Count; d++)
                     {
+                        var directive = propertyDirectives[d];
+
                         IPropertyValue match = null;
 
-                        foreach (var propertyParameter in propertyParameters)
+                        for (var v = (propertyValues.Count - 1); v >= 0; v--)
                         {
+                            var propertyParameter = propertyValues[v];
                             if (propertyParameter.AppliesToTarget(context, directive.Target))
                             {
                                 if (match != null)
@@ -88,6 +113,7 @@ namespace Ninject.Activation.Strategies
                                 }
 
                                 match = propertyParameter;
+                                propertyValues.RemoveAt(v);
                             }
                         }
 
@@ -96,7 +122,6 @@ namespace Ninject.Activation.Strategies
                         if (match != null)
                         {
                             value = match.GetValue(context, directive.Target);
-                            propertyParameters.Remove(match);
                         }
                         else
                         {
@@ -106,23 +131,16 @@ namespace Ninject.Activation.Strategies
                         directive.Injector(instance, value);
                     }
 
-                    /*
-                    TODO cannot throw here if not we'll thow for any inherited parameter value for which there's no matching
-                    directive.
-
-                    We could throw for non-inherited property values for which no match is found.
-                    */
-
-                    // Check if there are any property parameters for which we have not found a corresponding property
-                    if (propertyParameters.Count > 0)
+                    if (propertyValues.Count > 0)
                     {
-                        throw new ActivationException(this.exceptionFormatter.CouldNotResolvePropertyForValueInjection(context.Request, propertyParameters[0].Name));
+                        AssignPropertyValueOverrides(context, instance, propertyValues);
                     }
                 }
                 else
                 {
-                    foreach (var directive in properties)
+                    for (var d = 0; d < propertyDirectives.Count; d++)
                     {
+                        var directive = propertyDirectives[d];
                         var value = directive.Target.ResolveWithin(context);
                         directive.Injector(instance, value);
                     }
@@ -130,10 +148,9 @@ namespace Ninject.Activation.Strategies
             }
             else
             {
-                // Check if there are any property parameters (for which we have not found a corresponding property)
-                if (propertyParameters.Count > 0)
+                if (propertyValues.Count > 0)
                 {
-                    throw new ActivationException(this.exceptionFormatter.CouldNotResolvePropertyForValueInjection(context.Request, propertyParameters[0].Name));
+                    AssignPropertyValueOverrides(context, instance, propertyValues);
                 }
             }
 
@@ -147,7 +164,34 @@ namespace Ninject.Activation.Strategies
         {
         }
 
-        private static List<IPropertyValue> GetPropertyParameters(IContext context)
+        /// <summary>
+        /// Applies user supplied override values to instance properties.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="instance">The instance being activated.</param>
+        /// <param name="propertyValues">The parameter override value accessors.</param>
+        /// <exception cref="ActivationException">A given <see cref="IPropertyValue"/> cannot be resolved to a property of the specified instance.</exception>
+        private void AssignPropertyValueOverrides(IContext context, object instance, List<IPropertyValue> propertyValues)
+        {
+            var properties = new List<PropertyInfo>(this.propertyReflectionSelector.Select(instance.GetType()));
+
+            for (var v = 0; v < propertyValues.Count; v++)
+            {
+                var propertyValue = propertyValues[v];
+
+                var propertyInfo = FindPropertyByName(properties, propertyValue.Name, StringComparison.Ordinal);
+                if (propertyInfo == null)
+                {
+                    throw new ActivationException(this.exceptionFormatter.CouldNotResolvePropertyForValueInjection(context.Request, propertyValue.Name));
+                }
+
+                var target = new PropertyInjectionDirective(propertyInfo, this.injectorFactory.Create(propertyInfo));
+                var value = propertyValue.GetValue(context, target.Target);
+                target.Injector(instance, value);
+            }
+        }
+
+        private static List<IPropertyValue> GetPropertyValues(IContext context)
         {
             var parameters = context.Parameters;
             if (parameters.Count == 0)
@@ -157,9 +201,9 @@ namespace Ninject.Activation.Strategies
 
             var propertyParameters = new List<IPropertyValue>();
 
-            foreach (var parameter in parameters)
+            for (var p = 0; p < parameters.Count; p++)
             {
-                var propertyValue = parameter as IPropertyValue;
+                var propertyValue = parameters[p] as IPropertyValue;
                 if (propertyValue != null)
                 {
                     propertyParameters.Add(propertyValue);
@@ -167,6 +211,33 @@ namespace Ninject.Activation.Strategies
             }
 
             return propertyParameters;
+        }
+
+        /// <summary>
+        /// Locates a <see cref="PropertyInfo"/> by name using the specified <see cref="StringComparison"/>.
+        /// </summary>
+        /// <param name="properties">The list of properties to search.</param>
+        /// <param name="name">The name to find.</param>
+        /// <param name="stringComparison">The <see cref="StringComparison"/> to use when comparing the name.</param>
+        /// <returns>
+        /// The <see cref="PropertyInfo"/> with a matching <see cref="IParameter.Name"/>, if found; otherwise,
+        /// <see langword="null"/>.
+        /// </returns>
+        private static PropertyInfo FindPropertyByName(List<PropertyInfo> properties, string name, StringComparison stringComparison)
+        {
+            PropertyInfo found = null;
+
+            for (var p = 0; p < properties.Count; p++)
+            {
+                var property = properties[p];
+                if (string.Equals(property.Name, name, stringComparison))
+                {
+                    found = property;
+                    break;
+                }
+            }
+
+            return found;
         }
     }
 }

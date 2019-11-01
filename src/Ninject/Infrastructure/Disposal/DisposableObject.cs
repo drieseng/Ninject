@@ -68,7 +68,6 @@ namespace Ninject.Infrastructure.Disposal
                     this.IsDisposed = true;
                     this.Disposed?.Invoke(this, EventArgs.Empty);
                     this.Disposed = null;
-                    GC.SuppressFinalize(this);
                 }
             }
         }

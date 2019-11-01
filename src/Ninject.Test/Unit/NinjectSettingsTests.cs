@@ -85,6 +85,7 @@ namespace Ninject.Test.Unit
             Assert.False(_settings.InjectNonPublic);
         }
 
+#if false
         [Fact]
         public void InjectParentPrivateProperties()
         {
@@ -104,6 +105,7 @@ namespace Ninject.Test.Unit
             _settings.ActivationCacheDisabled = false;
             Assert.False(_settings.ActivationCacheDisabled);
         }
+#endif
 
         [Fact]
         public void AllowNullInjection()

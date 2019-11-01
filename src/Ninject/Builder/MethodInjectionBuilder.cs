@@ -22,29 +22,51 @@
 namespace Ninject.Builder
 {
     using System;
-
+    using System.Collections.Generic;
     using Ninject.Activation.Providers;
     using Ninject.Activation.Strategies;
     using Ninject.Builder.Syntax;
     using Ninject.Planning.Strategies;
     using Ninject.Selection;
 
-    internal class MethodInjectionBuilder : IComponentBuilder, IMethodSelectorSyntax
+    internal class MethodInjectionBuilder : IMethodInjectionBuilder
     {
         private IComponentBuilder selectorBuilder;
 
-        public void Build(IComponentBindingRoot root)
+        public MethodInjectionBuilder(IComponentBindingRoot componentBindingRoot, IDictionary<string, object> properties)
+        {
+            this.Components = componentBindingRoot;
+            this.Properties = properties;
+        }
+
+        /// <summary>
+        /// Gets the root of the component bindings.
+        /// </summary>
+        /// <value>
+        /// The root of the component binding.
+        /// </value>
+        public IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        public IDictionary<string, object> Properties { get; }
+
+        public void Build()
         {
             if (this.selectorBuilder == null)
             {
                 throw new Exception("Please configure a selector.");
             }
 
-            this.selectorBuilder.Build(root);
+            this.selectorBuilder.Build(this.Components);
 
-            root.Bind<IPlanningStrategy>().To<MethodReflectionStrategy>();
-            root.Bind<IInitializationStrategy>().To<MethodInjectionStrategy>();
-            root.Bind<IMethodParameterValueProvider>().To<MethodParameterValueProvider>();
+            this.Components.Bind<IPlanningStrategy>().To<MethodReflectionStrategy>();
+            this.Components.Bind<IInitializationStrategy>().To<MethodInjectionStrategy>();
+            this.Components.Bind<IMethodParameterValueProvider>().To<MethodParameterValueProvider>();
         }
 
         public IMethodInjectionHeuristicsSyntax Selector(Action<IMethodReflectionSelectorBuilder> selector)

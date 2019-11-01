@@ -1,12 +1,13 @@
-﻿namespace Ninject.Builder
+﻿using System.Collections.Generic;
+
+namespace Ninject.Builder
 {
     internal class FeatureBuilder : IFeatureBuilder
     {
-        private readonly ComponentBindingRoot componentRoot;
-
-        public FeatureBuilder()
+        public FeatureBuilder(IComponentBindingRoot components)
         {
-            this.componentRoot = new ComponentBindingRoot();
+            this.Components = components;
+            this.Properties = new Dictionary<string, object>();
         }
 
         /// <summary>
@@ -15,9 +16,14 @@
         /// <value>
         /// The root of the component binding.
         /// </value>
-        public IComponentBindingRoot Components
-        {
-            get { return this.componentRoot; }
-        }
+        public IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        public IDictionary<string, object> Properties { get; }
     }
 }

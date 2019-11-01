@@ -21,6 +21,8 @@
 
 namespace Ninject.Activation
 {
+    using System;
+
     using Ninject.Activation.Strategies;
 
     /// <summary>
@@ -39,6 +41,13 @@ namespace Ninject.Activation
         public object Initialize(IContext context, object instance)
         {
             return instance;
+        }
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        void IDisposable.Dispose()
+        {
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="IBindingSyntax.cs" company="Ninject Project Contributors">
+// <copyright file="IMethodInjectionBuilder.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -19,18 +19,27 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-namespace Ninject.Syntax
+namespace Ninject.Builder
 {
-    using Ninject.Planning.Bindings;
+    using Ninject.Builder.Syntax;
+    using System.Collections.Generic;
 
-    /// <summary>
-    /// Used to define a basic binding syntax builder.
-    /// </summary>
-    public interface IBindingSyntax : IFluentSyntax
+    public interface IMethodInjectionBuilder : IMethodSelectorSyntax
     {
         /// <summary>
-        /// Gets the binding.
+        /// Gets the root of the component bindings.
         /// </summary>
-        IBindingConfiguration BindingConfiguration { get; }
+        /// <value>
+        /// The root of the component binding.
+        /// </value>
+        IComponentBindingRoot Components { get; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        IDictionary<string, object> Properties { get; }
     }
 }

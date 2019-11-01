@@ -1,66 +1,56 @@
 ﻿namespace Ninject.Tests.Unit.Selection
 {
-    using Moq;
     using Ninject.Selection;
     using Ninject.Tests.Fakes;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Reflection;
     using Xunit;
 
     public class PropertyReflectionSelectorTests
     {
-        private Mock<IPropertyInjectionHeuristic> _injectionHeuristicMock1;
-        private Mock<IPropertyInjectionHeuristic> _injectionHeuristicMock2;
-        private PropertyReflectionSelector _selector;
-
-        public PropertyReflectionSelectorTests()
-        {
-            _injectionHeuristicMock1 = new Mock<IPropertyInjectionHeuristic>(MockBehavior.Strict);
-            _injectionHeuristicMock2 = new Mock<IPropertyInjectionHeuristic>(MockBehavior.Strict);
-            _selector = new PropertyReflectionSelector(new IPropertyInjectionHeuristic[] { _injectionHeuristicMock1.Object, _injectionHeuristicMock2.Object });
-        }
-
-        [Fact]
-        public void Constructor_ShouldThrowArgumentNullExceptionWhenInjectionHeuristicsIsNull()
-        {
-            const IEnumerable<IPropertyInjectionHeuristic> injectionHeuristics = null;
-
-            var actual = Assert.Throws<ArgumentNullException>(() => new PropertyReflectionSelector(injectionHeuristics));
-
-            Assert.Null(actual.InnerException);
-            Assert.Equal(nameof(injectionHeuristics), actual.ParamName);
-        }
-
-        [Fact]
-        public void InjectNonPublicShouldBeFalseByDefault()
-        {
-            Assert.False(_selector.InjectNonPublic);
-        }
-
         [Fact]
         public void InjectNonPublicShouldReturnValueThatIsSet()
         {
-            _selector.InjectNonPublic = true;
-            Assert.True(_selector.InjectNonPublic);
-            _selector.InjectNonPublic = false;
-            Assert.False(_selector.InjectNonPublic);
+            PropertyReflectionSelector selector;
+            
+            selector = new PropertyReflectionSelector(true);
+            Assert.True(selector.InjectNonPublic);
+
+            selector = new PropertyReflectionSelector(false);
+            Assert.False(selector.InjectNonPublic);
         }
 
         [Fact]
         public void Select_ShouldThrowArgumentNullExceptionWhenTypeIsNull()
         {
             const Type type = null;
+            var selector = new PropertyReflectionSelector(true);
 
-            var actual = Assert.Throws<ArgumentNullException>(() => _selector.Select(type));
+            var actual = Assert.Throws<ArgumentNullException>(() => selector.Select(type));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(type), actual.ParamName);
         }
 
         [Fact]
-        public void Select_InjectNonPublicIsTrue_ShouldReturnPublicAndNonPublicInstanceMethodsThatAreEligibleForInjection()
+        public void Select_InjectNonPublicIsTrue_ShouldNotSelectPropertiesThatHaveNoSetter()
+        {
+            #region Arrange
+
+            var type = typeof(MyService);
+            var enabledProperty = type.GetProperty(nameof(MyService.Enabled), BindingFlags.Public | BindingFlags.Instance);
+            var selector = new PropertyReflectionSelector(true);
+
+            #endregion Arrange
+
+            var actual = new List<PropertyInfo>(selector.Select(type));
+
+            Assert.DoesNotContain(enabledProperty, actual);
+        }
+
+        [Fact]
+        public void Select_InjectNonPublicIsTrue_ShouldReturnPublicAndNonPublicInstanceProperties()
         {
             #region Arrange
 
@@ -68,85 +58,55 @@
             var weaponProperty = type.GetProperty("Weapon", BindingFlags.NonPublic | BindingFlags.Instance);
             var idProperty = type.GetProperty("Id", BindingFlags.NonPublic | BindingFlags.Instance);
             var nameProperty = type.GetProperty("Name", BindingFlags.NonPublic | BindingFlags.Instance);
-            var activeProperty = type.GetProperty("Active", BindingFlags.Public | BindingFlags.Instance);
-            var enabledProperty = type.GetProperty("Enabled", BindingFlags.Public | BindingFlags.Instance);
             var visibleProperty = type.GetProperty("Visible", BindingFlags.Public | BindingFlags.Instance);
             var stopProperty = type.GetProperty("Stop", BindingFlags.Public | BindingFlags.Instance);
-
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(weaponProperty))
-                                    .Returns(true);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(idProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(idProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(nameProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(nameProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(enabledProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(enabledProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(visibleProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(visibleProperty))
-                                    .Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(stopProperty))
-                                    .Returns(true);
-
-            _selector.InjectNonPublic = true;
+            var selector = new PropertyReflectionSelector(true);
 
             #endregion Arrange
 
-            var actual = _selector.Select(type);
+            var actual = new List<PropertyInfo>(selector.Select(type));
 
-            var actualList = actual.ToList();
-
-            Assert.Equal(2, actualList.Count);
-            Assert.Contains(weaponProperty, actualList);
-            Assert.Contains(stopProperty, actualList);
-
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(weaponProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(idProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(idProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(nameProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(nameProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(enabledProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(enabledProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(visibleProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(visibleProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(stopProperty), Times.Once);
+            Assert.Equal(5, actual.Count);
+            Assert.Contains(weaponProperty, actual);
+            Assert.Contains(idProperty, actual);
+            Assert.Contains(nameProperty, actual);
+            Assert.Contains(visibleProperty, actual);
+            Assert.Contains(stopProperty, actual);
         }
 
         [Fact]
-        public void Select_InjectNonPublicIsFalse_ShouldReturnPublicPropertiesDeclaradOnSpecifiedTypeThatAreEligibleForInjection()
+        public void Select_InjectNonPublicIsFalse_ShouldNotSelectPropertiesThatHaveNoSetter()
         {
             #region Arrange
 
             var type = typeof(MyService);
             var enabledProperty = type.GetProperty("Enabled", BindingFlags.Public | BindingFlags.Instance);
-            var visibleProperty = type.GetProperty("Visible", BindingFlags.Public | BindingFlags.Instance);
-            var stopProperty = type.GetProperty("Stop", BindingFlags.Public | BindingFlags.Instance);
-
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(enabledProperty)).Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(enabledProperty)).Returns(false);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(stopProperty)).Returns(true);
-            _injectionHeuristicMock1.Setup(p => p.ShouldInject(visibleProperty)).Returns(false);
-            _injectionHeuristicMock2.Setup(p => p.ShouldInject(visibleProperty)).Returns(true);
+            var selector = new PropertyReflectionSelector(false);
 
             #endregion Arrange
 
-            var actual = _selector.Select(type).ToList();
+            var actual = new List<PropertyInfo>(selector.Select(type));
+
+            Assert.DoesNotContain(enabledProperty, actual);
+        }
+
+        [Fact]
+        public void Select_InjectNonPublicIsFalse_ShouldReturnPublicPropertiesDeclaredOnSpecifiedType()
+        {
+            #region Arrange
+
+            var type = typeof(MyService);
+            var visibleProperty = type.GetProperty("Visible", BindingFlags.Public | BindingFlags.Instance);
+            var stopProperty = type.GetProperty("Stop", BindingFlags.Public | BindingFlags.Instance);
+            var selector = new PropertyReflectionSelector(false);
+
+            #endregion Arrange
+
+            var actual = new List<PropertyInfo>(selector.Select(type));
 
             Assert.Equal(2, actual.Count);
             Assert.Contains(stopProperty, actual);
             Assert.Contains(visibleProperty, actual);
-
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(enabledProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(stopProperty), Times.Once);
-            _injectionHeuristicMock1.Verify(p => p.ShouldInject(visibleProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(enabledProperty), Times.Once);
-            _injectionHeuristicMock2.Verify(p => p.ShouldInject(visibleProperty), Times.Once);
         }
 
         public class MyService
@@ -186,7 +146,7 @@
                 set { }
             }
 
-            internal string Name { get; }
+            internal string Name { get; private set; }
 
             public bool Enabled { get; }
 

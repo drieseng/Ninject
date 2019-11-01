@@ -21,10 +21,9 @@
 
 namespace Ninject.Activation
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-
+    using Ninject.Activation.Caching;
     using Ninject.Activation.Strategies;
     using Ninject.Syntax;
 
@@ -53,8 +52,8 @@ namespace Ninject.Activation
 
             return new DefaultPipeline(
                 CreatePipelineInitializer(initializationStrategies),
-                CreatePipelineActivator(activationStrategies),
-                CreatePipelineDeactivator(deactivationStrategies));
+                CreatePipelineActivator(root, activationStrategies),
+                CreatePipelineDeactivator(root, deactivationStrategies));
         }
 
         private static IPipelineInitializer CreatePipelineInitializer(List<IInitializationStrategy> initializationStrategies)
@@ -67,21 +66,31 @@ namespace Ninject.Activation
             return new NoOpPipelineInitializer();
         }
 
-        private static IPipelineActivator CreatePipelineActivator(List<IActivationStrategy> activationStrategies)
+        private static IPipelineActivator CreatePipelineActivator(IResolutionRoot root, List<IActivationStrategy> activationStrategies)
         {
             if (activationStrategies.Count > 0)
             {
-                return new PipelineActivator(activationStrategies);
+                // If any activation strategy is defined, make sure to register the ActivationCacheStrategy as
+                // first in the activation pipeline so that the activation is registered even in case one of the
+                // strategies throw
+                activationStrategies.Insert(0, root.Get<ActivationCacheStrategy>());
+
+                return new PipelineActivator(activationStrategies, root.Get<IActivationCache>());
             }
 
             return new NoOpPipelineActivator();
         }
 
-        private static IPipelineDeactivator CreatePipelineDeactivator(List<IDeactivationStrategy> deactivationStrategies)
+        private static IPipelineDeactivator CreatePipelineDeactivator(IResolutionRoot root, List<IDeactivationStrategy> deactivationStrategies)
         {
             if (deactivationStrategies.Count > 0)
             {
-                return new PipelineDeactivator(deactivationStrategies);
+                // If any deactivation strategy is defined, make sure to register the DeactivationCacheStrategy as
+                // first in the deactivation pipeline so that the deactivation is registered even in case one of the
+                // strategies throw
+                deactivationStrategies.Insert(0, root.Get<DeactivationCacheStrategy>());
+
+                return new PipelineDeactivator(deactivationStrategies, root.Get<IActivationCache>());
             }
 
             return new NoOpPipelineDeactivator();

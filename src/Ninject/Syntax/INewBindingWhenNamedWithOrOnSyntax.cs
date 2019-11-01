@@ -1,7 +1,7 @@
 ﻿namespace Ninject.Syntax
 {
     using System;
-
+    using System.Reflection;
     using Ninject.Activation;
     using Ninject.Parameters;
     using Ninject.Planning.Targets;
@@ -152,7 +152,7 @@
         /// <param name="name">The name of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenNamedWithOrOnSyntax<T> WithConstructorArgument(string name, Func<IContext, ITarget<IConstructorArgument>, object> callback);
+        INewBindingWhenNamedWithOrOnSyntax<T> WithConstructorArgument(string name, Func<IContext, ITarget<ParameterInfo>, object> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -192,7 +192,7 @@
         /// <typeparam name="TValue">The type of the argument to override.</typeparam>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenNamedWithOrOnSyntax<T> WithConstructorArgument<TValue>(Func<IContext, ITarget<IConstructorArgument>, TValue> callback);
+        INewBindingWhenNamedWithOrOnSyntax<T> WithConstructorArgument<TValue>(Func<IContext, ITarget<ParameterInfo>, TValue> callback);
 
         /// <summary>
         /// Indicates that the specified constructor argument should be overridden with the specified value.
@@ -200,7 +200,7 @@
         /// <param name="type">The type of the argument to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the argument.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenNamedWithOrOnSyntax<T> WithConstructorArgument(Type type, Func<IContext, ITarget<IConstructorArgument>, object> callback);
+        INewBindingWhenNamedWithOrOnSyntax<T> WithConstructorArgument(Type type, Func<IContext, ITarget<ParameterInfo>, object> callback);
 
         /// <summary>
         /// Indicates that the specified property should be injected with the specified value.
@@ -224,7 +224,7 @@
         /// <param name="name">The name of the property to override.</param>
         /// <param name="callback">The callback to invoke to get the value for the property.</param>
         /// <returns>The fluent syntax.</returns>
-        INewBindingWhenNamedWithOrOnSyntax<T> WithPropertyValue(string name, Func<IContext, ITarget<IPropertyValue>, object> callback);
+        INewBindingWhenNamedWithOrOnSyntax<T> WithPropertyValue(string name, Func<IContext, ITarget<PropertyInfo>, object> callback);
 
         /// <summary>
         /// Adds a custom parameter to the binding.

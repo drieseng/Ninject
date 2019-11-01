@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Ninject.Builder;
 using Ninject.Parameters;
 using Ninject.Tests.Fakes;
 using System;
@@ -9,26 +10,13 @@ namespace Ninject.Tests.Integration
 {
     public class ReadOnlyKernelTests
     {
-        public class WhenTryGetIsCalledForUnboundService
+        public class WhenTryGetIsCalledForUnboundServiceAndSelfBindingIsRegistered
         {
-            private static IKernelConfiguration CreateConfiguration()
-            {
-                var settings = new NinjectSettings
-                    {
-                        // Disable to reduce memory pressure
-                        ActivationCacheDisabled = true,
-                        LoadExtensions = false,
-                    };
-                return new KernelConfiguration(settings);
-            }
-
             [Fact]
             public void TryGetOfT_Parameters_ImplicitSelfBindingIsRegisteredAndActivatedIfTypeIsSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet<Sword>();
                     weapon.Should().NotBeNull();
                     weapon.Should().BeOfType<Sword>();
@@ -42,10 +30,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfTypeIsNotSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet<IWeapon>();
                     weapon.Should().BeNull();
 
@@ -57,12 +43,11 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfTypeHasOnlyUnmetConditionalBindings()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b => b.Bind<IWeapon>().To<Sword>().When(ctx => false));
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().When(ctx => false);
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet<IWeapon>();
                     weapon.Should().BeNull();
 
@@ -74,12 +59,11 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfNoBindingForADependencyExists()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b => b.Bind<IWarrior>().To<Samurai>());
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet<IWarrior>();
                     warrior.Should().BeNull();
 
@@ -91,14 +75,16 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfMultipleBindingsExistForADependency()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWarrior>().To<Samurai>();
+                                                               b.Bind<IWeapon>().To<Sword>();
+                                                               b.Bind<IWeapon>().To<Shuriken>();
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>();
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet<IWarrior>();
                     warrior.Should().BeNull();
 
@@ -110,13 +96,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfOnlyUnmetConditionalBindingsExistForADependency()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWarrior>().To<Samurai>();
+                                                               b.Bind<IWeapon>().To<Sword>().When(ctx => false);
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>();
-                    configuration.Bind<IWeapon>().To<Sword>().When(ctx => false);
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet<IWarrior>();
                     warrior.Should().BeNull();
 
@@ -128,10 +116,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_NameAndParameters_ReturnsNullWhenNoMatchingBindingExistsAndRegistersImplicitSelfBindingIfTypeIsSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet<Sword>("a", Array.Empty<IParameter>());
 
                     weapon.Should().BeNull();
@@ -145,10 +131,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullWhenNoMatchingBindingExistsAndRegistersImplicitSelfBindingIfTypeIsSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(typeof(Sword), "a", Array.Empty<IParameter>());
 
                     weapon.Should().BeNull();
@@ -162,10 +146,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfNoBindingExistsAndTypeIsNotSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(typeof(IWeapon), "a", Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -177,12 +159,11 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfNoMatchingBindingExistsAndTypeIsNotSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b => b.Bind<IWeapon>().To<Sword>().Named("b"));
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("b");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(typeof(IWeapon), "a", Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -194,12 +175,11 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfTypeHasOnlyUnmetConditionalBindings()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b => b.Bind<IWeapon>().To<Sword>().When(ctx => false).Named("a"));
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().When(ctx => false).Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(typeof(IWeapon), "a", Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -211,12 +191,11 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfNoBindingForADependencyExists()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b => b.Bind<IWarrior>().To<Samurai>().Named("a"));
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet(typeof(IWarrior), "a", Array.Empty<IParameter>());
                     warrior.Should().BeNull();
 
@@ -228,14 +207,16 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfMultipleBindingsExistForADependency()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWarrior>().To<Samurai>().Named("a");
+                                                               b.Bind<IWeapon>().To<Sword>();
+                                                               b.Bind<IWeapon>().To<Shuriken>();
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>().Named("a");
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet(typeof(IWarrior), "a", Array.Empty<IParameter>());
                     warrior.Should().BeNull();
 
@@ -247,13 +228,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfOnlyUnmetConditionalBindingsExistForADependency()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWarrior>().To<Samurai>();
+                                                               b.Bind<IWeapon>().To<Sword>().When(ctx => false);
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>();
-                    configuration.Bind<IWeapon>().To<Sword>().When(ctx => false);
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet(typeof(IWarrior), (metadata) => true, Array.Empty<IParameter>());
                     warrior.Should().BeNull();
 
@@ -265,10 +248,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ImplicitSelfBindingIsRegisteredAndActivatedIfTypeIsSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(typeof(Sword), (metadata) => true, Array.Empty<IParameter>());
                     weapon.Should().NotBeNull();
                     weapon.Should().BeOfType<Sword>();
@@ -281,10 +262,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfTypeIsNotSelfBindable()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(typeof(IWeapon), (metadata) => true, Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -296,12 +275,11 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfTypeHasOnlyUnmetConditionalBindings()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b => b.Bind<IWeapon>().To<Sword>().When(ctx => false));
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().When(ctx => false);
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(typeof(IWeapon), (metadata) => true, Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -313,12 +291,11 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfNoBindingForADependencyExists()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b => b.Bind<IWarrior>().To<Samurai>());
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet(typeof(IWarrior), (metadata) => true, Array.Empty<IParameter>());
                     warrior.Should().BeNull();
 
@@ -330,14 +307,17 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfMultipleBindingsExistForADependency()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWarrior>().To<Samurai>();
+                                                               b.Bind<IWeapon>().To<Sword>();
+                                                               b.Bind<IWeapon>().To<Shuriken>();
+
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>();
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet(typeof(IWarrior), (metadata) => true, Array.Empty<IParameter>());
                     warrior.Should().BeNull();
 
@@ -349,13 +329,16 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfOnlyUnmetConditionalBindingsExistForADependency()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWarrior>().To<Samurai>();
+                                                               b.Bind<IWeapon>().To<Sword>().When(ctx => false);
+
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWarrior>().To<Samurai>();
-                    configuration.Bind<IWeapon>().To<Sword>().When(ctx => false);
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var warrior = kernel.TryGet(typeof(IWarrior), (metadata) => true, Array.Empty<IParameter>());
                     warrior.Should().BeNull();
 
@@ -367,27 +350,18 @@ namespace Ninject.Tests.Integration
 
         public class WhenTryGetIsCalledForServiceWithMultipleBindingsOfSameWeight
         {
-            private static IKernelConfiguration CreateConfiguration()
-            {
-                var settings = new NinjectSettings
-                    {
-                        // Disable to reduce memory pressure
-                        ActivationCacheDisabled = true,
-                        LoadExtensions = false,
-                    };
-                return new KernelConfiguration(settings);
-            }
-
             [Fact]
             public void TryGetOfT_Parameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWeapon>().To<Sword>();
+                                                               b.Bind<IWeapon>().To<Shuriken>();
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet<IWeapon>(Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -399,13 +373,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_NameAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                       {
+                                                           b.Bind<IWeapon>().To<Sword>().Named("a");
+                                                           b.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                       });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet<IWeapon>("a", Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -417,13 +393,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_ConstraintAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWeapon>().To<Sword>().Named("a");
+                                                               b.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet<IWeapon>((metadata) => metadata.Name == "a", Array.Empty<IParameter>());
                     weapon.Should().BeNull();
 
@@ -437,13 +415,15 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWeapon>().To<Sword>();
+                                                               b.Bind<IWeapon>().To<Shuriken>();
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, Array.Empty<IParameter>());
 
                     weapon.Should().BeNull();
@@ -459,13 +439,15 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(Sword);
 
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<Sword>().To<Sword>().Named("a");
+                                                               b.Bind<Sword>().To<ShortSword>().Named("a");
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<Sword>().To<Sword>().Named("a");
-                    configuration.Bind<Sword>().To<ShortSword>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, "a", Array.Empty<IParameter>());
                     weapon.Should().NotBeNull();
                     weapon.Should().BeOfType<Sword>();
@@ -481,13 +463,15 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWeapon>().To<Sword>().Named("a");
+                                                               b.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, "a", Array.Empty<IParameter>());
                     weapon.Should().NotBeNull();
                     weapon.Should().BeOfType<Sword>();
@@ -503,14 +487,16 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(Sword);
 
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<Sword>().To<ShortSword>().Named("b");
+                                                               b.Bind<Sword>().To<Sword>().Named("a");
+                                                               b.Bind<Sword>().To<ShortSword>().Named("a");
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<Sword>().To<ShortSword>().Named("b");
-                    configuration.Bind<Sword>().To<Sword>().Named("a");
-                    configuration.Bind<Sword>().To<ShortSword>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
 
                     weapon.Should().NotBeNull();
@@ -527,13 +513,15 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWeapon>().To<Sword>().Named("a");
+                                                               b.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
 
                     weapon.Should().NotBeNull();
@@ -550,13 +538,15 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWeapon>().To<Sword>().Named("b");
+                                                               b.Bind<IWeapon>().To<ShortSword>().Named("b");
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("b");
-                    configuration.Bind<IWeapon>().To<ShortSword>().Named("b");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
 
                     weapon.Should().BeNull();
@@ -570,37 +560,28 @@ namespace Ninject.Tests.Integration
 
         public class WhenMoreThanOneBindingIsInvolvedToResolveService
         {
-            private static IKernelConfiguration CreateConfiguration(bool activationCacheDisabled)
-            {
-                var settings = new NinjectSettings
-                    {
-                        ActivationCacheDisabled = activationCacheDisabled,
-                        LoadExtensions = false,
-                        PropertyInjection = true
-                    };
-                return new KernelConfiguration(settings);
-            }
-
             [Fact]
             public void ActivationCacheIsDisabled_ActivationStrategiesAreExecutedForEachBindingWhenServicesAreBoundToSameScope()
             {
-                using (var configuration = CreateConfiguration(true))
+                var activations = new List<string>();
+
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction()))
+                                                       .Bindings(b =>
+                                                            {
+                                                                b.Bind<IWeapon>()
+                                                                 .To<Dagger>();
+                                                                b.Bind<StartableWihDependencies>()
+                                                                 .ToSelf()
+                                                                 .InSingletonScope()
+                                                                 .OnActivation((s) => activations.Add("ToSelf"));
+                                                                b.Bind<IStartableWihDependencies>()
+                                                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
+                                                                 .InSingletonScope()
+                                                                 .OnActivation((s) => activations.Add("ToMethod"));
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf()
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var singleton = kernel.Get<StartableWihDependencies>();
                     var singletonWeapon = singleton.Weapon;
 
@@ -624,22 +605,22 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsDisabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToDifferentScopeAndInstanceAlreadyExists()
             {
-                using (var configuration = CreateConfiguration(true))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction()))
+                                                       .Bindings(b =>
+                                                           {
+                                                               b.Bind<IWeapon>()
+                                                                .To<Dagger>();
+                                                               b.Bind<StartableWihDependencies>()
+                                                                .ToSelf()
+                                                                .InSingletonScope()
+                                                                .OnActivation((s) => activations.Add("ToSelf"));
+                                                               b.Bind<IStartableWihDependencies>()
+                                                                .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>());
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf()
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var singleton = kernel.Get<StartableWihDependencies>();
                     var weapon = singleton.Weapon;
 
@@ -662,22 +643,22 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsDisabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToDifferentScopeAndInstanceDoesNotExist()
             {
-                using (var configuration = CreateConfiguration(true))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction()))
+                                                       .Bindings(bindings =>
+                                                           {
+                                                               bindings.Bind<IWeapon>()
+                                                                       .To<Dagger>();
+                                                               bindings.Bind<StartableWihDependencies>()
+                                                                       .ToSelf()
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToSelf"));
+                                                               bindings.Bind<IStartableWihDependencies>()
+                                                                       .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>());
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf()
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var instance1 = kernel.Get<IStartableWihDependencies>();
                     var weapon = instance1.Weapon;
 
@@ -695,22 +676,23 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsDisabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToSameScopeAndInstanceAlreadyExists()
             {
-                using (var configuration = CreateConfiguration(true))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction()))
+                                                       .Bindings(bindings =>
+                                                           {
+                                                               bindings.Bind<IWeapon>()
+                                                                       .To<Dagger>();
+                                                               bindings.Bind<StartableWihDependencies>()
+                                                                       .ToSelf().InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToSelf"));
+                                                               bindings.Bind<IStartableWihDependencies>()
+                                                                       .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToMethod"));
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf().InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var singleton = kernel.Get<StartableWihDependencies>();
                     var weapon = singleton.Weapon;
 
@@ -733,16 +715,24 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsDisabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToSameScopeAndInstanceDoesNotExist()
             {
-                using (var configuration = CreateConfiguration(true))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction()))
+                                                       .Bindings(bindings =>
+                                                           {
+                                                               bindings.Bind<IWeapon>()
+                                                                       .To<Dagger>();
+                                                               bindings.Bind<StartableWihDependencies>()
+                                                                       .ToSelf()
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToSelf"));
+                                                               bindings.Bind<IStartableWihDependencies>()
+                                                                       .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToMethod"));
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>().To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>().ToSelf().InSingletonScope().OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>().ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>()).InSingletonScope().OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var instance1 = kernel.Get<IStartableWihDependencies>();
                     var weapon = instance1.Weapon;
 
@@ -760,23 +750,24 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsEnabled_ActivationStrategiesAreExecutedOnceWhenServiceIsBoundInSameScope()
             {
-                using (var configuration = CreateConfiguration(false))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction().Startable()))
+                                                       .Bindings(bindings =>
+                                                           {
+                                                               bindings.Bind<IWeapon>()
+                                                                       .To<Dagger>();
+                                                               bindings.Bind<StartableWihDependencies>()
+                                                                       .ToSelf()
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToSelf"));
+                                                               bindings.Bind<IStartableWihDependencies>()
+                                                                       .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToMethod"));
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf()
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var singleton = kernel.Get<StartableWihDependencies>();
                     var weapon = singleton.Weapon;
 
@@ -799,22 +790,22 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsEnabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToDifferentScopeAndInstanceAlreadyExists()
             {
-                using (var configuration = CreateConfiguration(false))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction().Startable()))
+                                                       .Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>()
+                                                                        .To<Dagger>();
+                                                                bindings.Bind<StartableWihDependencies>()
+                                                                        .ToSelf()
+                                                                        .InSingletonScope()
+                                                                        .OnActivation((s) => activations.Add("ToSelf"));
+                                                                bindings.Bind<IStartableWihDependencies>()
+                                                                        .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>());
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf()
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var singleton = kernel.Get<StartableWihDependencies>();
                     var weapon = singleton.Weapon;
 
@@ -837,22 +828,22 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsEnabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToDifferentScopeAndInstanceDoesNotExist()
             {
-                using (var configuration = CreateConfiguration(false))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction().Startable()))
+                                                       .Bindings(bindings =>
+                                                           {
+                                                               bindings.Bind<IWeapon>()
+                                                                       .To<Dagger>();
+                                                               bindings.Bind<StartableWihDependencies>()
+                                                                       .ToSelf()
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToSelf"));
+                                                               bindings.Bind<IStartableWihDependencies>()
+                                                                       .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>());
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf()
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var instance1 = kernel.Get<IStartableWihDependencies>();
                     var weapon = instance1.Weapon;
 
@@ -870,22 +861,24 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsEnabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToSameScopeAndInstanceAlreadyExists()
             {
-                using (var configuration = CreateConfiguration(false))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction().Startable()))
+                                                       .Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>()
+                                                                        .To<Dagger>();
+                                                                bindings.Bind<StartableWihDependencies>()
+                                                                        .ToSelf()
+                                                                        .InSingletonScope()
+                                                                        .OnActivation((s) => activations.Add("ToSelf"));
+                                                                bindings.Bind<IStartableWihDependencies>()
+                                                                        .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
+                                                                        .InSingletonScope()
+                                                                        .OnActivation((s) => activations.Add("ToMethod"));
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>()
-                                 .To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>()
-                                 .ToSelf().InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>()
-                                 .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
-                                 .InSingletonScope()
-                                 .OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var singleton = kernel.Get<StartableWihDependencies>();
                     var weapon = singleton.Weapon;
 
@@ -908,16 +901,24 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void ActivationCacheIsEnabled_ActivationStrategiesAreOnlyExecutedForContextInWhichInstanceIsFirstActivatedWhenServiceIsBoundToSameScopeAndInstanceDoesNotExist()
             {
-                using (var configuration = CreateConfiguration(false))
+                var activations = new List<string>();
+                var kernelBuilder = new KernelBuilder().Features(f => f.Activation(a => a.BindingAction().Startable()))
+                                                       .Bindings(bindings =>
+                                                           {
+                                                               bindings.Bind<IWeapon>()
+                                                                       .To<Dagger>();
+                                                               bindings.Bind<StartableWihDependencies>()
+                                                                       .ToSelf()
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToSelf"));
+                                                               bindings.Bind<IStartableWihDependencies>()
+                                                                       .ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>())
+                                                                       .InSingletonScope()
+                                                                       .OnActivation((s) => activations.Add("ToMethod"));
+                                                           });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    var activations = new List<string>();
-
-                    configuration.Bind<IWeapon>().To<Dagger>();
-                    configuration.Bind<StartableWihDependencies>().ToSelf().InSingletonScope().OnActivation((s) => activations.Add("ToSelf"));
-                    configuration.Bind<IStartableWihDependencies>().ToMethod(ctx => ctx.Kernel.Get<StartableWihDependencies>()).InSingletonScope().OnActivation((s) => activations.Add("ToMethod"));
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var instance1 = kernel.Get<IStartableWihDependencies>();
                     var weapon = instance1.Weapon;
 
@@ -949,27 +950,17 @@ namespace Ninject.Tests.Integration
 
         public class WhenTryGetIsCalledForBoundListOfServices
         {
-            private static IKernelConfiguration CreateConfiguration()
-            {
-                var settings = new NinjectSettings
-                    {
-                        // Disable to reduce memory pressure
-                        ActivationCacheDisabled = true,
-                        LoadExtensions = false,
-                    };
-                return new KernelConfiguration(settings);
-            }
-
             [Fact]
             public void TryGetOfT_Parameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>().To<Sword>();
+                                                                bindings.Bind<IWeapon>().To<Shuriken>();
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>(Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().HaveCount(2);
@@ -979,14 +970,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ShouldPreferBindingForList()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>().To<Sword>();
+                                                                bindings.Bind<IWeapon>().To<Shuriken>();
+                                                                bindings.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() });
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() });
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>(Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().HaveCount(1);
@@ -997,14 +989,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_NameAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>().To<Dagger>().Named("b");
+                                                                bindings.Bind<IWeapon>().To<Sword>().Named("a");
+                                                                bindings.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Dagger>().Named("b");
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>("a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().HaveCount(3);
@@ -1017,15 +1010,16 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_NameAndParameters_ShouldPreferBindingForList()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>().To<Sword>().Named("a");
+                                                                bindings.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                                bindings.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Sword() }).Named("b");
+                                                                bindings.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() }).Named("a");
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Sword() }).Named("b");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() }).Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>("a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().HaveCount(1);
@@ -1039,14 +1033,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_ConstraintAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>().To<Dagger>().Named("b");
+                                                                bindings.Bind<IWeapon>().To<Sword>().Named("a");
+                                                                bindings.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Dagger>().Named("b");
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>((metadata) => metadata.Name == "a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().HaveCount(3);
@@ -1059,15 +1054,16 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_ConstraintAndParameters_ShouldPreferBindingForList()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>().To<Sword>().Named("a");
+                                                                bindings.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                                bindings.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Sword() }).Named("b");
+                                                                bindings.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() }).Named("a");
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Sword() }).Named("b");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() }).Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>((metadata) => metadata.Name == "a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().HaveCount(1);
@@ -1078,17 +1074,17 @@ namespace Ninject.Tests.Integration
                 }
             }
 
-
             [Fact]
             public void TryGet_ServiceAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                                    {
+                                                                        bindings.Bind<IWeapon>().To<Sword>();
+                                                                        bindings.Bind<IWeapon>().To<Shuriken>();
+                                                                    });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1104,14 +1100,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndParameters_ShouldPreferBindingForList()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>().To<Sword>();
+                                                                bindings.Bind<IWeapon>().To<Shuriken>();
+                                                                bindings.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() });
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>();
-                    configuration.Bind<IWeapon>().To<Shuriken>();
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() });
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1128,14 +1125,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                                    {
+                                                                        bindings.Bind<IWeapon>().To<Dagger>().Named("b");
+                                                                        bindings.Bind<IWeapon>().To<Sword>().Named("a");
+                                                                        bindings.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                                    });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Dagger>().Named("b");
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), "a", Array.Empty<IParameter>());
 
                     weapons.Should().NotBeNull();
@@ -1152,15 +1150,24 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ShouldPreferBindingForList()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                            {
+                                                                bindings.Bind<IWeapon>()
+                                                                        .To<Sword>()
+                                                                        .Named("a");
+                                                                bindings.Bind<IWeapon>()
+                                                                        .To<Shuriken>()
+                                                                        .Named("a");
+                                                                bindings.Bind<List<IWeapon>>()
+                                                                        .ToMethod(c => new List<IWeapon> { new Sword() })
+                                                                        .Named("b");
+                                                                bindings.Bind<List<IWeapon>>()
+                                                                        .ToMethod(c => new List<IWeapon> { new Dagger() })
+                                                                        .Named("a");
+                                                            });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Sword() }).Named("b");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() }).Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), "a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1178,14 +1185,15 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                                    {
+                                                                        bindings.Bind<IWeapon>().To<Dagger>().Named("b");
+                                                                        bindings.Bind<IWeapon>().To<Sword>().Named("a");
+                                                                        bindings.Bind<IWeapon>().To<Shuriken>().Named("a");
+                                                                    });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Dagger>().Named("b");
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1201,15 +1209,24 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ShouldPreferBindingForList()
             {
-                using (var configuration = CreateConfiguration())
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                                    {
+                                                                        bindings.Bind<IWeapon>()
+                                                                                .To<Sword>()
+                                                                                .Named("a");
+                                                                        bindings.Bind<IWeapon>()
+                                                                                .To<Shuriken>()
+                                                                                .Named("a");
+                                                                        bindings.Bind<List<IWeapon>>()
+                                                                                .ToMethod(c => new List<IWeapon> { new Sword() })
+                                                                                .Named("b");
+                                                                        bindings.Bind<List<IWeapon>>()
+                                                                                .ToMethod(c => new List<IWeapon> { new Dagger() })
+                                                                                .Named("a");
+                                                                    });
+
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<IWeapon>().To<Sword>().Named("a");
-                    configuration.Bind<IWeapon>().To<Shuriken>().Named("a");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Sword() }).Named("b");
-                    configuration.Bind<List<IWeapon>>().ToMethod(c => new List<IWeapon> { new Dagger() }).Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1227,13 +1244,15 @@ namespace Ninject.Tests.Integration
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullWhenTypeIsUnboundGenericTypeDefinition()
             {
                 var service = typeof(List<>);
+                var kernelBuilder = new KernelBuilder().Bindings(bindings =>
+                                                                    {
+                                                                        bindings.Bind<List<int>>()
+                                                                                .ToConstant(new List<int> { 1 })
+                                                                                .Named("a");
+                                                                    });
 
-                using (var configuration = CreateConfiguration())
+                using (var kernel = kernelBuilder.Build())
                 {
-                    configuration.Bind<List<int>>().ToConstant(new List<int> { 1 }).Named("a");
-
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
 
                     weapon.Should().BeNull();
@@ -1246,24 +1265,11 @@ namespace Ninject.Tests.Integration
 
         public class WhenTryGetIsCalledForUnboundListOfServices
         {
-            private static IKernelConfiguration CreateConfiguration()
-            {
-                var settings = new NinjectSettings
-                    {
-                        // Disable to reduce memory pressure
-                        ActivationCacheDisabled = true,
-                        LoadExtensions = false,
-                    };
-                return new KernelConfiguration(settings);
-            }
-
             [Fact]
             public void TryGetOfT_Parameters()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>(Array.Empty<IParameter>());
 
                     weapons.Should().NotBeNull();
@@ -1277,10 +1283,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_NameAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>("b", Array.Empty<IParameter>());
 
                     weapons.Should().NotBeNull();
@@ -1294,10 +1298,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_ConstraintAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet<List<IWeapon>>((metadata) => metadata.Name == "b", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeEmpty();
@@ -1310,10 +1312,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1329,10 +1329,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), "a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1348,10 +1346,8 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters()
             {
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapons = kernel.TryGet(typeof(List<IWeapon>), (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
                     weapons.Should().NotBeNull();
                     weapons.Should().BeOfType<List<IWeapon>>();
@@ -1369,10 +1365,8 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(List<>);
 
-                using (var configuration = CreateConfiguration())
+                using (var kernel = new KernelBuilder().Build())
                 {
-                    var kernel = configuration.BuildReadOnlyKernel();
-
                     var weapon = kernel.TryGet(service, (metadata) => metadata.Name == "a", Array.Empty<IParameter>());
 
                     weapon.Should().BeNull();

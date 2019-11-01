@@ -27,34 +27,40 @@ namespace Ninject.Planning.Bindings.Resolvers
 
     using Ninject.Activation;
     using Ninject.Activation.Providers;
+    using Ninject.Builder;
     using Ninject.Components;
     using Ninject.Infrastructure;
+    using Ninject.Selection;
     using Ninject.Selection.Heuristics;
 
     /// <summary>
-    /// Represents a binding resolver that use the service in question itself as the target to activate.
+    /// Represents a binding resolver that uses the service in question itself as the target to activate.
     /// </summary>
     public class SelfBindingResolver : NinjectComponent, IMissingBindingResolver
     {
         private readonly IPlanner planner;
         private readonly IPipeline pipeline;
-        private readonly IConstructorInjectionScorer constructorScorer;
+        private readonly IConstructorInjectionSelector constructorSelector;
+        private readonly IConstructorParameterValueProvider constructorParameterValueProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SelfBindingResolver"/> class.
         /// </summary>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
         /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
-        /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
-        public SelfBindingResolver(IPlanner planner, IPipeline pipeline, IConstructorInjectionScorer constructorScorer)
+        /// <param name="constructorSelector">The <see cref="IConstructorInjectionSelector"/> component.</param>
+        /// <param name="constructorParameterValueProvider">The value provider.</param>
+        public SelfBindingResolver(IPlanner planner, IPipeline pipeline, IConstructorInjectionSelector constructorSelector, IConstructorParameterValueProvider constructorParameterValueProvider)
         {
             Ensure.ArgumentNotNull(planner, nameof(planner));
             Ensure.ArgumentNotNull(pipeline, nameof(pipeline));
-            Ensure.ArgumentNotNull(constructorScorer, nameof(constructorScorer));
+            Ensure.ArgumentNotNull(constructorSelector, nameof(constructorSelector));
+            Ensure.ArgumentNotNull(constructorParameterValueProvider, nameof(constructorParameterValueProvider));
 
             this.planner = planner;
             this.pipeline = pipeline;
-            this.constructorScorer = constructorScorer;
+            this.constructorSelector = constructorSelector;
+            this.constructorParameterValueProvider = constructorParameterValueProvider;
         }
 
         /// <summary>
@@ -78,7 +84,10 @@ namespace Ninject.Planning.Bindings.Resolvers
             {
                 new Binding(service)
                 {
-                    Provider = new StandardProvider(service, this.planner.GetPlan(service), this.pipeline, this.constructorScorer),
+                    Provider = new SelfBindingProvider(this.planner.GetPlan(service),
+                                                       this.pipeline,
+                                                       this.constructorSelector,
+                                                       this.constructorParameterValueProvider),
                 },
             };
         }
@@ -92,11 +101,33 @@ namespace Ninject.Planning.Bindings.Resolvers
         /// </returns>
         protected virtual bool TypeIsSelfBindable(Type service)
         {
-            return !service.IsInterface
-                   && !service.IsAbstract
-                   && !service.IsValueType
-                   && service != typeof(string)
-                   && !service.ContainsGenericParameters;
+            return !service.IsInterface &&
+                   !service.IsAbstract &&
+                   !service.IsValueType &&
+                   service != typeof(string) &&
+                   !service.ContainsGenericParameters;
+        }
+
+        private class SelfBindingProvider : StandardProviderBase
+        {
+            private readonly IConstructorInjectionSelector constructorSelector;
+            private readonly IConstructorParameterValueProvider constructorParameterValueProvider;
+
+            public SelfBindingProvider(IPlan plan, IPipeline pipeline, IConstructorInjectionSelector constructorSelector, IConstructorParameterValueProvider constructorParameterValueProvider)
+                : base(plan, pipeline)
+            {
+                this.constructorSelector = constructorSelector;
+                this.constructorParameterValueProvider = constructorParameterValueProvider;
+            }
+
+            public override Type Type => this.Plan.Type;
+
+            protected override object CreateInstance(IContext context)
+            {
+                var directive = constructorSelector.Select(context.Plan, context);
+                var values = constructorParameterValueProvider.GetValues(directive, context);
+                return directive.Injector(values);
+            }
         }
     }
 }

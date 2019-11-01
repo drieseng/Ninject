@@ -34,13 +34,11 @@ namespace Ninject.Tests.Unit.Selection
     {
         private Mock<IMethodInjectionHeuristic> _injectionHeuristicMock1;
         private Mock<IMethodInjectionHeuristic> _injectionHeuristicMock2;
-        private MethodReflectionSelector _selector;
 
         public MethodReflectionSelectorTests()
         {
             _injectionHeuristicMock1 = new Mock<IMethodInjectionHeuristic>(MockBehavior.Strict);
             _injectionHeuristicMock2 = new Mock<IMethodInjectionHeuristic>(MockBehavior.Strict);
-            _selector = new MethodReflectionSelector(new IMethodInjectionHeuristic[] { _injectionHeuristicMock1.Object, _injectionHeuristicMock2.Object });
         }
 
         [Fact]
@@ -48,33 +46,31 @@ namespace Ninject.Tests.Unit.Selection
         {
             const IEnumerable<IMethodInjectionHeuristic> injectionHeuristics = null;
 
-            var actual = Assert.Throws<ArgumentNullException>(() => new MethodReflectionSelector(injectionHeuristics));
+            var actual = Assert.Throws<ArgumentNullException>(() => new MethodReflectionSelector(injectionHeuristics, true));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(injectionHeuristics), actual.ParamName);
         }
 
         [Fact]
-        public void InjectNonPublicShouldBeFalseByDefault()
-        {
-            Assert.False(_selector.InjectNonPublic);
-        }
-
-        [Fact]
         public void InjectNonPublicShouldReturnValueThatIsSet()
         {
-            _selector.InjectNonPublic = true;
-            Assert.True(_selector.InjectNonPublic);
-            _selector.InjectNonPublic = false;
-            Assert.False(_selector.InjectNonPublic);
+            MethodReflectionSelector selector;
+
+            selector = new MethodReflectionSelector(Array.Empty<IMethodInjectionHeuristic>(), true);
+            Assert.True(selector.InjectNonPublic);
+
+            selector = new MethodReflectionSelector(Array.Empty<IMethodInjectionHeuristic>(), false);
+            Assert.False(selector.InjectNonPublic);
         }
 
         [Fact]
         public void Select_ShouldThrowArgumentNullExceptionWhenTypeIsNull()
         {
             const Type type = null;
+            var selector = new MethodReflectionSelector(Array.Empty<IMethodInjectionHeuristic>(), true);
 
-            var actual = Assert.Throws<ArgumentNullException>(() => _selector.Select(type));
+            var actual = Assert.Throws<ArgumentNullException>(() => selector.Select(type));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(type), actual.ParamName);
@@ -106,6 +102,7 @@ namespace Ninject.Tests.Unit.Selection
             var getTypeMethod = type.GetMethod("GetType", BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
             var finalizeMethod = type.GetMethod("Finalize", BindingFlags.NonPublic | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
             var memberwiseCloneMethod = type.GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
+            var selector = new MethodReflectionSelector(new IMethodInjectionHeuristic[] { _injectionHeuristicMock1.Object, _injectionHeuristicMock2.Object }, true);
 
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(getWeaponMethod)).Returns(false);
             _injectionHeuristicMock2.Setup(p => p.ShouldInject(getWeaponMethod)).Returns(false);
@@ -144,22 +141,17 @@ namespace Ninject.Tests.Unit.Selection
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(memberwiseCloneMethod)).Returns(false);
             _injectionHeuristicMock2.Setup(p => p.ShouldInject(memberwiseCloneMethod)).Returns(false);
 
-            _selector.InjectNonPublic = true;
-
             #endregion Arrange
 
-            var actual = _selector.Select(type);
+            var actual = new List<MethodInfo>(selector.Select(type));
 
-            Assert.Equal(new[]
-                            {
-                                getVisibleMethod,
-                                doMethodNoArgs,
-                                doMethodStringArg,
-                                executeMethodStringArg,
-                                executeMethodStringAndInt32Arg,
-                                equalsMethod
-                            },
-                        actual);
+            Assert.Equal(6, actual.Count);
+            Assert.Contains(getVisibleMethod, actual);
+            Assert.Contains(doMethodNoArgs, actual);
+            Assert.Contains(doMethodStringArg, actual);
+            Assert.Contains(executeMethodStringArg, actual);
+            Assert.Contains(executeMethodStringAndInt32Arg, actual);
+            Assert.Contains(equalsMethod, actual);
         }
 
         [Fact]
@@ -180,6 +172,7 @@ namespace Ninject.Tests.Unit.Selection
             var getHashCodeMethod = type.GetMethod("GetHashCode", BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
             var getTypeMethod = type.GetMethod("GetType", BindingFlags.Public | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
             var memberwiseCloneMethod = type.GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance, null, Array.Empty<Type>(), Array.Empty<ParameterModifier>());
+            var selector = new MethodReflectionSelector(new IMethodInjectionHeuristic[] { _injectionHeuristicMock1.Object, _injectionHeuristicMock2.Object }, false);
 
             _injectionHeuristicMock1.Setup(p => p.ShouldInject(getEnabledMethod)).Returns(false);
             _injectionHeuristicMock2.Setup(p => p.ShouldInject(getEnabledMethod)).Returns(false);
@@ -206,7 +199,7 @@ namespace Ninject.Tests.Unit.Selection
 
             #endregion Arrange
 
-            var actual = _selector.Select(type);
+            var actual = selector.Select(type);
 
             Assert.Equal(new[]
                             {

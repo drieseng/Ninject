@@ -1,53 +1,66 @@
-﻿using Ninject.Activation.Strategies;
-using Ninject.Builder.Components;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿// -------------------------------------------------------------------------------------------------
+// <copyright file="ActivationPipelineBuilder.cs" company="Ninject Project Contributors">
+//   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
+//   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
+//
+//   Dual-licensed under the Apache License, Version 2.0, and the Microsoft Public License (Ms-PL).
+//   You may not use this file except in compliance with one of the Licenses.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//   or
+//       http://www.microsoft.com/opensource/licenses.mspx
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+// </copyright>
+// -------------------------------------------------------------------------------------------------
 
 namespace Ninject.Builder
 {
+    using Ninject.Activation.Strategies;
+    using System.Collections.Generic;
+
     internal class ActivationPipelineBuilder : IActivationPipelineBuilder
     {
-        private readonly List<IComponentBuilder> components;
-
-        public ActivationPipelineBuilder()
+        public ActivationPipelineBuilder(IComponentBindingRoot componentBindingRoot, IDictionary<string, object> properties)
         {
-            this.components = new List<IComponentBuilder>();
+            this.Components = componentBindingRoot;
+            this.Properties = properties;
         }
+
+        /// <summary>
+        /// Gets the component bindings that make up the activation pipeline.
+        /// </summary>
+        /// <value>
+        /// The component bindings that make up the activation pipeline.
+        /// </value>
+        public IComponentBindingRoot Components { get; private set; }
+
+        /// <summary>
+        /// Gets a key/value collection that can be used to share data between components.
+        /// </summary>
+        /// <value>
+        /// A key/value collection that can be used to share data between components.
+        /// </value>
+        public IDictionary<string, object> Properties { get; }
 
         public IActivationPipelineBuilder BindingAction()
         {
-            components.Add(new ComponentBuilder<IActivationStrategy, BindingActionStrategy>());
+            this.Components.Bind<IActivationStrategy>()
+                            .To<BindingActionStrategy>()
+                            .InSingletonScope();
             return this;
         }
 
         public IActivationPipelineBuilder Startable()
         {
-            components.Add(new ComponentBuilder<IActivationStrategy, StartableStrategy>());
-            return this;
-        }
-
-        public void Build(IComponentBindingRoot root)
-        {
-            if (this.components.Count == 0)
-            {
-                return;
-            }
-
-            // If any activation strategy is defined, make sure to register the ActivationCacheStrategy as
-            // first in the activation pipeline
-            root.Bind<IActivationStrategy>().To<ActivationCacheStrategy>();
-
-            foreach (var component in this.components)
-            {
-                component.Build(root);
-            }
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IActivationPipelineBuilder IActivationPipelineBuilder.AddStage(Func<IComponentBuilder> componentDelegate)
-        {
-            this.components.Add(componentDelegate());
+            this.Components.Bind<IActivationStrategy>()
+                            .To<StartableStrategy>()
+                            .InSingletonScope();
             return this;
         }
     }

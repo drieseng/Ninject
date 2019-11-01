@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿#if false
+using Moq;
 using Ninject.Activation;
 using Ninject.Activation.Caching;
 using Ninject.Activation.Providers;
@@ -473,3 +474,4 @@ namespace Ninject.Test.Unit.Activation.Providers
         }
     }
 }
+#endif

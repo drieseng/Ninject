@@ -21,15 +21,15 @@
 
 namespace Ninject.Activation
 {
-    using System;
     using System.Collections.Generic;
 
     using Ninject.Activation.Strategies;
+    using Ninject.Components;
 
     /// <summary>
     /// Executes the initialization strategies for an instance in a given context.
     /// </summary>
-    internal sealed class PipelineInitializer : IPipelineInitializer
+    internal sealed class PipelineInitializer : NinjectComponent, IPipelineInitializer
     {
         private readonly List<IInitializationStrategy> initializationStrategies;
 
@@ -39,11 +39,6 @@ namespace Ninject.Activation
         /// <param name="initializationStrategies">The initialization strategies to execute.</param>
         public PipelineInitializer(List<IInitializationStrategy> initializationStrategies)
         {
-            foreach (var init in initializationStrategies)
-            {
-                Console.WriteLine("PipelineInitializer: " + init.GetType());
-            }
-
             this.initializationStrategies = initializationStrategies;
         }
 
@@ -59,6 +54,16 @@ namespace Ninject.Activation
         {
             this.initializationStrategies.ForEach(i => instance = i.Initialize(context, instance));
             return instance;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                initializationStrategies?.Clear();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

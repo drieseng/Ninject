@@ -22,23 +22,27 @@
 namespace Ninject.Activation
 {
     using System.Collections.Generic;
-
+    using Ninject.Activation.Caching;
     using Ninject.Activation.Strategies;
+    using Ninject.Components;
 
     /// <summary>
     /// Deactivates instances in a given context.
     /// </summary>
-    internal sealed class PipelineDeactivator : IPipelineDeactivator
+    internal sealed class PipelineDeactivator : NinjectComponent, IPipelineDeactivator
     {
         private readonly List<IDeactivationStrategy> deactivationStrategies;
+        private readonly IActivationCache activationCache;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PipelineDeactivator"/> class.
         /// </summary>
         /// <param name="deactivationStrategies">The strategies to execute upon deactivation.</param>
-        public PipelineDeactivator(List<IDeactivationStrategy> deactivationStrategies)
+        /// <param name="activationCache">The activation cache.</param>
+        public PipelineDeactivator(List<IDeactivationStrategy> deactivationStrategies, IActivationCache activationCache)
         {
             this.deactivationStrategies = deactivationStrategies;
+            this.activationCache = activationCache;
         }
 
         /// <summary>
@@ -48,7 +52,24 @@ namespace Ninject.Activation
         /// <param name="reference">The instance reference.</param>
         public void Deactivate(IContext context, InstanceReference reference)
         {
-            this.deactivationStrategies.ForEach(a => a.Deactivate(context, reference));
+            if (!activationCache.IsDeactivated(reference.Instance))
+            {
+                this.deactivationStrategies.ForEach(a => a.Deactivate(context, reference));
+            }
+        }
+
+        /// <summary>
+        /// Releases resources held by the object.
+        /// </summary>
+        /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                deactivationStrategies?.Clear();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

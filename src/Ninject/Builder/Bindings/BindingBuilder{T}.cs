@@ -89,13 +89,25 @@ namespace Ninject.Builder
         }
 
         /// <summary>
+        /// Builds the binding of this instance.
+        /// </summary>
+        /// <param name="root">The resolution root.</param>
+        /// <returns>
+        /// The binding of this instance.
+        /// </returns>
+        public Binding Build(IResolutionRoot root)
+        {
+            return new Binding(typeof(T), this.bindingConfigurationBuilder.Build(root));
+        }
+
+        /// <summary>
         /// Indicates that the service should be bound to the specified implementation type.
         /// </summary>
         /// <typeparam name="TImplementation">The implementation type.</typeparam>
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public INewBindingWhenInWithOrOnInitializationSyntax<TImplementation> To<TImplementation>()
+        public INewBindingWhenInNamedWithOrOnInitializationSyntax<TImplementation> To<TImplementation>()
             where TImplementation : T
         {
             var providerBuilder = new StandardProviderFactory(typeof(TImplementation));
@@ -111,7 +123,7 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public INewBindingWhenInWithOrOnInitializationSyntax<T> To(Type implementation)
+        public INewBindingWhenInNamedWithOrOnInitializationSyntax<T> To(Type implementation)
         {
             var providerBuilder = new StandardProviderFactory(implementation);
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Type, this);
@@ -144,7 +156,7 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public INewBindingWhenInWithOrOnInitializationSyntax<TImplementation> ToConstructor<TImplementation>(Expression<Func<IConstructorArgumentSyntax, TImplementation>> newExpression)
+        public INewBindingWhenInNamedWithOrOnInitializationSyntax<TImplementation> ToConstructor<TImplementation>(Expression<Func<IConstructorArgumentSyntax, TImplementation>> newExpression)
             where TImplementation : T
         {
             var providerBuilder = new ConstructorProviderFactory<TImplementation>(newExpression);
@@ -199,10 +211,10 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public INewBindingWhenInWithOrOnInitializationSyntax<T> ToProvider<TProvider>()
+        public INewBindingWhenInNamedWithOrOnInitializationSyntax<T> ToProvider<TProvider>()
             where TProvider : IProvider
         {
-            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<TProvider>(ctx => ctx.Kernel.Get<TProvider>()));
+            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<object>(ctx => ctx.Kernel.Get<TProvider>().Create(ctx)));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
@@ -216,9 +228,9 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public INewBindingWhenInWithOrOnInitializationSyntax<T> ToProvider(Type providerType)
+        public INewBindingWhenInNamedWithOrOnInitializationSyntax<T> ToProvider(Type providerType)
         {
-            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<IProvider>(ctx => ctx.Kernel.Get(providerType) as IProvider));
+            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<object>(ctx => (ctx.Kernel.Get(providerType) as IProvider).Create(ctx)));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
@@ -232,7 +244,7 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public INewBindingWhenInWithOrOnInitializationSyntax<TImplementation> ToProvider<TImplementation>(IProvider<TImplementation> provider)
+        public INewBindingWhenInNamedWithOrOnInitializationSyntax<TImplementation> ToProvider<TImplementation>(IProvider<TImplementation> provider)
              where TImplementation : T
         {
             var providerBuilder = new ProviderBuilderAdapter(provider);
@@ -247,7 +259,7 @@ namespace Ninject.Builder
         /// <returns>
         /// The fluent syntax.
         /// </returns>
-        public INewBindingWhenInWithOrOnInitializationSyntax<T> ToSelf()
+        public INewBindingWhenInNamedWithOrOnInitializationSyntax<T> ToSelf()
         {
             var providerBuilder = new StandardProviderFactory(typeof(T));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Self, this);

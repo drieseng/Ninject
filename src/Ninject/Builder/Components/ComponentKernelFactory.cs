@@ -42,37 +42,42 @@ namespace Ninject.Builder
         public IReadOnlyKernel CreateResolveComponentBindingsKernel()
         {
             var exceptionFormatter = new ExceptionFormatter();
-            var planner = CreatePlanner();
-            var pipeline = CreatePipeline(exceptionFormatter);
+            var propertySelector = new PropertyReflectionSelector(false);
+            var injectorFactory = new ExpressionInjectorFactory();
+            var planner = CreatePlanner(propertySelector, injectorFactory);
+            var pipeline = CreatePipeline(propertySelector, injectorFactory, exceptionFormatter);
             var cache = new Cache(pipeline, new GarbageCollectionCachePruner());
+            var contextFactory = new ContextFactory(cache, exceptionFormatter, false, true);
 
-            return new ReadOnlyKernel5(
-                    new NinjectSettings(),
-                    CreateBindings(planner, pipeline, cache, exceptionFormatter),
-                    cache,
-                    planner,
-                    pipeline,
-                    exceptionFormatter,
-                    new BindingPrecedenceComparer(),
-                    new List<IBindingResolver> { new StandardBindingResolver() },
-                    new List<IMissingBindingResolver>());
+            return new ReadOnlyKernel(CreateBindings(planner, pipeline, cache, exceptionFormatter, contextFactory),
+                                      cache,
+                                      planner,
+                                      pipeline,
+                                      exceptionFormatter,
+                                      contextFactory,
+                                      new BindingPrecedenceComparer(),
+                                      new List<IBindingResolver> { new StandardBindingResolver() },
+                                      new List<IMissingBindingResolver>());
         }
 
         public IReadOnlyKernel CreateComponentsKernel(IReadOnlyKernel resolveComponentBindingsKernel, Dictionary<Type, ICollection<IBinding>> bindings)
         {
-            return new ReadOnlyKernel5(
-                    new NinjectSettings(),
-                    bindings,
-                    resolveComponentBindingsKernel.Get<ICache>(),
-                    resolveComponentBindingsKernel.Get<IPlanner>(),
-                    resolveComponentBindingsKernel.Get<IPipeline>(),
-                    resolveComponentBindingsKernel.Get<IExceptionFormatter>(),
-                    new BindingPrecedenceComparer(),
-                    new List<IBindingResolver> { new StandardBindingResolver() },
-                    new List<IMissingBindingResolver>());
+            return new ReadOnlyKernel(bindings,
+                                      resolveComponentBindingsKernel.Get<ICache>(),
+                                      resolveComponentBindingsKernel.Get<IPlanner>(),
+                                      resolveComponentBindingsKernel.Get<IPipeline>(),
+                                      resolveComponentBindingsKernel.Get<IExceptionFormatter>(),
+                                      resolveComponentBindingsKernel.Get<IContextFactory>(),
+                                      new BindingPrecedenceComparer(),
+                                      new List<IBindingResolver> { new StandardBindingResolver() },
+                                      new List<IMissingBindingResolver>());
         }
 
-        private static NewBindingRoot CreateBindings(IPlanner planner, IPipeline pipeline, ICache cache, IExceptionFormatter exceptionFormatter)
+        private static NewBindingRoot CreateBindings(IPlanner planner,
+                                                     IPipeline pipeline,
+                                                     ICache cache,
+                                                     IExceptionFormatter exceptionFormatter,
+                                                     IContextFactory contextFactory)
         {
             var bindings = new NewBindingRoot();
 
@@ -80,28 +85,28 @@ namespace Ninject.Builder
             bindings.Bind<IPipeline>().ToConstant(pipeline);
             bindings.Bind<ICache>().ToConstant(cache);
             bindings.Bind<IExceptionFormatter>().ToConstant(exceptionFormatter);
+            bindings.Bind<IContextFactory>().ToConstant(contextFactory);
             bindings.Bind<IConstructorInjectionSelector>().ToConstant(new UniqueConstructorInjectionSelector());
             bindings.Bind<IConstructorParameterValueProvider>().To<ConstructorParameterValueProvider>();
 
             return bindings;
         }
 
-        private static IPlanner CreatePlanner()
+        private static IPlanner CreatePlanner(PropertyReflectionSelector propertySelector, ExpressionInjectorFactory injectorFactory)
         {
-            var injectorFactory = new ExpressionInjectorFactory();
-
             return new Planner(new IPlanningStrategy[]
                 {
                     new ConstructorReflectionStrategy(new ConstructorReflectionSelector(), injectorFactory),
-                    new PropertyReflectionStrategy(new PropertyReflectionSelector(new IPropertyInjectionHeuristic[] { new AnyPropertyInjectionHeuristic() }), injectorFactory),
+                    new PropertyPlanningStrategy(propertySelector, new IPropertyInjectionHeuristic[] { new AnyPropertyInjectionHeuristic() }, injectorFactory)
                 });
         }
 
-        private static IPipeline CreatePipeline(IExceptionFormatter exceptionFormatter)
+        private static IPipeline CreatePipeline(PropertyReflectionSelector propertySelector, ExpressionInjectorFactory injectorFactory, IExceptionFormatter exceptionFormatter)
         {
-            var propertyInjectionStrategy = new PropertyInjectionStrategy(exceptionFormatter);
+            var activationCache = new ActivationCache(new GarbageCollectionCachePruner());
+            var propertyInjectionStrategy = new PropertyInjectionStrategy(propertySelector, injectorFactory, exceptionFormatter);
             var pipelineInitializer = new PipelineInitializer(new List<IInitializationStrategy> { propertyInjectionStrategy });
-            var pipelineDeactivator = new PipelineDeactivator(new List<IDeactivationStrategy> { new DisposableStrategy() });
+            var pipelineDeactivator = new PipelineDeactivator(new List<IDeactivationStrategy> { new DisposableStrategy() }, activationCache);
 
             return new DefaultPipeline(pipelineInitializer, new NoOpPipelineActivator(), pipelineDeactivator);
         }

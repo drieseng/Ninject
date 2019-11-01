@@ -24,7 +24,6 @@ using System.Collections.Generic;
 using Ninject.Builder;
 using Ninject.Builder.Bindings;
 using Ninject.Infrastructure;
-using Ninject.Infrastructure.Disposal;
 
 namespace Ninject.Syntax
 {
@@ -120,6 +119,13 @@ namespace Ninject.Syntax
         /// <exception cref="ArgumentException"><paramref name="services"/> contains zero types to bind.</exception>
         public INewBindingToSyntax<object> Bind(params Type[] services)
         {
+            Ensure.ArgumentNotNull(services, nameof(services));
+
+            if (services.Length == 0)
+            {
+                throw new ArgumentException("Specify at least one type to bind.", nameof(services));
+            }
+
             throw new NotImplementedException();
         }
 
@@ -136,8 +142,11 @@ namespace Ninject.Syntax
         /// Unregisters all bindings for the specified service.
         /// </summary>
         /// <param name="service">The service to unbind.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
         public void Unbind(Type service)
         {
+            Ensure.ArgumentNotNull(service, nameof(service));
+
             for (var i = (this.bindingBuilders.Count - 1); i >= 0; i--)
             {
                 if (this.bindingBuilders[i].Service == service)

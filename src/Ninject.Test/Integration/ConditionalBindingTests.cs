@@ -66,6 +66,7 @@ namespace Ninject.Tests.Integration
             weapon.Should().BeOfType<ShortSword>();
         }
 
+#if false
         [Fact]
         public void GivenBothImplicitAndExplicitConditionalBindings_ThenExplicitBindingWillResolve()
         {
@@ -85,6 +86,7 @@ namespace Ninject.Tests.Integration
             var weapon = this.kernel.Get<Sword>();
             weapon.Should().BeOfType<Sword>();
         }
+#endif
 
         [Fact]
         public void GivenADefaultAndAConditionalBinding_AllBindingsWillResolve()
@@ -99,6 +101,7 @@ namespace Ninject.Tests.Integration
             result.Should().Contain(shuriken);
         }
 
+#if false
         [Fact]
         public void GivenAMixtureOfBindings_OnlyNonImplicitBindingsWillResolve()
         {
@@ -127,6 +130,7 @@ namespace Ninject.Tests.Integration
             result.Should().Contain(shortSword);
             result.Should().Contain(shuriken);
         }
+#endif
 
         [Fact]
         public void WhenInjectedIntoAppliesToBaseTypes()

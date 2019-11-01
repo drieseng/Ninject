@@ -23,7 +23,7 @@ namespace Ninject
 {
     using System;
     using System.Reflection;
-
+    using Ninject.Builder;
     using Ninject.Infrastructure;
     using Ninject.Modules;
 
@@ -33,59 +33,17 @@ namespace Ninject
     public static class ModuleLoadExtensions
     {
         /// <summary>
-        /// Creates a new instance of the module and loads it into the kernel.
+        /// Creates a new instance of the module and loads it into a kernel.
         /// </summary>
         /// <typeparam name="TModule">The type of the module.</typeparam>
-        /// <param name="kernelConfiguration">The kernel configuration into which the module is loaded.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
-        public static void Load<TModule>(this IKernelConfiguration kernelConfiguration)
+        /// <param name="moduleLoader">The module loader into which the module is loaded.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="moduleLoader"/> is <see langword="null"/>.</exception>
+        public static void Load<TModule>(this IModuleLoader moduleLoader)
             where TModule : INinjectModule, new()
         {
-            Ensure.ArgumentNotNull(kernelConfiguration, nameof(kernelConfiguration));
+            Ensure.ArgumentNotNull(moduleLoader, nameof(moduleLoader));
 
-            kernelConfiguration.Load(new TModule());
-        }
-
-        /// <summary>
-        /// Loads the module(s) into the kernel.
-        /// </summary>
-        /// <param name="kernelConfiguration">The kernel configuration into which the module is loaded.</param>
-        /// <param name="modules">The modules to load.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="modules"/> is <see langword="null"/>.</exception>
-        public static void Load(this IKernelConfiguration kernelConfiguration, params INinjectModule[] modules)
-        {
-            Ensure.ArgumentNotNull(kernelConfiguration, nameof(kernelConfiguration));
-
-            kernelConfiguration.Load(modules);
-        }
-
-        /// <summary>
-        /// Loads modules from the files that match the specified pattern(s).
-        /// </summary>
-        /// <param name="kernelConfiguration">The kernel configuration into which the module is loaded.</param>
-        /// <param name="filePatterns">The file patterns (i.e. "*.dll", "modules/*.rb") to match.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="filePatterns"/> is <see langword="null"/>.</exception>
-        public static void Load(this IKernelConfiguration kernelConfiguration, params string[] filePatterns)
-        {
-            Ensure.ArgumentNotNull(kernelConfiguration, nameof(kernelConfiguration));
-
-            kernelConfiguration.Load(filePatterns);
-        }
-
-        /// <summary>
-        /// Loads modules defined in the specified assemblies.
-        /// </summary>
-        /// <param name="kernelConfiguration">The kernel configuration into which the module is loaded.</param>
-        /// <param name="assemblies">The assemblies to search.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="kernelConfiguration"/> is <see langword="null"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="assemblies"/> is <see langword="null"/>.</exception>
-        public static void Load(this IKernelConfiguration kernelConfiguration, params Assembly[] assemblies)
-        {
-            Ensure.ArgumentNotNull(kernelConfiguration, nameof(kernelConfiguration));
-
-            kernelConfiguration.Load(assemblies);
+            moduleLoader.Load(new TModule());
         }
     }
 }

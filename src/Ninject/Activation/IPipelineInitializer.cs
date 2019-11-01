@@ -21,10 +21,12 @@
 
 namespace Ninject.Activation
 {
+    using Ninject.Components;
+
     /// <summary>
     /// Initializes instances in a given context.
     /// </summary>
-    internal interface IPipelineInitializer
+    internal interface IPipelineInitializer : INinjectComponent
     {
         /// <summary>
         /// Initializes an instance using the specified context.

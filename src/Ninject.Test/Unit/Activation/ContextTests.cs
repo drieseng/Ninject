@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Moq;
+﻿using Moq;
 using Ninject.Activation;
 using Ninject.Activation.Caching;
 using Ninject.Components;
@@ -9,7 +8,6 @@ using Ninject.Planning.Bindings;
 using Ninject.Tests.Fakes;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Ninject.Tests.Unit.Activation
@@ -61,6 +59,7 @@ namespace Ninject.Tests.Unit.Activation
                                                                                 _requestMock.Object,
                                                                                 _bindingMock.Object,
                                                                                 _cacheMock.Object,
+                                                                                _pipelineMock.Object,
                                                                                 _exceptionFormatterMock.Object,
                                                                                 true,
                                                                                 true));
@@ -78,6 +77,7 @@ namespace Ninject.Tests.Unit.Activation
                                                                                 request,
                                                                                 _bindingMock.Object,
                                                                                 _cacheMock.Object,
+                                                                                _pipelineMock.Object,
                                                                                 _exceptionFormatterMock.Object,
                                                                                 true,
                                                                                 true));
@@ -95,6 +95,7 @@ namespace Ninject.Tests.Unit.Activation
                                                                                 _requestMock.Object,
                                                                                 binding,
                                                                                 _cacheMock.Object,
+                                                                                _pipelineMock.Object,
                                                                                 _exceptionFormatterMock.Object,
                                                                                 true,
                                                                                 true));
@@ -112,12 +113,31 @@ namespace Ninject.Tests.Unit.Activation
                                                                                 _requestMock.Object,
                                                                                 _bindingMock.Object,
                                                                                 cache,
+                                                                                _pipelineMock.Object,
                                                                                 _exceptionFormatterMock.Object,
                                                                                 true,
                                                                                 true));
 
             Assert.Null(actual.InnerException);
             Assert.Equal(nameof(cache), actual.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_ShouldThrowArgumentNullExceptionWhenPipelineIsNull()
+        {
+            const IPipeline pipeline = null;
+
+            var actual = Assert.Throws<ArgumentNullException>(() => new Context(_kernelMock.Object,
+                                                                                _requestMock.Object,
+                                                                                _bindingMock.Object,
+                                                                                _cacheMock.Object,
+                                                                                pipeline,
+                                                                                _exceptionFormatterMock.Object,
+                                                                                true,
+                                                                                true));
+
+            Assert.Null(actual.InnerException);
+            Assert.Equal(nameof(pipeline), actual.ParamName);
         }
 
         [Fact]
@@ -129,6 +149,7 @@ namespace Ninject.Tests.Unit.Activation
                                                                                 _requestMock.Object,
                                                                                 _bindingMock.Object,
                                                                                 _cacheMock.Object,
+                                                                                _pipelineMock.Object,
                                                                                 exceptionFormatter,
                                                                                 true,
                                                                                 true));
@@ -152,6 +173,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -178,6 +200,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -204,6 +227,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -230,6 +254,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -256,6 +281,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -279,6 +305,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -300,6 +327,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -324,6 +352,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -375,6 +404,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -428,6 +458,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -477,6 +508,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -513,6 +545,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -543,6 +576,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             var newInstance = new Monk();
             InstanceReference activatedReference = null;
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.Parameters)
@@ -555,6 +589,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -575,7 +610,7 @@ namespace Ninject.Tests.Unit.Activation
                         .Setup(p => p.Provider)
                         .Returns(_providerMock.Object);
             _providerMock.InSequence(_mockSequence)
-                         .Setup(p => p.Create(context))
+                         .Setup(p => p.Create(context, out isInitialized))
                          .Returns(newInstance);
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.ActiveBindings)
@@ -597,7 +632,7 @@ namespace Ninject.Tests.Unit.Activation
 
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _plannerMock.Verify(p => p.GetPlan(newInstance.GetType()), Times.Once());
             _pipelineMock.Verify(p => p.Activate(context, It.IsNotNull<InstanceReference>()), Times.Once());
         }
@@ -610,6 +645,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             var newInstance = new Monk();
             InstanceReference activatedReference = null;
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.Parameters)
@@ -622,6 +658,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -643,7 +680,7 @@ namespace Ninject.Tests.Unit.Activation
                         .Setup(p => p.Provider)
                         .Returns(_providerMock.Object);
             _providerMock.InSequence(_mockSequence)
-                         .Setup(p => p.Create(context))
+                         .Setup(p => p.Create(context, out isInitialized))
                          .Returns(newInstance);
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.ActiveBindings)
@@ -662,7 +699,7 @@ namespace Ninject.Tests.Unit.Activation
 
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _pipelineMock.Verify(p => p.Activate(context, It.IsNotNull<InstanceReference>()), Times.Once());
         }
 
@@ -675,6 +712,7 @@ namespace Ninject.Tests.Unit.Activation
             var newInstance = new Monk();
             InstanceReference cachedReference = null;
             InstanceReference activatedReference = null;
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.Parameters)
@@ -687,6 +725,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -707,7 +746,7 @@ namespace Ninject.Tests.Unit.Activation
                         .Setup(p => p.Provider)
                         .Returns(_providerMock.Object);
             _providerMock.InSequence(_mockSequence)
-                         .Setup(p => p.Create(context))
+                         .Setup(p => p.Create(context, out isInitialized))
                          .Returns(newInstance);
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.ActiveBindings)
@@ -734,7 +773,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
             _cacheMock.Verify(p => p.TryGet(context, requestScope), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _cacheMock.Verify(p => p.Remember(context, requestScope, It.IsNotNull<InstanceReference>()), Times.Once());
             _plannerMock.Verify(p => p.GetPlan(newInstance.GetType()), Times.Once());
             _pipelineMock.Verify(p => p.Activate(context, It.IsNotNull<InstanceReference>()), Times.Once());
@@ -749,6 +788,7 @@ namespace Ninject.Tests.Unit.Activation
             var newInstance = new Monk();
             InstanceReference activatedReference = null;
             var activationException = new ActivationException();
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.Parameters)
@@ -761,6 +801,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -782,7 +823,7 @@ namespace Ninject.Tests.Unit.Activation
                         .Setup(p => p.Provider)
                         .Returns(_providerMock.Object);
             _providerMock.InSequence(_mockSequence)
-                         .Setup(p => p.Create(context))
+                         .Setup(p => p.Create(context, out isInitialized))
                          .Returns(newInstance);
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.ActiveBindings)
@@ -802,7 +843,7 @@ namespace Ninject.Tests.Unit.Activation
 
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _pipelineMock.Verify(p => p.Activate(context, It.IsNotNull<InstanceReference>()), Times.Once());
         }
 
@@ -817,6 +858,7 @@ namespace Ninject.Tests.Unit.Activation
             InstanceReference cachedReference = null;
             InstanceReference activatedReference = null;
             var activationException = new ActivationException();
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.Parameters)
@@ -829,6 +871,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -853,7 +896,7 @@ namespace Ninject.Tests.Unit.Activation
                         .Setup(p => p.Provider)
                         .Returns(_providerMock.Object);
             _providerMock.InSequence(_mockSequence)
-                         .Setup(p => p.Create(context))
+                         .Setup(p => p.Create(context, out isInitialized))
                          .Returns(newInstance);
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.ActiveBindings)
@@ -883,7 +926,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Verify(p => p.GetScope(), Times.Once());
             _bindingMock.Verify(p => p.GetScope(context), Times.Once());
             _cacheMock.Verify(p => p.TryGet(context, bindingScope), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _cacheMock.Verify(p => p.Remember(context, bindingScope, It.IsNotNull<InstanceReference>()), Times.Once());
             _pipelineMock.Verify(p => p.Activate(context, It.IsNotNull<InstanceReference>()), Times.Once());
             _cacheMock.Verify(p => p.Release(newInstance), Times.Once());
@@ -898,6 +941,7 @@ namespace Ninject.Tests.Unit.Activation
             var newInstance = new Monk();
             InstanceReference cachedReference = null;
             InstanceReference activatedReference = null;
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.Parameters)
@@ -910,6 +954,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -931,7 +976,7 @@ namespace Ninject.Tests.Unit.Activation
                         .Setup(p => p.Provider)
                         .Returns(_providerMock.Object);
             _providerMock.InSequence(_mockSequence)
-                         .Setup(p => p.Create(context))
+                         .Setup(p => p.Create(context, out isInitialized))
                          .Returns(newInstance);
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.ActiveBindings)
@@ -956,7 +1001,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
             _cacheMock.Verify(p => p.TryGet(context, requestScope), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _cacheMock.Verify(p => p.Remember(context, requestScope, It.IsNotNull<InstanceReference>()), Times.Once());
             _pipelineMock.Verify(p => p.Activate(context, It.IsNotNull<InstanceReference>()), Times.Once());
         }
@@ -969,6 +1014,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
             var providerReturnedNullExceptionMessage = new string('a', 1);
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.Parameters)
@@ -981,6 +1027,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       false,
                                       true);
@@ -1001,7 +1048,7 @@ namespace Ninject.Tests.Unit.Activation
                         .Setup(p => p.Provider)
                         .Returns(_providerMock.Object);
             _providerMock.InSequence(_mockSequence)
-                         .Setup(p => p.Create(context))
+                         .Setup(p => p.Create(context, out isInitialized))
                          .Returns(newInstance);
             _requestMock.InSequence(_mockSequence)
                         .Setup(p => p.ActiveBindings)
@@ -1019,7 +1066,7 @@ namespace Ninject.Tests.Unit.Activation
 
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _exceptionFormatterMock.Verify(p => p.ProviderReturnedNull(context), Times.Once());
         }
 
@@ -1031,6 +1078,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
             var providerReturnedNullExceptionMessage = new string('a', 1);
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
@@ -1039,6 +1087,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       false,
                                       true);
@@ -1049,7 +1098,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Provider).Returns(_providerMock.Object);
-            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context)).Returns(newInstance);
+            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context, out isInitialized)).Returns(newInstance);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _exceptionFormatterMock.InSequence(_mockSequence)
                                    .Setup(p => p.ProviderReturnedNull(context))
@@ -1065,7 +1114,7 @@ namespace Ninject.Tests.Unit.Activation
 
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _exceptionFormatterMock.Verify(p => p.ProviderReturnedNull(context), Times.Once());
         }
 
@@ -1077,6 +1126,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
             var requestService = typeof(Monk);
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
@@ -1085,6 +1135,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -1094,7 +1145,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Provider).Returns(_providerMock.Object);
-            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context)).Returns(newInstance);
+            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context, out isInitialized)).Returns(newInstance);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(requestService);
             _plannerMock.InSequence(_mockSequence).Setup(p => p.GetPlan(requestService)).Returns(_planMock.Object);
@@ -1106,7 +1157,7 @@ namespace Ninject.Tests.Unit.Activation
 
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _requestMock.Verify(p => p.Service, Times.Once());
             _plannerMock.Verify(p => p.GetPlan(requestService), Times.Once());
         }
@@ -1119,6 +1170,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
             var requestService = typeof(Monk);
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
@@ -1127,6 +1179,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -1136,7 +1189,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Provider).Returns(_providerMock.Object);
-            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context)).Returns(newInstance);
+            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context, out isInitialized)).Returns(newInstance);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(requestService);
             _plannerMock.InSequence(_mockSequence).Setup(p => p.GetPlan(requestService)).Returns(_planMock.Object);
@@ -1148,7 +1201,7 @@ namespace Ninject.Tests.Unit.Activation
 
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _requestMock.Verify(p => p.Service, Times.Once());
             _plannerMock.Verify(p => p.GetPlan(requestService), Times.Once());
         }
@@ -1160,6 +1213,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
             var providerReturnedNullExceptionMessage = new string('a', 1);
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
@@ -1168,6 +1222,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       false,
                                       true);
@@ -1177,7 +1232,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Provider).Returns(_providerMock.Object);
-            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context)).Returns(newInstance);
+            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context, out isInitialized)).Returns(newInstance);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _exceptionFormatterMock.InSequence(_mockSequence)
                                    .Setup(p => p.ProviderReturnedNull(context))
@@ -1193,7 +1248,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
             _cacheMock.Verify(p => p.TryGet(context, requestScope), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _exceptionFormatterMock.Verify(p => p.ProviderReturnedNull(context), Times.Once());
         }
 
@@ -1204,6 +1259,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
             var providerReturnedNullExceptionMessage = new string('a', 1);
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
@@ -1212,6 +1268,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       false,
                                       true);
@@ -1222,7 +1279,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Provider).Returns(_providerMock.Object);
-            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context)).Returns(newInstance);
+            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context, out isInitialized)).Returns(newInstance);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _exceptionFormatterMock.InSequence(_mockSequence)
                                    .Setup(p => p.ProviderReturnedNull(context))
@@ -1239,7 +1296,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
             _cacheMock.Verify(p => p.TryGet(context, requestScope), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _exceptionFormatterMock.Verify(p => p.ProviderReturnedNull(context), Times.Once());
         }
 
@@ -1250,6 +1307,7 @@ namespace Ninject.Tests.Unit.Activation
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
             var requestService = typeof(Monk);
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
@@ -1258,6 +1316,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -1267,7 +1326,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Provider).Returns(_providerMock.Object);
-            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context)).Returns(newInstance);
+            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context, out isInitialized)).Returns(newInstance);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.Service).Returns(requestService);
             _plannerMock.InSequence(_mockSequence).Setup(p => p.GetPlan(requestService)).Returns(_planMock.Object);
@@ -1280,7 +1339,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
             _cacheMock.Verify(p => p.TryGet(context, requestScope), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
             _requestMock.Verify(p => p.Service, Times.Once());
             _plannerMock.Verify(p => p.GetPlan(requestService), Times.Once());
         }
@@ -1291,6 +1350,7 @@ namespace Ninject.Tests.Unit.Activation
             var requestScope = new object();
             var activeBindings = new Stack<IBinding>();
             const object newInstance = null;
+            var isInitialized = true;
 
             _requestMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Parameters).Returns(Array.Empty<IParameter>());
@@ -1299,6 +1359,7 @@ namespace Ninject.Tests.Unit.Activation
                                       _requestMock.Object,
                                       _bindingMock.Object,
                                       _cacheMock.Object,
+                                      _pipelineMock.Object,
                                       _exceptionFormatterMock.Object,
                                       true,
                                       true);
@@ -1309,7 +1370,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
             _bindingMock.InSequence(_mockSequence).Setup(p => p.Provider).Returns(_providerMock.Object);
-            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context)).Returns(newInstance);
+            _providerMock.InSequence(_mockSequence).Setup(p => p.Create(context, out isInitialized)).Returns(newInstance);
             _requestMock.InSequence(_mockSequence).Setup(p => p.ActiveBindings).Returns(activeBindings);
 
             Assert.Null(context.Resolve());
@@ -1320,7 +1381,7 @@ namespace Ninject.Tests.Unit.Activation
             _requestMock.Verify(p => p.ActiveBindings, Times.Exactly(3));
             _requestMock.Verify(p => p.GetScope(), Times.Once());
             _cacheMock.Verify(p => p.TryGet(context, requestScope), Times.Once());
-            _providerMock.Verify(p => p.Create(context), Times.Once());
+            _providerMock.Verify(p => p.Create(context, out isInitialized), Times.Once());
         }
     }
 }

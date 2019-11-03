@@ -37,12 +37,22 @@ namespace Ninject.Activation
         Type Type { get; }
 
         /// <summary>
+        /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+        /// <see langword="false"/>.
+        /// </value>
+        bool ResolvesServices { get; }
+
+        /// <summary>
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The created instance.
         /// </returns>
-        object Create(IContext context);
+        object Create(IContext context, out bool isInitialized);
     }
 }

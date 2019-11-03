@@ -29,18 +29,21 @@ namespace Ninject.Activation
     internal class ContextFactory : IContextFactory
     {
         private readonly ICache cache;
+        private readonly IPipeline pipeline;
         private readonly IExceptionFormatter exceptionFormatter;
 
         /// <summary>
         /// Initializes a new <see cref="ContextFactory"/> instance.
         /// </summary>
         /// <param name="cache">The cache component.</param>
+        /// <param name="pipeline">The pipeline component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         /// <param name="allowNullInjection"><see langword="true"/> if <see langword="null"/> is allowed as injected value; otherwise, <see langword="false"/>.</param>
         /// <param name="detectCyclicDependencies"><see langword="true"/> if cyclic dependencies should be detected; otherwise, <see langword="false"/>.</param>
-        public ContextFactory(ICache cache, IExceptionFormatter exceptionFormatter, bool allowNullInjection, bool detectCyclicDependencies)
+        public ContextFactory(ICache cache, IPipeline pipeline, IExceptionFormatter exceptionFormatter, bool allowNullInjection, bool detectCyclicDependencies)
         {
             this.cache = cache;
+            this.pipeline = pipeline;
             this.exceptionFormatter = exceptionFormatter;
             this.AllowNullInjection = allowNullInjection;
             this.DetectCyclicDependencies = detectCyclicDependencies;
@@ -83,6 +86,7 @@ namespace Ninject.Activation
                                request,
                                binding,
                                this.cache,
+                               this.pipeline,
                                this.exceptionFormatter,
                                this.AllowNullInjection,
                                this.DetectCyclicDependencies);

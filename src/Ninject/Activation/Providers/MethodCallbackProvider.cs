@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // <copyright file="CallbackProvider.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
@@ -29,35 +29,47 @@ namespace Ninject.Activation.Providers
     /// A provider that delegates to a callback method to create instances.
     /// </summary>
     /// <typeparam name="T">The type of instances the provider creates.</typeparam>
-    public class CallbackProvider<T> : Provider<T>
+    internal class MethodCallbackProvider<T> : Provider<T>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CallbackProvider{T}"/> class.
+        /// Initializes a new instance of the <see cref="ProviderCallbackProvider{T}"/> class.
         /// </summary>
-        /// <param name="method">The callback method that will be called to create instances.</param>
+        /// <param name="method">The callback method that will be invoked to create the instance.</param>
         /// <exception cref="ArgumentNullException"><paramref name="method"/> is <see langword="null"/>.</exception>
-        public CallbackProvider(Func<IContext, T> method)
+        public MethodCallbackProvider(Func<IContext, T> method)
         {
             Ensure.ArgumentNotNull(method, nameof(method));
 
-            this.Method = method;
+            this.MethodCallback = method;
         }
 
         /// <summary>
-        /// Gets the callback method used by the provider.
+        /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
         /// </summary>
-        public Func<IContext, T> Method { get; private set; }
+        /// <value>
+        /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+        /// <see langword="false"/>.
+        /// </value>
+        public override bool ResolvesServices => true;
+
+        /// <summary>
+        /// Gets the callback method used to create the instance.
+        /// </summary>
+        public Func<IContext, T> MethodCallback { get; }
 
         /// <summary>
         /// Invokes the callback method to create an instance.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The created instance.
         /// </returns>
-        protected override T CreateInstance(IContext context)
+        protected override T CreateInstance(IContext context, out bool isInitialized)
         {
-            return this.Method(context);
+            isInitialized = true;
+
+            return this.MethodCallback(context);
         }
     }
 }

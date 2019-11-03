@@ -57,6 +57,7 @@ namespace Ninject.Activation
         /// <param name="request">The context's request.</param>
         /// <param name="binding">The context's binding.</param>
         /// <param name="cache">The cache component.</param>
+        /// <param name="pipeline">The pipeline component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         /// <param name="allowNullInjection"><see langword="true"/> if <see langword="null"/> is allowed as injected value; otherwise, <see langword="false"/>.</param>
         /// <param name="detectCyclicDependencies"><see langword="true"/> if cyclic dependencies should be detected; otherwise, <see langword="false"/>.</param>
@@ -69,6 +70,7 @@ namespace Ninject.Activation
                        IRequest request,
                        IBinding binding,
                        ICache cache,
+                       IPipeline pipeline,
                        IExceptionFormatter exceptionFormatter,
                        bool allowNullInjection,
                        bool detectCyclicDependencies)
@@ -83,6 +85,7 @@ namespace Ninject.Activation
             this.Request = request;
             this.Binding = binding;
             this.Cache = cache;
+            this.Pipeline = pipeline;
             this.Parameters = request.Parameters.Concat(binding.Parameters);
             this.exceptionFormatter = exceptionFormatter;
             this.AllowNullInjection = allowNullInjection;
@@ -250,16 +253,16 @@ namespace Ninject.Activation
 
         private object ResolveWithoutScope()
         {
-            if (DetectCyclicDependencies)
+            if (DetectCyclicDependencies && this.Provider.ResolvesServices)
             {
                 EnsureNotCyclic();
 
                 this.Request.ActiveBindings.Push(this.Binding);
             }
 
-            var instance = this.Provider.Create(this);
+            var instance = this.Provider.Create(this, out var isInitialized);
 
-            if (DetectCyclicDependencies)
+            if (DetectCyclicDependencies && this.Provider.ResolvesServices)
             {
                 this.Request.ActiveBindings.Pop();
             }
@@ -270,6 +273,17 @@ namespace Ninject.Activation
             }
 
             // TODO: do we want to check here if context.Plan was assigned?
+
+            // Only pass the instance through the initialization pipeline if the provider doesn't consider
+            // the instance fully initialized.
+            if (!isInitialized)
+            {
+                // Pass the instance through the initialization pipeline which may alter both the instance
+                // and the plan in the context.
+                //
+                // Note that this will not be reflected in the Plan and Type of the standard provider.
+                instance = this.Pipeline.Initialize(this, instance);
+            }
 
             return instance;
         }
@@ -284,16 +298,16 @@ namespace Ninject.Activation
                     return cachedInstance;
                 }
 
-                if (DetectCyclicDependencies)
+                if (DetectCyclicDependencies && this.Provider.ResolvesServices)
                 {
                     EnsureNotCyclic();
 
                     this.Request.ActiveBindings.Push(this.Binding);
                 }
 
-                var reference = new InstanceReference { Instance = this.Provider.Create(this) };
+                var reference = new InstanceReference { Instance = this.Provider.Create(this, out var isInitialized) };
 
-                if (DetectCyclicDependencies)
+                if (DetectCyclicDependencies && this.Provider.ResolvesServices)
                 {
                     this.Request.ActiveBindings.Pop();
                 }
@@ -310,7 +324,20 @@ namespace Ninject.Activation
 
                 // TODO: do we want to check here if context.Plan was assigned?
 
+                // Add the instance to the cache before passing it in the initialization pipeline, to make the
+                // instance available to be injected into properties or methods of dependent services.
                 this.Cache.Remember(this, scope, reference);
+
+                if (!isInitialized)
+                {
+                    // Pass the instance through the initialization pipeline which may alter both the instance
+                    // and the plan in the context.
+                    //
+                    // Note that this will not be reflected in the Plan and Type of the standard provider.
+                    reference.Instance = this.Pipeline.Initialize(this, reference.Instance);
+                }
+
+                this.Pipeline.Activate(this, reference);
 
                 return reference.Instance;
             }

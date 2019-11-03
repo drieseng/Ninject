@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using FluentAssertions;
-
+    using Ninject.Activation;
     using Ninject.Parameters;
     using Ninject.Tests.Fakes;
     using Xunit;
@@ -610,10 +610,13 @@
     public class OpenGenericCoContraVarianceService<T, TK> : IGenericCoContraVarianceService<T, TK> { }
 
 
-    public class NullProvider : Ninject.Activation.Provider<Sword>
+    public class NullProvider : Provider<Sword>
     {
-        protected override Sword CreateInstance (Activation.IContext context)
+        public override bool ResolvesServices => false;
+
+        protected override Sword CreateInstance(IContext context, out bool isInitialized)
         {
+            isInitialized = false;
             return null;
         }
     }

@@ -21,9 +21,11 @@
 
 namespace Ninject.Builder
 {
+    using Ninject.Syntax;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
-    public interface IFeatureBuilder
+    public interface IFeatureBuilder : IFluentSyntax
     {
         /// <summary>
         /// Gets the root of the component bindings.
@@ -31,6 +33,7 @@ namespace Ninject.Builder
         /// <value>
         /// The root of the component binding.
         /// </value>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IComponentBindingRoot Components { get; }
 
         /// <summary>
@@ -39,6 +42,7 @@ namespace Ninject.Builder
         /// <value>
         /// A key/value collection that can be used to share data between components.
         /// </value>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IDictionary<string, object> Properties { get; }
     }
 }

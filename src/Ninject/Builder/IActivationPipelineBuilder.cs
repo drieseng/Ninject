@@ -1,8 +1,10 @@
 ﻿namespace Ninject.Builder
 {
+    using Ninject.Syntax;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
-    public interface IActivationPipelineBuilder
+    public interface IActivationPipelineBuilder : IFluentSyntax
     {
         /// <summary>
         /// Gets the root of the component bindings.
@@ -10,6 +12,7 @@
         /// <value>
         /// The root of the component binding.
         /// </value>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IComponentBindingRoot Components { get; }
 
         /// <summary>
@@ -18,6 +21,7 @@
         /// <value>
         /// A key/value collection that can be used to share data between components.
         /// </value>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IDictionary<string, object> Properties { get; }
 
         IActivationPipelineBuilder Startable();

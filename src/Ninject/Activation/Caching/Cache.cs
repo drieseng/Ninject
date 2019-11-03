@@ -122,8 +122,6 @@ namespace Ninject.Activation.Caching
             {
                 cacheEntriesForBinding.Add(new CacheEntry(context, reference));
             }
-
-            this.Pipeline.Activate(context, reference);
         }
 
         /// <summary>

@@ -37,6 +37,15 @@ namespace Ninject.Activation.Providers
         }
 
         /// <summary>
+        /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+        /// <see langword="false"/>.
+        /// </value>
+        public override bool ResolvesServices => false;
+
+        /// <summary>
         /// Gets the value that the provider will return.
         /// </summary>
         public T Value { get; }
@@ -45,11 +54,14 @@ namespace Ninject.Activation.Providers
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The constant value this provider returns.
         /// </returns>
-        protected override T CreateInstance(IContext context)
+        protected override T CreateInstance(IContext context, out bool isInitialized)
         {
+            isInitialized = true;
+
             return this.Value;
         }
     }

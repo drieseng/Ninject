@@ -48,7 +48,7 @@ namespace Ninject.Builder
             /// <typeparam name="TImplementation">The component's implementation type.</typeparam>
             void IComponentContainer.Add<TComponent, TImplementation>()
             {
-                throw new NotImplementedException();
+                this.kernelBuilder.Components.Bind<TComponent>().To<TImplementation>().InSingletonScope();
             }
 
             /// <summary>
@@ -57,7 +57,7 @@ namespace Ninject.Builder
             /// <typeparam name="T">The component type.</typeparam>
             void IComponentContainer.RemoveAll<T>()
             {
-                throw new NotImplementedException();
+                this.kernelBuilder.Components.Unbind<T>();
             }
 
             /// <summary>
@@ -126,7 +126,7 @@ namespace Ninject.Builder
             /// <typeparam name="TImplementation">The component's implementation type.</typeparam>
             void IComponentContainer.AddTransient<TComponent, TImplementation>()
             {
-                throw new NotImplementedException();
+                this.kernelBuilder.Components.Bind<TComponent>().To<TImplementation>();
             }
 
             void IDisposable.Dispose()

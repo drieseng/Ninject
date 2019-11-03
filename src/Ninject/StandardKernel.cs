@@ -73,9 +73,7 @@ namespace Ninject
                     .Initialization(pipeline => ConfigureInitializationPipeline(pipeline))
                     .Activation(pipeline => ConfigureActivationPipeline(pipeline))
                     .Deactivation(pipeline => ConfigureDeactivationPipeline(pipeline))
-                    .OpenGenericBinding()
-                    .DefaultValueBinding()
-                    .SelfBinding();
+                    .Resolution(resolution => ConfigureResolution(resolution));
 
             if (this.Settings.UseReflectionBasedInjection)
             {
@@ -84,6 +82,18 @@ namespace Ninject
             else
             {
                 features.ExpressionBasedInjection();
+            }
+        }
+
+        private void ConfigureResolution(IResolutionBuilder resolution)
+        {
+            resolution.OpenGenericBinding()
+                      .DefaultValueBinding()
+                      .SelfBinding();
+
+            if (this.Settings.AllowNullInjection)
+            {
+                resolution.AllowNull();
             }
         }
 

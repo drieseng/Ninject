@@ -117,8 +117,11 @@ namespace Ninject.Tests.Integration
 
         public class MonkProvider : Provider<Monk>
         {
-            protected override Monk CreateInstance(IContext context)
+            public override bool ResolvesServices => false;
+
+            protected override Monk CreateInstance(IContext context, out bool isInitialized)
             {
+                isInitialized = true;
                 return new Monk();
             }
         }

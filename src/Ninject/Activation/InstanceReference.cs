@@ -32,6 +32,9 @@ namespace Ninject.Activation
         /// <summary>
         /// Gets or sets the instance.
         /// </summary>
+        /// <value>
+        /// The instance.
+        /// </value>
         public object Instance { get; set; }
 
         /// <summary>

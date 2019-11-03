@@ -43,16 +43,24 @@ namespace Ninject.Components
         /// <param name="constructorSelector">The constructor selector.</param>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="constructorParameterValueProvider">The value provider.</param>
-        public ComponentProvider(
-            IPlan plan,
-            IConstructorInjectionSelector constructorSelector,
-            IPipeline pipeline,
-            IConstructorParameterValueProvider constructorParameterValueProvider)
+        public ComponentProvider(IPlan plan,
+                                 IConstructorInjectionSelector constructorSelector,
+                                 IPipeline pipeline,
+                                 IConstructorParameterValueProvider constructorParameterValueProvider)
             : base(plan, pipeline)
         {
             this.constructorSelector = constructorSelector;
             this.constructorParameterValueProvider = constructorParameterValueProvider;
         }
+
+        /// <summary>
+        /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+        /// <see langword="false"/>.
+        /// </value>
+        public override bool ResolvesServices => true;
 
         /// <summary>
         /// Gets the type of instances the provider creates.
@@ -66,11 +74,14 @@ namespace Ninject.Components
         /// Creates an instance of the <see cref="INinjectComponent"/>.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// An instance of the <see cref="INinjectComponent"/>.
         /// </returns>
-        protected override object CreateInstance(IContext context)
+        protected override object CreateInstance(IContext context, out bool isInitialized)
         {
+            isInitialized = false;
+
             var constructor = this.constructorSelector.Select(this.Plan, context);
             var values = this.constructorParameterValueProvider.GetValues(constructor, context);
             return constructor.Injector(values);

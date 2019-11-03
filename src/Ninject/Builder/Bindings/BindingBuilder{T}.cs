@@ -180,7 +180,7 @@ namespace Ninject.Builder
         /// </returns>
         public INewBindingWhenInNamedSyntax<T> ToMethod(Func<IContext, T> method)
         {
-            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<T>(method));
+            var providerBuilder = new ProviderBuilderAdapter(new MethodCallbackProvider<T>(method));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Method, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
@@ -197,7 +197,7 @@ namespace Ninject.Builder
         public INewBindingWhenInNamedSyntax<TImplementation> ToMethod<TImplementation>(Func<IContext, TImplementation> method)
             where TImplementation : T
         {
-            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<TImplementation>(method));
+            var providerBuilder = new ProviderBuilderAdapter(new MethodCallbackProvider<TImplementation>(method));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<TImplementation>(providerBuilder, BindingTarget.Method, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
@@ -214,7 +214,7 @@ namespace Ninject.Builder
         public INewBindingWhenInNamedWithOrOnInitializationSyntax<T> ToProvider<TProvider>()
             where TProvider : IProvider
         {
-            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<object>(ctx => ctx.Kernel.Get<TProvider>().Create(ctx)));
+            var providerBuilder = new ProviderBuilderAdapter(new ProviderCallbackProvider<T>(ctx => ctx.Kernel.Get<TProvider>()));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
@@ -230,7 +230,7 @@ namespace Ninject.Builder
         /// </returns>
         public INewBindingWhenInNamedWithOrOnInitializationSyntax<T> ToProvider(Type providerType)
         {
-            var providerBuilder = new ProviderBuilderAdapter(new CallbackProvider<object>(ctx => (ctx.Kernel.Get(providerType) as IProvider).Create(ctx)));
+            var providerBuilder = new ProviderBuilderAdapter(new ProviderCallbackProvider<T>(ctx => ctx.Kernel.Get(providerType) as IProvider));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;

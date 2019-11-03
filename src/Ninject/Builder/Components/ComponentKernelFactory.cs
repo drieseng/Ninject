@@ -47,7 +47,7 @@ namespace Ninject.Builder
             var planner = CreatePlanner(propertySelector, injectorFactory);
             var pipeline = CreatePipeline(propertySelector, injectorFactory, exceptionFormatter);
             var cache = new Cache(pipeline, new GarbageCollectionCachePruner());
-            var contextFactory = new ContextFactory(cache, exceptionFormatter, false, true);
+            var contextFactory = new ContextFactory(cache, pipeline, exceptionFormatter, false, true);
 
             return new ReadOnlyKernel(CreateBindings(planner, pipeline, cache, exceptionFormatter, contextFactory),
                                       cache,

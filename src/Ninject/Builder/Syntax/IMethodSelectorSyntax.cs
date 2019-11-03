@@ -19,12 +19,13 @@
 // </copyright>
 // -------------------------------------------------------------------------------------------------
 
-using Ninject.Selection;
-using System;
-
 namespace Ninject.Builder.Syntax
 {
-    public interface IMethodSelectorSyntax
+    using Ninject.Selection;
+    using Ninject.Syntax;
+    using System;
+
+    public interface IMethodSelectorSyntax : IFluentSyntax
     {
         IMethodInjectionHeuristicsSyntax Selector(Action<IMethodReflectionSelectorBuilder> selector);
 

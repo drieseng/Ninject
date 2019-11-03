@@ -188,8 +188,11 @@
 
     public class NotifiesWhenDisposedProvider : Provider<NotifiesWhenDisposed>
     {
-        protected override NotifiesWhenDisposed CreateInstance(IContext context)
+        public override bool ResolvesServices => false;
+
+        protected override NotifiesWhenDisposed CreateInstance(IContext context, out bool isInitialized)
         {
+            isInitialized = true;
             return new NotifiesWhenDisposed();
         }
     }

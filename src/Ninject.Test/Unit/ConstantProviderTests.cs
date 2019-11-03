@@ -31,9 +31,10 @@
             var sword = new Sword();
             this.provider = new ConstantProvider<Sword>(sword);
 
-            var result = this.provider.Create(this.contextMock.Object);
+            var result = this.provider.Create(this.contextMock.Object, out var isInitialized);
 
             result.Should().BeSameAs(sword);
+            isInitialized.Should().BeTrue();
         }
     }
 }

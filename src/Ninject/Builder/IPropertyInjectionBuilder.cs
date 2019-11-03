@@ -23,6 +23,7 @@ namespace Ninject.Builder
 {
     using Ninject.Builder.Syntax;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
     public interface IPropertyInjectionBuilder : IPropertyInjectionHeuristicsSyntax, IPropertySelectorSyntax
     {
@@ -32,6 +33,7 @@ namespace Ninject.Builder
         /// <value>
         /// The component bindings that make up the activation pipeline.
         /// </value>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IComponentBindingRoot Components { get; }
 
         /// <summary>
@@ -40,6 +42,7 @@ namespace Ninject.Builder
         /// <value>
         /// A key/value collection that can be used to share data between components.
         /// </value>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IDictionary<string, object> Properties { get; }
     }
 }

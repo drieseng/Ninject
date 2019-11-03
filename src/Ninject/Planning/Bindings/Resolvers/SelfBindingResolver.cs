@@ -108,22 +108,36 @@ namespace Ninject.Planning.Bindings.Resolvers
                    !service.ContainsGenericParameters;
         }
 
-        private class SelfBindingProvider : StandardProviderBase
+        private sealed class SelfBindingProvider : StandardProviderBase
         {
             private readonly IConstructorInjectionSelector constructorSelector;
             private readonly IConstructorParameterValueProvider constructorParameterValueProvider;
 
-            public SelfBindingProvider(IPlan plan, IPipeline pipeline, IConstructorInjectionSelector constructorSelector, IConstructorParameterValueProvider constructorParameterValueProvider)
+            public SelfBindingProvider(IPlan plan,
+                                       IPipeline pipeline,
+                                       IConstructorInjectionSelector constructorSelector,
+                                       IConstructorParameterValueProvider constructorParameterValueProvider)
                 : base(plan, pipeline)
             {
                 this.constructorSelector = constructorSelector;
                 this.constructorParameterValueProvider = constructorParameterValueProvider;
             }
 
+            /// <summary>
+            /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
+            /// </summary>
+            /// <value>
+            /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+            /// <see langword="false"/>.
+            /// </value>
+            public override bool ResolvesServices => true;
+
             public override Type Type => this.Plan.Type;
 
-            protected override object CreateInstance(IContext context)
+            protected override object CreateInstance(IContext context, out bool isInitialized)
             {
+                isInitialized = false;
+
                 var directive = constructorSelector.Select(context.Plan, context);
                 var values = constructorParameterValueProvider.GetValues(directive, context);
                 return directive.Injector(values);

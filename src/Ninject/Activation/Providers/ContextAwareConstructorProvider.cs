@@ -44,16 +44,24 @@ namespace Ninject.Activation.Providers
         /// <param name="constructorSelector">The constructor selector.</param>
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="constructorParameterValueProvider">The value provider.</param>
-        public ContextAwareConstructorProvider(
-            IPlan plan,
-            IConstructorInjectionSelector constructorSelector,
-            IPipeline pipeline,
-            IConstructorParameterValueProvider constructorParameterValueProvider)
+        public ContextAwareConstructorProvider(IPlan plan,
+                                               IConstructorInjectionSelector constructorSelector,
+                                               IPipeline pipeline,
+                                               IConstructorParameterValueProvider constructorParameterValueProvider)
             : base(plan, pipeline)
         {
             this.constructorSelector = constructorSelector;
             this.constructorParameterValueProvider = constructorParameterValueProvider;
         }
+
+        /// <summary>
+        /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+        /// <see langword="false"/>.
+        /// </value>
+        public override bool ResolvesServices => true;
 
         /// <summary>
         /// Gets the type of instances the provider creates.
@@ -70,11 +78,14 @@ namespace Ninject.Activation.Providers
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The created instance.
         /// </returns>
-        protected override object CreateInstance(IContext context)
+        protected override object CreateInstance(IContext context, out bool isInitialized)
         {
+            isInitialized = false;
+
             var constructor = this.constructorSelector.Select(this.Plan, context);
             var values = this.constructorParameterValueProvider.GetValues(constructor, context);
             return constructor.Injector(values);

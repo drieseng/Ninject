@@ -144,11 +144,6 @@ namespace Ninject.Builder
                 this.Components.Bind<IPlanner>().To<Planner>().InSingletonScope();
             }
 
-            if (!this.Components.IsBound<IContextFactory>())
-            {
-                this.Components.Bind<IContextFactory>().To<ContextFactory>();
-            }
-
             if (!this.Components.IsBound<IActivationCache>())
             {
                 this.Components.Bind<IActivationCache>().To<ActivationCache>().InSingletonScope();
@@ -201,6 +196,13 @@ namespace Ninject.Builder
             {
                 this.Components.Bind<IPipeline>().ToMethod(c => new PipelineFactory().Create(c.Kernel)).InSingletonScope();
             }
+
+            if (!this.Components.IsBound<IContextFactory>())
+            {
+                this.Components.Bind<IContextFactory>()
+                               .ToConstructor(c => new ContextFactory(c.Inject<ICache>(), c.Inject<IPipeline>(), c.Inject<IExceptionFormatter>(), false, true));
+            }
+
 
             // Build a kernel for the components
             var resolveComponentsKernel = new BuilderKernelFactory().CreateResolveComponentBindingsKernel();

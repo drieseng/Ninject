@@ -22,7 +22,6 @@
 namespace Ninject.Builder
 {
     using Ninject.Injection;
-    using Ninject.Planning.Bindings.Resolvers;
     using System;
 
     public static class FeatureBuilderExtensions
@@ -82,47 +81,6 @@ namespace Ninject.Builder
             return features;
         }
 
-        /// <summary>
-        /// Configures an <see cref="IKernelBuilder"/> to automatically create a self-binding for a given
-        /// service when no explicit binding is available.
-        /// </summary>
-        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
-        /// <returns>
-        /// The <see cref="IFeatureBuilder"/> instance.
-        /// </returns>
-        public static IFeatureBuilder SelfBinding(this IFeatureBuilder features)
-        {
-            features.Components.Bind<IMissingBindingResolver>().To<SelfBindingResolver>();
-            return features;
-        }
-
-        /// <summary>
-        /// Configures an <see cref="IKernelBuilder"/> to use the default value for a given target when no
-        /// explicit binding is available.
-        /// </summary>
-        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
-        /// <returns>
-        /// The <see cref="IFeatureBuilder"/> instance.
-        /// </returns>
-        public static IFeatureBuilder DefaultValueBinding(this IFeatureBuilder features)
-        {
-            features.Components.Bind<IMissingBindingResolver>().To<DefaultValueBindingResolver>();
-            return features;
-        }
-
-        /// <summary>
-        /// Configures an <see cref="IKernelBuilder"/> to support open generic binding.
-        /// </summary>
-        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
-        /// <returns>
-        /// The <see cref="IFeatureBuilder"/> instance.
-        /// </returns>
-        public static IFeatureBuilder OpenGenericBinding(this IFeatureBuilder features)
-        {
-            features.Components.Bind<IBindingResolver>().To<OpenGenericBindingResolver>();
-            return features;
-        }
-
         public static IFeatureBuilder Initialization(this IFeatureBuilder features, Action<IInitializationPipelineBuilder> pipeline)
         {
             var builder = new InitializationPipelineBuilder(features.Components, features.Properties);
@@ -141,6 +99,14 @@ namespace Ninject.Builder
         {
             var builder = new DeactivationPipelineBuilder(features.Components, features.Properties);
             pipeline(builder);
+            return features;
+        }
+
+        public static IFeatureBuilder Resolution(this IFeatureBuilder features, Action<IResolutionBuilder> resolution)
+        {
+            var builder = new ResolutionBuilder(features.Components, features.Properties);
+            resolution(builder);
+            builder.Build();
             return features;
         }
     }

@@ -1,5 +1,5 @@
-﻿// -------------------------------------------------------------------------------------------------
-// <copyright file="ParameterlessConstructorProvider.cs" company="Ninject Project Contributors">
+// -------------------------------------------------------------------------------------------------
+// <copyright file="CallbackProvider.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -23,28 +23,24 @@ namespace Ninject.Activation.Providers
 {
     using System;
 
-    using Ninject.Planning;
-    using Ninject.Planning.Directives;
+    using Ninject.Infrastructure;
 
     /// <summary>
-    /// Provides instances using their respective parameterless constructor.
+    /// A provider that delegates to a callback to obtain the provider that is used to create instances.
     /// </summary>
-    internal sealed class ParameterlessConstructorProvider : StandardProviderBase
+    /// <typeparam name="T">The type of instances the provider creates.</typeparam>
+    internal class ProviderCallbackProvider<T> : Provider<T>
     {
-        private readonly IConstructorInjectionDirective constructor;
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="ParameterlessConstructorProvider"/> class.
+        /// Initializes a new instance of the <see cref="ProviderCallbackProvider{T}"/> class.
         /// </summary>
-        /// <param name="type">The type.</param>
-        /// <param name="constructor">The parameterless constructor.</param>
-        /// <param name="plan">The plan.</param>
-        /// <param name="pipeline">The pipeline.</param>
-        public ParameterlessConstructorProvider(Type type, IConstructorInjectionDirective constructor, IPlan plan, IPipeline pipeline)
-            : base(plan, pipeline)
+        /// <param name="providerCallback">The callback that will be called to create the provider.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="providerCallback"/> is <see langword="null"/>.</exception>
+        public ProviderCallbackProvider(Func<IContext, IProvider> providerCallback)
         {
-            this.Type = type;
-            this.constructor = constructor;
+            Ensure.ArgumentNotNull(providerCallback, nameof(providerCallback));
+
+            this.ProviderCallback = providerCallback;
         }
 
         /// <summary>
@@ -54,30 +50,39 @@ namespace Ninject.Activation.Providers
         /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
         /// <see langword="false"/>.
         /// </value>
-        public override bool ResolvesServices => false;
+        public override bool ResolvesServices => true;
 
         /// <summary>
-        /// Gets the type of instances the provider creates.
+        /// Gets the callback method used by the provider.
         /// </summary>
-        /// <value>
-        /// The type of instances the provider creates.
-        /// </value>
-        public override Type Type { get; }
+        public Func<IContext, IProvider> ProviderCallback { get; }
 
         /// <summary>
-        /// Creates an instance using the parameterless constructor that was specified when the current instance
-        /// was initialized.
+        /// Invokes the callback method to create an instance.
         /// </summary>
         /// <param name="context">The context.</param>
         /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The created instance.
         /// </returns>
-        protected override object CreateInstance(IContext context, out bool isInitialized)
+        protected override T CreateInstance(IContext context, out bool isInitialized)
         {
-            isInitialized = false;
+            var provider = this.ProviderCallback(context);
+            if (provider == null)
+            {
+                throw new ActivationException("TODO");
+            }
 
-            return this.constructor.Injector(Array.Empty<object>());
+            var instance = provider.Create(context, out isInitialized);
+            if (instance != null)
+            {
+                if (!(instance is T))
+                {
+                    throw new ActivationException("TODO");
+                }
+            }
+
+            return (T) instance;
         }
     }
 }

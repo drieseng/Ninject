@@ -32,6 +32,15 @@ namespace Ninject.Activation
     public abstract class Provider<T> : IProvider<T>
     {
         /// <summary>
+        /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+        /// <see langword="false"/>.
+        /// </value>
+        public abstract bool ResolvesServices {get;}
+
+        /// <summary>
         /// Gets the type of instances the provider creates.
         /// </summary>
         /// <value>
@@ -46,22 +55,26 @@ namespace Ninject.Activation
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The created instance.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-        public object Create(IContext context)
+        public object Create(IContext context, out bool isInitialized)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
 
-            return this.CreateInstance(context);
+            return this.CreateInstance(context, out isInitialized);
         }
 
         /// <summary>
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The created instance.</returns>
-        protected abstract T CreateInstance(IContext context);
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
+        /// <returns>
+        /// The created instance.
+        /// </returns>
+        protected abstract T CreateInstance(IContext context, out bool isInitialized);
     }
 }

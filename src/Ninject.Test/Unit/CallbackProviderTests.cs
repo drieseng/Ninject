@@ -10,7 +10,7 @@
 
     public class CallbackProviderContext
     {
-        protected CallbackProvider<Sword> provider;
+        internal MethodCallbackProvider<Sword> provider;
         protected Mock<IContext> contextMock;
 
         public CallbackProviderContext()
@@ -31,7 +31,7 @@
         {
             const Func<IContext, string> method = null;
 
-            var actualException = Assert.Throws<ArgumentNullException>(() => new CallbackProvider<string>(method));
+            var actualException = Assert.Throws<ArgumentNullException>(() => new MethodCallbackProvider<string>(method));
 
             Assert.Null(actualException.InnerException);
             Assert.Equal(nameof(method), actualException.ParamName);
@@ -55,11 +55,13 @@
             _providerCallbackMock.Setup(p => p(this.contextMock.Object))
                                  .Returns(providerInstance);
 
-            this.provider = new CallbackProvider<Sword>(_providerCallbackMock.Object);
+            this.provider = new MethodCallbackProvider<Sword>(_providerCallbackMock.Object);
 
-            var result = this.provider.Create(this.contextMock.Object);
+            var result = this.provider.Create(this.contextMock.Object, out var isInitialized);
 
             result.Should().BeSameAs(providerInstance);
+            isInitialized.Should().BeTrue();
+
             _providerCallbackMock.Verify(p => p(this.contextMock.Object), Times.Once);
         }
     }

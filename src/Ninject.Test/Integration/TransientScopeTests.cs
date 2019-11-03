@@ -169,8 +169,11 @@
 
     public class SwordProvider : Provider<Sword>
     {
-        protected override Sword CreateInstance(IContext context)
+        public override bool ResolvesServices => false;
+
+        protected override Sword CreateInstance(IContext context, out bool isInitialized)
         {
+            isInitialized = true;
             return new Sword();
         }
     }

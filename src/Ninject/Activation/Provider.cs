@@ -60,13 +60,23 @@ namespace Ninject.Activation
         public IPipeline Pipeline { get; }
 
         /// <summary>
+        /// Gets a value indicating whether the provider uses Ninject to resolve services when creating an instance.
+        /// </summary>
+        /// <value>
+        /// <see langword="true"/> if the provider uses Ninject to resolve service when creating an instance; otherwise,
+        /// <see langword="false"/>.
+        /// </value>
+        public abstract bool ResolvesServices { get; }
+
+        /// <summary>
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The created instance.
         /// </returns>
-        public object Create(IContext context)
+        public object Create(IContext context, out bool isInitialized)
         {
             Ensure.ArgumentNotNull(context, nameof(context));
 
@@ -74,22 +84,17 @@ namespace Ninject.Activation
             context.Plan = this.Plan;
 
             // Create an instance of the implementation type.
-            var instance = this.CreateInstance(context);
-
-            // Pass the instance through the initialization pipeline which may alter both the instance
-            // and the plan in the context.
-            //
-            // Note that this will not be reflected in the Plan and Type of the standard provider.
-            return this.Pipeline.Initialize(context, instance);
+            return this.CreateInstance(context, out isInitialized);
         }
 
         /// <summary>
         /// Creates an instance within the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
+        /// <param name="isInitialized"><see langword="true"/> if the created instance is fully initialized; otherwise, <see langword="false"/></param>
         /// <returns>
         /// The created instance.
         /// </returns>
-        protected abstract object CreateInstance(IContext context);
+        protected abstract object CreateInstance(IContext context, out bool isInitialized);
     }
 }

@@ -34,10 +34,21 @@ namespace Ninject.Components
     public interface IExceptionFormatter : INinjectComponent
     {
         /// <summary>
+        /// Generates a message saying that a component container cannot be modified once the kernel
+        /// has been built.
+        /// </summary>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        string ComponentContainerCannotBeModifiedOnceKernelIsBuilt();
+
+        /// <summary>
         /// Generates a message saying that the binding could not be resolved on the specified request.
         /// </summary>
         /// <param name="request">The request.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         string CouldNotResolveBinding(IRequest request);
 
         /// <summary>
@@ -45,14 +56,18 @@ namespace Ninject.Components
         /// </summary>
         /// <param name="request">The request.</param>
         /// <param name="propertyName">The property name.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         string CouldNotResolvePropertyForValueInjection(IRequest request, string propertyName);
 
         /// <summary>
         /// Generates a message saying that the specified context has cyclic dependencies.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         string CyclicalDependenciesDetected(IContext context);
 
         /// <summary>
@@ -88,7 +103,9 @@ namespace Ninject.Components
         /// Generates a message saying that no constructors are available on the specified context.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         string NoConstructorsAvailable(IContext context);
 
         /// <summary>
@@ -96,7 +113,9 @@ namespace Ninject.Components
         /// </summary>
         /// <param name="component">The component.</param>
         /// <param name="implementation">The implementation.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         string NoConstructorsAvailableForComponent(Type component, Type implementation);
 
         /// <summary>
@@ -112,14 +131,18 @@ namespace Ninject.Components
         /// Generates a message saying that the specified component is not registered.
         /// </summary>
         /// <param name="component">The component.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         string NoSuchComponentRegistered(Type component);
 
         /// <summary>
         /// Generates a message saying that the provider on the specified context returned null.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         string ProviderReturnedNull(IContext context);
     }
 }

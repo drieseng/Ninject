@@ -36,16 +36,16 @@ namespace Ninject.Builder
     /// </summary>
     internal sealed class StandardProviderFactory : IProviderFactory
     {
-        private readonly Type implementation;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="StandardProviderFactory"/> class.
         /// </summary>
         /// <param name="implementation">The type of instances the factory creates <see cref="IProvider"/> instances for.</param>
-        internal StandardProviderFactory(Type implementation)
+        public StandardProviderFactory(Type implementation)
         {
-            this.implementation = implementation;
+            this.Implementation = implementation;
         }
+
+        public Type Implementation { get; }
 
         /// <summary>
         /// Creates an appropiate <see cref="IProvider"/> taking into account the configured <see cref="IConstructorInjectionSelector"/>
@@ -62,7 +62,7 @@ namespace Ninject.Builder
             var pipeline = root.Get<IPipeline>();
 
             var planner = root.Get<IPlanner>();
-            var plan = planner.GetPlan(this.implementation);
+            var plan = planner.GetPlan(this.Implementation);
 
             if (constructorSelector is DefaultConstructorInjectionSelector || constructorSelector is UniqueConstructorInjectionSelector)
             {
@@ -77,15 +77,14 @@ namespace Ninject.Builder
                         }
                     }
 
-                    return new ParameterlessConstructorProvider(this.implementation, constructor, plan, pipeline);
+                    return new ParameterlessConstructorProvider(this.Implementation, constructor, plan, pipeline);
                 }
 
-                return new FixedConstructorProvider(
-                    this.implementation,
-                    constructor,
-                    plan,
-                    pipeline,
-                    root.Get<IConstructorParameterValueProvider>());
+                return new FixedConstructorProvider(this.Implementation,
+                                                    constructor,
+                                                    plan,
+                                                    pipeline,
+                                                    root.Get<IConstructorParameterValueProvider>());
             }
 
             return new ContextAwareConstructorProvider(plan, constructorSelector, pipeline, root.Get<IConstructorParameterValueProvider>());

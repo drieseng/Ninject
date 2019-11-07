@@ -52,7 +52,7 @@ namespace Ninject.Builder
         /// <summary>
         /// Gets the binding being built.
         /// </summary>
-        public abstract INewBindingConfigurationBuilder BindingConfigurationBuilder { get; }
+        public abstract BindingConfigurationBuilder BindingConfigurationBuilder { get; }
 
         /// <summary>
         /// Builds the binding(s) of this instance.

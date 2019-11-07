@@ -407,6 +407,25 @@ namespace Ninject.Components
         }
 
         /// <summary>
+        /// Generates a message saying that a component container cannot be modified once the kernel
+        /// has been built.
+        /// </summary>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        public string ComponentContainerCannotBeModifiedOnceKernelIsBuilt()
+        {
+            using (var sw = new StringWriter())
+            {
+                sw.WriteLine("The component container cannot be modified once the kernel has been built.");
+                sw.WriteLine("Suggestions:");
+                sw.WriteLine("  1) Configure all components before building the kernel.");
+
+                return sw.ToString();
+            }
+        }
+
+        /// <summary>
         /// Formats the constructor.
         /// </summary>
         /// <param name="constructor">The constructor.</param>

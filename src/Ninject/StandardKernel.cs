@@ -55,7 +55,7 @@ namespace Ninject
         protected override void AddComponents(IKernelBuilder kernelBuilder)
         {
             kernelBuilder.Features(features => features.Components.Bind<INinjectSettings>().ToConstant(this.Settings));
-            kernelBuilder.Features(ConfigureFeatures);
+            kernelBuilder.Features(f => ConfigureFeatures(f));
 
             /*
             this.Components.Add<IAssemblyNameRetriever, AssemblyNameRetriever>();
@@ -74,26 +74,27 @@ namespace Ninject
                     .Activation(pipeline => ConfigureActivationPipeline(pipeline))
                     .Deactivation(pipeline => ConfigureDeactivationPipeline(pipeline))
                     .Resolution(resolution => ConfigureResolution(resolution));
-
-            if (this.Settings.UseReflectionBasedInjection)
-            {
-                features.ReflectionBasedInjection();
-            }
-            else
-            {
-                features.ExpressionBasedInjection();
-            }
         }
 
         private void ConfigureResolution(IResolutionBuilder resolution)
         {
             resolution.OpenGenericBinding()
                       .DefaultValueBinding()
-                      .SelfBinding();
+                      .SelfBinding()
+                      .DetectCyclicDependencies();
 
             if (this.Settings.AllowNullInjection)
             {
                 resolution.AllowNull();
+            }
+
+            if (this.Settings.UseReflectionBasedInjection)
+            {
+                resolution.ReflectionInjector();
+            }
+            else
+            {
+                resolution.ExpressionInjector();
             }
         }
 

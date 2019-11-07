@@ -75,6 +75,9 @@ namespace Ninject.Builder
         /// <summary>
         /// Allow <see langword="null"/> as a valid value for injection.
         /// </summary>
+        /// <returns>
+        /// The <see cref="IResolutionBuilder"/> instance.
+        /// </returns>
         /// <remarks>
         /// When not set, an <see cref="ActivationException"/> is thrown whenever a provider returns <see langword="null"/>.
         /// This is the default.
@@ -84,6 +87,9 @@ namespace Ninject.Builder
         /// <summary>
         /// Enables detection of cyclic dependencies.
         /// </summary>
+        /// <returns>
+        /// The <see cref="IResolutionBuilder"/> instance.
+        /// </returns>
         /// <remarks>
         /// <para>
         /// If enabled, an <see cref="ActivationException"/> is thrown whenever a cyclic dependency is detected.
@@ -94,5 +100,21 @@ namespace Ninject.Builder
         /// </para>
         /// </remarks>
         IResolutionBuilder DetectCyclicDependencies();
+
+        /// <summary>
+        /// Configures the <see cref="IKernelBuilder"/> to use expression-based injection.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="IResolutionBuilder"/> instance.
+        /// </returns>
+        IResolutionBuilder ExpressionInjector();
+
+        /// <summary>
+        /// Configures an <see cref="IKernelBuilder"/> to use reflection-based injection.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="IResolutionBuilder"/> instance.
+        /// </returns>
+        IResolutionBuilder ReflectionInjector();
     }
 }

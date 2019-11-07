@@ -1,6 +1,7 @@
 ﻿using Ninject.Activation;
 using Ninject.Activation.Caching;
 using Ninject.Components;
+using Ninject.Injection;
 using Ninject.Planning.Bindings.Resolvers;
 using System;
 using System.Collections.Generic;
@@ -68,6 +69,32 @@ namespace Ninject.Builder
         public IResolutionBuilder DetectCyclicDependencies()
         {
             this.detectCyclicDependencies = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Configures the <see cref="IKernelBuilder"/> to use expression-based injection.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="IResolutionBuilder"/> instance.
+        /// </returns>
+        public IResolutionBuilder ExpressionInjector()
+        {
+            Components.Unbind<IInjectorFactory>();
+            Components.Bind<IInjectorFactory>().To<ExpressionInjectorFactory>();
+            return this;
+        }
+
+        /// <summary>
+        /// Configures the <see cref="IKernelBuilder"/> to use reflection-based injection.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="IResolutionBuilder"/> instance.
+        /// </returns>
+        public IResolutionBuilder ReflectionInjector()
+        {
+            Components.Unbind<IInjectorFactory>();
+            Components.Bind<IInjectorFactory>().To<ReflectionInjectorFactory>();
             return this;
         }
 

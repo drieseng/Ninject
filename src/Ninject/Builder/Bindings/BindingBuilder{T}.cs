@@ -44,7 +44,7 @@ namespace Ninject.Builder
         /// <summary>
         /// Gets the binding being built.
         /// </summary>
-        public override INewBindingConfigurationBuilder BindingConfigurationBuilder => this.bindingConfigurationBuilder;
+        public override BindingConfigurationBuilder BindingConfigurationBuilder => this.bindingConfigurationBuilder;
 
         /// <summary>
         /// Gets the names of the services that this instance builds a binding for.

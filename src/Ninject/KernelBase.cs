@@ -74,7 +74,12 @@ namespace Ninject
         {
             get
             {
-                return this.kernelBuilder.AsComponentContainer();
+                if (this.kernel == null)
+                {
+                    return this.kernelBuilder.Components;
+                }
+
+                return new ComponentContainerAdapter(this.kernel.Components, this.kernel.Components.Get<IExceptionFormatter>());
             }
         }
 
@@ -537,6 +542,73 @@ namespace Ninject
             INewBindingToSyntax<object> syntax = null;
             this.kernelBuilder.Bindings(m => syntax = m.Rebind(services));
             return syntax;
+        }
+
+        private class ComponentContainerAdapter : IComponentContainer
+        {
+            private readonly IComponentContainerNew componentContainer;
+            private readonly IExceptionFormatter exceptionFormatter;
+
+            public ComponentContainerAdapter(IComponentContainerNew componentContainer, IExceptionFormatter exceptionFormatter)
+            {
+                this.componentContainer = componentContainer;
+                this.exceptionFormatter = exceptionFormatter;
+            }
+
+            public void Add<TComponent, TImplementation>()
+                where TComponent : INinjectComponent
+                where TImplementation : INinjectComponent, TComponent
+            {
+                throw new ActivationException(this.exceptionFormatter.ComponentContainerCannotBeModifiedOnceKernelIsBuilt());
+            }
+
+            public void AddTransient<TComponent, TImplementation>()
+                where TComponent : INinjectComponent
+                where TImplementation : INinjectComponent, TComponent
+            {
+                throw new ActivationException(this.exceptionFormatter.ComponentContainerCannotBeModifiedOnceKernelIsBuilt());
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public T Get<T>() where T : INinjectComponent
+            {
+                return this.componentContainer.Get<T>();
+            }
+
+            public object Get(Type component)
+            {
+                return this.componentContainer.Get(component);
+            }
+
+            public IEnumerable<T> GetAll<T>() where T : INinjectComponent
+            {
+                return this.componentContainer.GetAll<T>();
+            }
+
+            public IEnumerable<object> GetAll(Type component)
+            {
+                return this.componentContainer.GetAll(component);
+            }
+
+            public void Remove<T, TImplementation>()
+                where T : INinjectComponent
+                where TImplementation : T
+            {
+                throw new ActivationException(this.exceptionFormatter.ComponentContainerCannotBeModifiedOnceKernelIsBuilt());
+            }
+
+            public void RemoveAll<T>() where T : INinjectComponent
+            {
+                throw new ActivationException(this.exceptionFormatter.ComponentContainerCannotBeModifiedOnceKernelIsBuilt());
+            }
+
+            public void RemoveAll(Type component)
+            {
+                throw new ActivationException(this.exceptionFormatter.ComponentContainerCannotBeModifiedOnceKernelIsBuilt());
+            }
         }
     }
 }

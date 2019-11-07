@@ -117,6 +117,11 @@ namespace Ninject.Builder
             get { return this.initializationActions.Count > 0; }
         }
 
+        internal override IProviderFactory ProviderFactory
+        {
+            get { return this.providerBuilder; }
+        }
+
         /// <summary>
         /// Builds the binding configuration.
         /// </summary>

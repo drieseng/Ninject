@@ -55,32 +55,6 @@ namespace Ninject.Builder
             return features.ConstructorInjection(c => c.Unique());
         }
 
-        /// <summary>
-        /// Configures an <see cref="IKernelBuilder"/> to use expression-based injection.
-        /// </summary>
-        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
-        /// <returns>
-        /// The <see cref="IFeatureBuilder"/> instance.
-        /// </returns>
-        public static IFeatureBuilder ExpressionBasedInjection(this IFeatureBuilder features)
-        {
-            features.Components.Bind<IInjectorFactory>().To<ExpressionInjectorFactory>();
-            return features;
-        }
-
-        /// <summary>
-        /// Configures an <see cref="IKernelBuilder"/> to use expression-based injection.
-        /// </summary>
-        /// <param name="features">An <see cref="IFeatureBuilder"/> instance.</param>
-        /// <returns>
-        /// The <see cref="IFeatureBuilder"/> instance.
-        /// </returns>
-        public static IFeatureBuilder ReflectionBasedInjection(this IFeatureBuilder features)
-        {
-            features.Components.Bind<IInjectorFactory>().To<ReflectionInjectorFactory>();
-            return features;
-        }
-
         public static IFeatureBuilder Initialization(this IFeatureBuilder features, Action<IInitializationPipelineBuilder> pipeline)
         {
             var builder = new InitializationPipelineBuilder(features.Components, features.Properties);

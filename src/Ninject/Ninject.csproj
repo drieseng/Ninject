@@ -32,6 +32,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ReadOnlyKernel.ComponentContainer.cs" />
     <Compile Remove="ReadOnlyKernel.IReadOnlyComponentContainer.cs" />
   </ItemGroup>
 
@@ -40,6 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="ReadOnlyKernel.ComponentContainer.cs" />
     <None Include="ReadOnlyKernel.IReadOnlyComponentContainer.cs" />
   </ItemGroup>
 </Project>

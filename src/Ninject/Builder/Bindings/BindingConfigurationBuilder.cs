@@ -65,5 +65,7 @@ namespace Ninject.Builder
         /// otherwise, <see langword="false"/>.
         /// </value>
         public abstract bool HasInitializationActions { get; }
+
+        internal abstract IProviderFactory ProviderFactory { get; }
     }
 }

@@ -27,9 +27,16 @@ namespace Ninject.Builder
 
     partial class KernelBuilder
     {
+        private IComponentContainer componentContainer;
+
         internal IComponentContainer AsComponentContainer()
         {
-            return new ComponentContainerAdapter(this);
+            if (componentContainer == null)
+            {
+                componentContainer = new ComponentContainerAdapter(this);
+            }
+
+            return componentContainer;
         }
 
         private class ComponentContainerAdapter : IComponentContainer

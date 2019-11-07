@@ -1,7 +1,5 @@
-﻿#if false
-
-// -------------------------------------------------------------------------------------------------
-// <copyright file="ReadOnlyKernel.cs" company="Ninject Project Contributors">
+﻿// -------------------------------------------------------------------------------------------------
+// <copyright file="ReadOnlyKernel5.cs" company="Ninject Project Contributors">
 //   Copyright (c) 2007-2010 Enkari, Ltd. All rights reserved.
 //   Copyright (c) 2010-2019 Ninject Project Contributors. All rights reserved.
 //
@@ -29,6 +27,7 @@ namespace Ninject
 
     using Ninject.Activation;
     using Ninject.Activation.Caching;
+    using Ninject.Builder;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Disposal;
@@ -38,66 +37,108 @@ namespace Ninject
     using Ninject.Planning;
     using Ninject.Planning.Bindings;
     using Ninject.Planning.Bindings.Resolvers;
-    using Ninject.Selection.Heuristics;
     using Ninject.Syntax;
 
     /// <summary>
     /// The readonly kernel.
     /// </summary>
-    public class ReadOnlyKernel : DisposableObject, IReadOnlyKernel
+    internal partial class ReadOnlyKernel : DisposableObject, IReadOnlyKernel
     {
-        private readonly INinjectSettings settings;
         private readonly ICache cache;
-        private readonly IPlanner planner;
-        private readonly IConstructorInjectionScorer constructorScorer;
         private readonly IPipeline pipeline;
+        private readonly IPlanner planner;
         private readonly IBindingPrecedenceComparer bindingPrecedenceComparer;
         private readonly IExceptionFormatter exceptionFormatter;
+        private readonly IContextFactory contextFactory;
         private readonly List<IBindingResolver> bindingResolvers;
         private readonly List<IMissingBindingResolver> missingBindingResolvers;
         private readonly object missingBindingCacheLock = new object();
 
         private Dictionary<Type, IBinding[]> bindingCache = new Dictionary<Type, IBinding[]>(new ReferenceEqualityTypeComparer());
-        private Dictionary<Type, ICollection<IBinding>> bindings = new Dictionary<Type, ICollection<IBinding>>(new ReferenceEqualityTypeComparer());
+        private Dictionary<Type, ICollection<IBinding>> bindings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadOnlyKernel"/> class.
         /// </summary>
-        /// <param name="settings">The configuration to use.</param>
         /// <param name="bindings">The preconfigured bindings.</param>
         /// <param name="cache">The <see cref="ICache"/> component.</param>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
-        /// <param name="constructorScorer">The <see cref="IConstructorInjectionScorer"/> component.</param>
         /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        /// <param name="contextFactory">The component to create <see cref="IContext"/> instances.</param>
         /// <param name="bindingPrecedenceComparer">The <see cref="IBindingPrecedenceComparer"/> component.</param>
         /// <param name="bindingResolvers">The binding resolvers.</param>
         /// <param name="missingBindingResolvers">The missing binding resolvers.</param>
-        internal ReadOnlyKernel(
-            INinjectSettings settings,
-            Dictionary<Type, ICollection<IBinding>> bindings,
-            ICache cache,
-            IPlanner planner,
-            IConstructorInjectionScorer constructorScorer,
-            IPipeline pipeline,
-            IExceptionFormatter exceptionFormatter,
-            IBindingPrecedenceComparer bindingPrecedenceComparer,
-            List<IBindingResolver> bindingResolvers,
-            List<IMissingBindingResolver> missingBindingResolvers)
+        internal ReadOnlyKernel(Dictionary<Type, ICollection<IBinding>> bindings,
+                                ICache cache,
+                                IPlanner planner,
+                                IPipeline pipeline,
+                                IExceptionFormatter exceptionFormatter,
+                                IContextFactory contextFactory,
+                                IBindingPrecedenceComparer bindingPrecedenceComparer,
+                                List<IBindingResolver> bindingResolvers,
+                                List<IMissingBindingResolver> missingBindingResolvers)
         {
-            this.settings = settings;
             this.bindings = bindings;
-            this.bindingResolvers = bindingResolvers;
-            this.missingBindingResolvers = missingBindingResolvers;
             this.cache = cache;
             this.planner = planner;
-            this.constructorScorer = constructorScorer;
             this.pipeline = pipeline;
             this.exceptionFormatter = exceptionFormatter;
+            this.contextFactory = contextFactory;
             this.bindingPrecedenceComparer = bindingPrecedenceComparer;
+            this.bindingResolvers = bindingResolvers;
+            this.missingBindingResolvers = missingBindingResolvers;
 
-            this.AddReadOnlyKernelBinding<IReadOnlyKernel>(this, bindings);
-            this.AddReadOnlyKernelBinding<IResolutionRoot>(this, bindings);
+            this.AddReadOnlyKernelBinding<IReadOnlyKernel>(this, this.bindings);
+            this.AddReadOnlyKernelBinding<IResolutionRoot>(this, this.bindings);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReadOnlyKernel"/> class.
+        /// </summary>
+        /// <param name="bindings">The preconfigured bindings.</param>
+        /// <param name="cache">The <see cref="ICache"/> component.</param>
+        /// <param name="planner">The <see cref="IPlanner"/> component.</param>
+        /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
+        /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        /// <param name="contextFactory">The component to create <see cref="IContext"/> instances.</param>
+        /// <param name="bindingPrecedenceComparer">The <see cref="IBindingPrecedenceComparer"/> component.</param>
+        /// <param name="bindingResolvers">The binding resolvers.</param>
+        /// <param name="missingBindingResolvers">The missing binding resolvers.</param>
+        internal ReadOnlyKernel(NewBindingRoot bindings,
+                                 ICache cache,
+                                 IPlanner planner,
+                                 IPipeline pipeline,
+                                 IExceptionFormatter exceptionFormatter,
+                                 IContextFactory contextFactory,
+                                 IBindingPrecedenceComparer bindingPrecedenceComparer,
+                                 List<IBindingResolver> bindingResolvers,
+                                 List<IMissingBindingResolver> missingBindingResolvers)
+        {
+            this.cache = cache;
+            this.planner = planner;
+            this.pipeline = pipeline;
+            this.exceptionFormatter = exceptionFormatter;
+            this.contextFactory = contextFactory;
+            this.bindingPrecedenceComparer = bindingPrecedenceComparer;
+            this.bindingResolvers = bindingResolvers;
+            this.missingBindingResolvers = missingBindingResolvers;
+
+            this.bindings = new Dictionary<Type, ICollection<IBinding>>(new ReferenceEqualityTypeComparer());
+
+            BindingBuilderVisitor visitor = new BindingBuilderVisitor(this.bindings);
+            bindings.Build(this, visitor);
+
+            this.AddReadOnlyKernelBinding<IReadOnlyKernel>(this, this.bindings);
+            this.AddReadOnlyKernelBinding<IResolutionRoot>(this, this.bindings);
+        }
+
+        IComponentContainerNew IReadOnlyKernel.Components
+        {
+            get
+            {
+                return Components;
+            }
         }
 
         /// <summary>
@@ -107,6 +148,19 @@ namespace Ninject
         /// The component container.
         /// </value>
         public IComponentContainerNew Components { get; }
+
+        /// <summary>
+        /// Gets an instance of the specified service.
+        /// </summary>
+        /// <param name="service">The service to resolve.</param>
+        /// <returns>
+        /// An instance of the service.
+        /// </returns>
+        public object Get(Type service)
+        {
+            var request = new Request(service, true);
+            return this.ResolveSingleUnique(request, true);
+        }
 
         /// <summary>
         /// Injects the specified existing instance, without managing its lifecycle.
@@ -124,11 +178,9 @@ namespace Ninject
             var binding = new Binding(service);
             var request = this.CreateRequest(service, null, parameters, false, false);
             var context = this.CreateContext(request, binding);
-
             context.Plan = this.planner.GetPlan(service);
 
-            var reference = new InstanceReference { Instance = instance };
-            this.pipeline.Activate(context, reference);
+            this.pipeline.Initialize(context, instance);
         }
 
         /// <summary>
@@ -145,7 +197,7 @@ namespace Ninject
 
             foreach (var binding in this.GetBindingsCore(request.Service))
             {
-                if (this.SatifiesRequest(request, binding))
+                if (SatifiesRequest(request, binding))
                 {
                     return true;
                 }
@@ -169,7 +221,7 @@ namespace Ninject
 
             foreach (var binding in this.GetBindings(request.Service))
             {
-                if ((!ignoreImplicitBindings || !binding.IsImplicit) && this.SatifiesRequest(request, binding))
+                if ((!ignoreImplicitBindings || !binding.IsImplicit) && SatifiesRequest(request, binding))
                 {
                     return true;
                 }
@@ -260,19 +312,6 @@ namespace Ninject
         }
 
         /// <summary>
-        /// Gets an instance of the specified service.
-        /// </summary>
-        /// <param name="service">The service to resolve.</param>
-        /// <returns>
-        /// An instance of the service.
-        /// </returns>
-        public object Get(Type service)
-        {
-            var request = this.CreateRequest(service, null, Array.Empty<IParameter>(), false, true);
-            return this.ResolveSingle(request);
-        }
-
-        /// <summary>
         /// Gets the bindings registered for the specified service.
         /// </summary>
         /// <param name="service">The service in question.</param>
@@ -298,6 +337,26 @@ namespace Ninject
         }
 
         /// <summary>
+        /// Releases resources held by the object.
+        /// </summary>
+        /// <param name="disposing"><see langword="true"/> if called manually, otherwise by GC.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                bindingCache?.Clear();
+                cache?.Dispose();
+                planner?.Dispose();
+                pipeline?.Dispose();
+                bindings?.Clear();
+                bindingResolvers?.Clear();
+                missingBindingResolvers?.Clear();
+            }
+
+            base.Dispose(disposing);
+        }
+
+        /// <summary>
         /// Returns a value incating whether a given <see cref="IBinding"/> matches the request.
         /// </summary>
         /// <param name="request">The request/.</param>
@@ -305,7 +364,7 @@ namespace Ninject
         /// <returns>
         /// <see langword="true"/> if the <see cref="IBinding"/> matches the request; otherwise, <see langword="false"/>.
         /// </returns>
-        protected virtual bool SatifiesRequest(IRequest request, IBinding binding)
+        private static bool SatifiesRequest(IRequest request, IBinding binding)
         {
             return binding.Matches(request) && request.Matches(binding);
         }
@@ -318,7 +377,7 @@ namespace Ninject
         /// <see langword="true"/> if the missing binding can be handled; otherwise, <see langword="false"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
-        protected virtual bool HandleMissingBinding(IRequest request)
+        private bool HandleMissingBinding(IRequest request)
         {
             Ensure.ArgumentNotNull(request, nameof(request));
 
@@ -365,9 +424,9 @@ namespace Ninject
         /// <param name="request">The request.</param>
         /// <param name="binding">The binding.</param>
         /// <returns>The created context.</returns>
-        protected virtual IContext CreateContext(IRequest request, IBinding binding)
+        private IContext CreateContext(IRequest request, IBinding binding)
         {
-            return new Context(this, this.settings, request, binding, this.cache, this.exceptionFormatter);
+            return this.contextFactory.Create(this, request, binding);
         }
 
         private IEnumerable<object> ResolveAllWithMissingBindings(IRequest request, bool handleMissingBindings)
@@ -434,7 +493,7 @@ namespace Ninject
             {
                 var binding = bindings[i];
 
-                if (!this.SatifiesRequest(request, binding))
+                if (!SatifiesRequest(request, binding))
                 {
                     continue;
                 }
@@ -456,7 +515,7 @@ namespace Ninject
 
                         for (i++; i < bindings.Length; i++)
                         {
-                            if (!this.SatifiesRequest(request, bindings[i]))
+                            if (!SatifiesRequest(request, bindings[i]))
                             {
                                 continue;
                             }
@@ -479,7 +538,7 @@ namespace Ninject
 
             if (satisfiedBinding != null)
             {
-                return this.CreateContext(request, satisfiedBinding).Resolve();
+                return CreateContext(request, satisfiedBinding).Resolve();
             }
 
             var collection = this.ResolveCollection(request);
@@ -554,7 +613,7 @@ namespace Ninject
         private IEnumerable<object> ResolveAllNonUnique(IRequest request, bool handleMissingBindings)
         {
             var satisfiedBindings = this.GetBindingsCore(request.Service)
-                                        .Where(b => this.SatifiesRequest(request, b));
+                                        .Where(b => SatifiesRequest(request, b));
 
             using (var satisfiedBindingEnumerator = satisfiedBindings.GetEnumerator())
             {
@@ -585,7 +644,7 @@ namespace Ninject
 
             foreach (var binding in bindings)
             {
-                if (!this.SatifiesRequest(request, binding))
+                if (!SatifiesRequest(request, binding))
                 {
                     continue;
                 }
@@ -638,9 +697,9 @@ namespace Ninject
 
         private void AddReadOnlyKernelBinding<T>(T readonlyKernel, Dictionary<Type, ICollection<IBinding>> bindings)
         {
-            var binding = new Binding(typeof(T));
-            new BindingBuilder<T>(binding, this.pipeline, this.planner, this.constructorScorer, typeof(T).Format()).ToConstant(readonlyKernel);
-            bindings[typeof(T)] = new[] { binding };
+            var bindingBuilder = new Builder.BindingBuilder<T>();
+            bindingBuilder.ToConstant(readonlyKernel);
+            bindings[typeof(T)] = new[] { bindingBuilder.Build(this) };
         }
 
         private IBinding[] GetBindingsCore(Type service)
@@ -691,5 +750,3 @@ namespace Ninject
         }
     }
 }
-
-#endif

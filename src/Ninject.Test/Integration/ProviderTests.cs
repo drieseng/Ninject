@@ -8,29 +8,30 @@ namespace Ninject.Tests.Integration
 
     public class ProviderTests : IDisposable
     {
-        private readonly IKernel kernel;
+        private IKernel kernel;
 
         public ProviderTests()
         {
-            this.kernel = new StandardKernel();
         }
 
         public void Dispose()
         {
-            this.kernel.Dispose();
+            this.kernel?.Dispose();
         }
 
         [Fact]
-        public void ThrowActivationExceptionWhenActivateIfMissingToMethod()
+        public void ShouldThrowActivationExceptionWhenActivateIfMissingToMethod()
         {
+            var kernel = CreateKernel(false);
             this.kernel.Bind<IConfig>();
 
             Assert.Throws<ActivationException>(() => this.kernel.Get<IConfig>());
         }
 
         [Fact]
-        public void ThrowActivationExceptionWhenNoBindingExistsForProviderType_AllowNullInjectionIsTrue()
+        public void ShouldThrowActivationExceptionWhenNoBindingExistsForProviderType_AllowNullInjectionIsTrue()
         {
+            this.kernel = CreateKernel(true);
             this.kernel.Bind<IConfig>().ToProvider(typeof(ConfigProvider));
 
             var instance = this.kernel.Get<IConfig>();
@@ -39,14 +40,20 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
-        public void ThrowActivationExceptionWhenNoBindingExistsForProviderType_AllowNullInjectionIsFalse()
+        public void ShouldThrowActivationExceptionWhenNoBindingExistsForProviderType_AllowNullInjectionIsFalse()
         {
-            throw new Exception();
+            this.kernel = CreateKernel(false);
+            this.kernel.Bind<IConfig>().ToProvider(typeof(ConfigProvider));
+
+            var instance = this.kernel.Get<IConfig>();
+
+            instance.Should().NotBeNull();
         }
 
         [Fact]
-        public void ThrowActivationExceptionWhenServiceBoundToProviderTypeDoesNotImplementIProvider()
+        public void ShouldThrowActivationExceptionWhenServiceBoundToProviderTypeDoesNotImplementIProvider()
         {
+            this.kernel = CreateKernel(false);
             this.kernel.Bind<IConfig>().ToProvider(typeof(string));
 
             var instance = this.kernel.Get<IConfig>();
@@ -55,8 +62,9 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
-        public void ThrowActivationExceptionWhenProviderDoesNotReturnInstanceThatIsAssignableToService()
+        public void ShouldThrowActivationExceptionWhenProviderReturnsInstanceThatIsNotAssignableToService()
         {
+            this.kernel = CreateKernel(false);
             this.kernel.Bind<IConfig>().ToProvider(typeof(StringProvider));
 
             var instance = this.kernel.Get<IConfig>();
@@ -65,8 +73,9 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
-        public void ThrowActivationExceptionWhenProviderReturnsNull_AllowNullInjectionIsFalse()
+        public void ShouldThrowActivationExceptionWhenServiceIsReferenceTypeAndProviderReturnsNull_AllowNullInjectionIsFalse()
         {
+            this.kernel = CreateKernel(false);
             this.kernel.Bind<IConfig>().ToProvider(typeof(StringProvider));
 
             var instance = this.kernel.Get<IConfig>();
@@ -75,8 +84,9 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
-        public void ThrowActivationExceptionWhenProviderReturnsNullAndAllowNullInjectionIsFalse()
+        public void ShouldThrowActivationExceptionWhenServiceIsValueTypeAndProviderReturnsNull_AllowNullInjectionIsFalse()
         {
+            this.kernel = CreateKernel(false);
             this.kernel.Bind<IConfig>().ToProvider(typeof(StringProvider));
 
             var instance = this.kernel.Get<IConfig>();
@@ -85,8 +95,9 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
-        public void ShouldReturnNullWhenServiceIsReferenceTypeAndProviderReturnsNullAndAllowNullInjectionIsTrue()
+        public void ShouldReturnNullWhenServiceIsReferenceTypeAndProviderReturnsNull_AllowNullInjectionIsTrue()
         {
+            this.kernel = CreateKernel(true);
             this.kernel.Bind<NullProvider<Sword>>().ToSelf();
             this.kernel.Bind<Sword>().ToProvider(typeof(NullProvider<Sword>));
 
@@ -96,8 +107,9 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
-        public void ShouldThrowNullReferenceExceptionWhenServiceIsValueTypeAndProviderReturnsNullAndAllowNullInjectionIsTrue()
+        public void ShouldThrowNullReferenceExceptionWhenServiceIsValueTypeAndProviderReturnsNull_AllowNullInjectionIsTrue()
         {
+            this.kernel = CreateKernel(true);
             this.kernel.Bind<NullProvider<int>>().ToSelf();
             this.kernel.Bind<int>().ToProvider(typeof(NullProvider<int>));
 
@@ -107,11 +119,22 @@ namespace Ninject.Tests.Integration
         [Fact]
         public void InstancesCanBeCreated()
         {
+            this.kernel = CreateKernel(false);
             this.kernel.Bind<IConfig>().ToProvider<ConfigProvider>();
 
             var instance = this.kernel.Get<IConfig>();
 
             instance.Should().NotBeNull();
+        }
+
+        private static StandardKernel CreateKernel(bool allowNullInjection)
+        {
+            var settings = new NinjectSettings
+                {
+                    AllowNullInjection = allowNullInjection
+                };
+
+            return new StandardKernel(settings);
         }
 
         private class ConfigProvider : IProvider

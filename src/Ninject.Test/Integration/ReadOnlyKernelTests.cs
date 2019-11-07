@@ -15,7 +15,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ImplicitSelfBindingIsRegisteredAndActivatedIfTypeIsSelfBindable()
             {
-                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
+                using (var kernel = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding())).Build())
                 {
                     var weapon = kernel.TryGet<Sword>();
                     weapon.Should().NotBeNull();
@@ -30,7 +30,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfTypeIsNotSelfBindable()
             {
-                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
+                using (var kernel = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding())).Build())
                 {
                     var weapon = kernel.TryGet<IWeapon>();
                     weapon.Should().BeNull();
@@ -43,7 +43,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfTypeHasOnlyUnmetConditionalBindings()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b => b.Bind<IWeapon>().To<Sword>().When(ctx => false));
 
                 using (var kernel = kernelBuilder.Build())
@@ -59,7 +59,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfNoBindingForADependencyExists()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b => b.Bind<IWarrior>().To<Samurai>());
 
                 using (var kernel = kernelBuilder.Build())
@@ -75,7 +75,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfMultipleBindingsExistForADependency()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWarrior>().To<Samurai>();
@@ -96,7 +96,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters_ReturnsNullIfOnlyUnmetConditionalBindingsExistForADependency()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWarrior>().To<Samurai>();
@@ -116,7 +116,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_NameAndParameters_ReturnsNullWhenNoMatchingBindingExistsAndRegistersImplicitSelfBindingIfTypeIsSelfBindable()
             {
-                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
+                using (var kernel = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding())).Build())
                 {
                     var weapon = kernel.TryGet<Sword>("a", Array.Empty<IParameter>());
 
@@ -131,7 +131,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullWhenNoMatchingBindingExistsAndRegistersImplicitSelfBindingIfTypeIsSelfBindable()
             {
-                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
+                using (var kernel = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding())).Build())
                 {
                     var weapon = kernel.TryGet(typeof(Sword), "a", Array.Empty<IParameter>());
 
@@ -146,7 +146,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfNoBindingExistsAndTypeIsNotSelfBindable()
             {
-                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
+                using (var kernel = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding())).Build())
                 {
                     var weapon = kernel.TryGet(typeof(IWeapon), "a", Array.Empty<IParameter>());
                     weapon.Should().BeNull();
@@ -159,7 +159,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfNoMatchingBindingExistsAndTypeIsNotSelfBindable()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b => b.Bind<IWeapon>().To<Sword>().Named("b"));
 
                 using (var kernel = kernelBuilder.Build())
@@ -175,7 +175,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfTypeHasOnlyUnmetConditionalBindings()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b => b.Bind<IWeapon>().To<Sword>().When(ctx => false).Named("a"));
 
                 using (var kernel = kernelBuilder.Build())
@@ -191,7 +191,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfNoBindingForADependencyExists()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b => b.Bind<IWarrior>().To<Samurai>().Named("a"));
 
                 using (var kernel = kernelBuilder.Build())
@@ -207,7 +207,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfMultipleBindingsExistForADependency()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWarrior>().To<Samurai>().Named("a");
@@ -228,7 +228,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndNameAndParameters_ReturnsNullIfOnlyUnmetConditionalBindingsExistForADependency()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWarrior>().To<Samurai>();
@@ -248,7 +248,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ImplicitSelfBindingIsRegisteredAndActivatedIfTypeIsSelfBindable()
             {
-                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
+                using (var kernel = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding())).Build())
                 {
                     var weapon = kernel.TryGet(typeof(Sword), (metadata) => true, Array.Empty<IParameter>());
                     weapon.Should().NotBeNull();
@@ -262,7 +262,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfTypeIsNotSelfBindable()
             {
-                using (var kernel = new KernelBuilder().Features(f => f.SelfBinding()).Build())
+                using (var kernel = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding())).Build())
                 {
                     var weapon = kernel.TryGet(typeof(IWeapon), (metadata) => true, Array.Empty<IParameter>());
                     weapon.Should().BeNull();
@@ -275,7 +275,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfTypeHasOnlyUnmetConditionalBindings()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b => b.Bind<IWeapon>().To<Sword>().When(ctx => false));
 
                 using (var kernel = kernelBuilder.Build())
@@ -291,7 +291,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfNoBindingForADependencyExists()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b => b.Bind<IWarrior>().To<Samurai>());
 
                 using (var kernel = kernelBuilder.Build())
@@ -307,7 +307,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfMultipleBindingsExistForADependency()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWarrior>().To<Samurai>();
@@ -329,7 +329,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGet_ServiceAndConstraintAndParameters_ReturnsNullIfOnlyUnmetConditionalBindingsExistForADependency()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWarrior>().To<Samurai>();
@@ -353,7 +353,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_Parameters()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWeapon>().To<Sword>();
@@ -373,7 +373,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_NameAndParameters()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                        {
                                                            b.Bind<IWeapon>().To<Sword>().Named("a");
@@ -393,7 +393,7 @@ namespace Ninject.Tests.Integration
             [Fact]
             public void TryGetOfT_ConstraintAndParameters()
             {
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWeapon>().To<Sword>().Named("a");
@@ -415,7 +415,7 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWeapon>().To<Sword>();
@@ -439,7 +439,7 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(Sword);
 
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<Sword>().To<Sword>().Named("a");
@@ -463,7 +463,7 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWeapon>().To<Sword>().Named("a");
@@ -487,7 +487,7 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(Sword);
 
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<Sword>().To<ShortSword>().Named("b");
@@ -513,7 +513,7 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWeapon>().To<Sword>().Named("a");
@@ -538,7 +538,7 @@ namespace Ninject.Tests.Integration
             {
                 var service = typeof(IWeapon);
 
-                var kernelBuilder = new KernelBuilder().Features(f => f.SelfBinding())
+                var kernelBuilder = new KernelBuilder().Features(f => f.Resolution(r => r.SelfBinding()))
                                                        .Bindings(b =>
                                                            {
                                                                b.Bind<IWeapon>().To<Sword>().Named("b");

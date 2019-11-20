@@ -23,6 +23,7 @@ namespace Ninject.Builder
 {
     using System;
     using System.Collections.Generic;
+
     using Ninject.Activation;
     using Ninject.Activation.Caching;
     using Ninject.Activation.Providers;
@@ -37,15 +38,30 @@ namespace Ninject.Builder
 
     internal class ComponentBindingRoot : IComponentBindingRoot, IComponentContainer
     {
+        private readonly Action<ComponentBindingRoot> initializer;
         private readonly List<NewBindingBuilder> bindingBuilders;
+        private readonly ComponentKernelFactory kernelFactory;
+        private readonly Dictionary<string, object> properties;
+        private readonly IExceptionFormatter exceptionFormatter;
         private IReadOnlyKernel componentContainer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ComponentBindingRoot"/> class.
         /// </summary>
-        public ComponentBindingRoot()
+        /// <param name="properties">A key/value collection that can be used to share data between components.</param>
+        /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        /// <param name="kernelFactory">A factory to create the component kernel.</param>
+        /// <param name="initializer">A delegate to perform additional initialization when the <see cref="ComponentBindingRoot"/> is being built, or <see langword="null"/> when no additional initialization is required.</param>
+        public ComponentBindingRoot(Dictionary<string, object> properties,
+                                    IExceptionFormatter exceptionFormatter,
+                                    ComponentKernelFactory kernelFactory,
+                                    Action<ComponentBindingRoot> initializer)
         {
+            this.initializer = initializer;
             this.bindingBuilders = new List<NewBindingBuilder>();
+            this.kernelFactory = kernelFactory;
+            this.properties = properties;
+            this.exceptionFormatter = exceptionFormatter;
         }
 
         /// <summary>
@@ -54,12 +70,17 @@ namespace Ninject.Builder
         /// <value>
         /// A key/value collection that can be used to share data between components.
         /// </value>
-        public IDictionary<string, object> Properties { get; }
+        public IDictionary<string, object> Properties
+        {
+            get { return properties; }
+        }
 
         /// <inheritdoc/>
         public INewBindingToSyntax<T> Bind<T>()
         {
-            var bindingBuilder = new BindingBuilder<T>();
+            EnsureComponentContainerNotBuilt();
+
+            var bindingBuilder = new BindingBuilder<T>(exceptionFormatter);
             this.bindingBuilders.Add(bindingBuilder);
             return bindingBuilder;
         }
@@ -86,7 +107,7 @@ namespace Ninject.Builder
             return false;
         }
 
-        public IReadOnlyKernel GetOrCreate()
+        public IReadOnlyKernel GetOrBuild()
         {
             if (componentContainer == null)
             {
@@ -96,92 +117,66 @@ namespace Ninject.Builder
             return componentContainer;
         }
 
-        /// <summary>
-        /// Builds the bindings.
-        /// </summary>
-        /// <param name="root">The resolution root.</param>
-        /// <param name="bindingVisitor">Gathers built bindings.</param>
-        private void Build(IResolutionRoot root, IVisitor<IBinding> bindingVisitor)
-        {
-            foreach (var bindingBuilder in this.bindingBuilders)
-            {
-                bindingBuilder.Build(root, bindingVisitor);
-            }
-        }
-
-        public void Accept(IVisitor<NewBindingBuilder> visitor)
-        {
-            foreach (var bindingBuilder in this.bindingBuilders)
-            {
-                bindingBuilder.Accept(visitor);
-            }
-        }
-
         #region IComponentContainer implementation
 
         void IComponentContainer.Add<TComponent, TImplementation>()
         {
-            // TODO: throw if kernel already built
-
             Bind<TComponent>().To<TImplementation>().InSingletonScope();
         }
 
-        void IComponentContainer.RemoveAll<T>()
+        public void RemoveAll<T>()
+            where T : INinjectComponent
         {
             Unbind(typeof(T));
         }
 
-        void IComponentContainer.RemoveAll(Type component)
+        public void RemoveAll(Type component)
         {
             Unbind(component);
         }
 
-        void IComponentContainer.Remove<T, TImplementation>()
+        public void Remove<T, TImplementation>()
+            where T : INinjectComponent
+            where TImplementation : T
         {
-            // TODO: throw if kernel already built
+            EnsureComponentContainerNotBuilt();
 
             var service = typeof(T);
+            var implementation = typeof(TImplementation);
 
             for (var i = this.bindingBuilders.Count - 1; i >= 0; i--)
             {
                 var bindingBuilder = this.bindingBuilders[i];
-                if (bindingBuilder.Service == service)
+                if (bindingBuilder.Service == service && IsBoundTo(bindingBuilder, implementation))
                 {
-                    var standardProvider = bindingBuilder.BindingConfigurationBuilder.ProviderFactory as StandardProviderFactory;
-                    if (standardProvider != null && standardProvider.Implementation == typeof(TImplementation))
-                    {
-                        this.bindingBuilders.RemoveAt(i);
-                    }
+                    this.bindingBuilders.RemoveAt(i);
                 }
             }
         }
 
         T IComponentContainer.Get<T>()
         {
-            // Check if kernel was already built
-            // If built, return service
-            // If not build, first build and then return service
-            throw new NotImplementedException();
+            return GetOrBuild().Get<T>();
         }
 
         IEnumerable<T> IComponentContainer.GetAll<T>()
         {
-            throw new NotImplementedException();
+            return GetOrBuild().GetAll<T>();
         }
 
         object IComponentContainer.Get(Type component)
         {
-            throw new NotImplementedException();
+            return GetOrBuild().Get(component);
         }
 
         IEnumerable<object> IComponentContainer.GetAll(Type component)
         {
-            throw new NotImplementedException();
+            return GetOrBuild().GetAll(component);
         }
 
         void IComponentContainer.AddTransient<TComponent, TImplementation>()
         {
-            throw new NotImplementedException();
+            Bind<TComponent>().To<TImplementation>().InTransientScope();
         }
 
         #endregion IComponentContainer implementation
@@ -193,6 +188,8 @@ namespace Ninject.Builder
 
         private IReadOnlyKernel BuildComponentContainer()
         {
+            this.initializer?.Invoke(this);
+
             /*
                 TODO:
                 fail if neither constructor injection, nor method or property injection is configured
@@ -260,15 +257,19 @@ namespace Ninject.Builder
 
             if (!IsBound<IContextFactory>())
             {
-                Bind<IContextFactory>().ToConstructor(c => new ContextFactory(c.Inject<ICache>(), c.Inject<IPipeline>(), c.Inject<IExceptionFormatter>(), false, true));
+                Bind<IContextFactory>().ToConstructor(c => new ContextFactory(c.Inject<ICache>(), c.Inject<IPlanner>(), c.Inject<IPipeline>(), c.Inject<IExceptionFormatter>(), false, true));
             }
 
-
-            // Build a kernel for the components
-            var resolveComponentsKernel = new BuilderKernelFactory().CreateResolveComponentBindingsKernel();
+            // Build the bindings for the components
+            var resolveComponentsKernel = kernelFactory.CreateResolveComponentBindingsKernel();
             var componentBindingVisitor = new BindingBuilderVisitor();
-            Build(resolveComponentsKernel, componentBindingVisitor);
-            var componentContainer = new BuilderKernelFactory().CreateComponentsKernel(resolveComponentsKernel, componentBindingVisitor.Bindings);
+            foreach (var bindingBuilder in this.bindingBuilders)
+            {
+                bindingBuilder.Build(resolveComponentsKernel, componentBindingVisitor);
+            }
+
+            // Build the kernel
+            var componentContainer = kernelFactory.CreateComponentsKernel(resolveComponentsKernel, componentBindingVisitor.Bindings);
 
             // Validate the kernel
             Validate(componentContainer);
@@ -288,7 +289,10 @@ namespace Ninject.Builder
             }
 
             BindingActionVisitor bindingActionVisitor = new BindingActionVisitor();
-            Accept(bindingActionVisitor);
+            foreach (var bindingBuilder in this.bindingBuilders)
+            {
+                bindingBuilder.Accept(bindingActionVisitor);
+            }
 
             if (!activationActionsSupported && bindingActionVisitor.ActivationActions)
             {
@@ -306,7 +310,7 @@ namespace Ninject.Builder
             }
         }
 
-        private bool Contains<T, TImplementation>(IReadOnlyKernel componentContainer)
+        private static bool Contains<T, TImplementation>(IReadOnlyKernel componentContainer)
             where TImplementation : class, T
         {
             var implementations = componentContainer.GetAll<T>();
@@ -323,7 +327,7 @@ namespace Ninject.Builder
 
         private void Unbind(Type service)
         {
-            // TODO: throw if kernel already built
+            EnsureComponentContainerNotBuilt();
 
             for (var i = this.bindingBuilders.Count - 1; i >= 0; i--)
             {
@@ -332,6 +336,20 @@ namespace Ninject.Builder
                     this.bindingBuilders.RemoveAt(i);
                 }
             }
+        }
+
+        private void EnsureComponentContainerNotBuilt()
+        {
+            if (this.componentContainer != null)
+            {
+                throw new ActivationException(exceptionFormatter.InvalidOperationOnceComponentContainerIsBuilt());
+            }
+        }
+
+        private static bool IsBoundTo(NewBindingBuilder bindingBuilder, Type implementation)
+        {
+            var standardProvider = bindingBuilder.BindingConfigurationBuilder.ProviderFactory as StandardProviderFactory;
+            return standardProvider != null && standardProvider.Implementation == implementation;
         }
 
         internal class BindingActionVisitor : IVisitor<NewBindingBuilder>

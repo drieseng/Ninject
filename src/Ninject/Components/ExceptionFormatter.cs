@@ -32,6 +32,7 @@ namespace Ninject.Components
     using Ninject.Parameters;
     using Ninject.Planning.Directives;
     using Ninject.Planning.Targets;
+    using Ninject.Syntax;
 
     /// <summary>
     /// Provides meaningful exception messages.
@@ -73,7 +74,7 @@ namespace Ninject.Components
             {
                 sw.WriteLine("Error loading module '{0}' of type {1}", newModule.Name, newModule.GetType().Format());
                 sw.WriteLine("Another module (of type {0}) with the same name has already been loaded", existingModule.GetType().Format());
-
+                sw.WriteLine();
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that you have not accidentally loaded the same module twice.");
                 sw.WriteLine("  2) If you are using automatic module loading, ensure you have not manually loaded a module");
@@ -95,7 +96,7 @@ namespace Ninject.Components
             using (var sw = new StringWriter())
             {
                 sw.WriteLine("Error unloading module '{0}': no such module has been loaded", name);
-
+                sw.WriteLine();
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure you have previously loaded the module and the name is spelled correctly.");
                 sw.WriteLine("  2) Ensure you have not accidentally created more than one kernel.");
@@ -116,16 +117,15 @@ namespace Ninject.Components
             {
                 sw.WriteLine("Error activating {0}", request.Service.Format());
                 sw.WriteLine("More than one matching bindings are available.");
-
+                sw.WriteLine();
                 sw.WriteLine("Matching bindings:");
                 for (int i = 0; i < formattedMatchingBindings.Length; i++)
                 {
                     sw.WriteLine("  {0}) {1}", i + 1, formattedMatchingBindings[i]);
                 }
-
+                sw.WriteLine();
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that you have defined a binding for {0} only once.", request.Service.Format());
 
@@ -147,7 +147,6 @@ namespace Ninject.Components
                 sw.WriteLine("Error registering binding(s) for {0}", serviceNames);
                 sw.WriteLine("The type {0} used in a call to {1}() is not a valid attribute.", type.Format(), methodName);
                 sw.WriteLine();
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that you have passed the correct type.");
                 sw.WriteLine("  2) If you have defined your own attribute type, ensure that it extends System.Attribute.");
@@ -170,10 +169,8 @@ namespace Ninject.Components
                 sw.WriteLine("Error activating {0} using {1}", context.Request.Service.Format(), context.Binding.Format(context));
                 sw.WriteLine("No constructor was available to create an instance of the implementation type.");
                 sw.WriteLine();
-
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(context.Request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that the implementation type has a public constructor.");
                 sw.WriteLine("  2) If you have implemented the Singleton pattern, use a binding with InSingletonScope() instead.");
@@ -186,22 +183,50 @@ namespace Ninject.Components
         /// Generates a message saying that the provider callback on the specified context is null.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns>The exception message.</returns>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
         public string ProviderCallbackIsNull(IContext context)
         {
             using (var sw = new StringWriter())
             {
                 sw.WriteLine("Error activating {0}", context.Request.Service.Format());
                 sw.WriteLine("Provider callback is null.");
-
+                sw.WriteLine();
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(context.Request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that one of the 'To' methods is called after 'Bind' method.");
 
                 return sw.ToString();
             }
+        }
+
+        /// <summary>
+        /// Generates a message saying that the resolved provider does not implement <see cref="IProvider"/>.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="provider">The provider.</param>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        public string ProviderDoesNotImplementIProvider(IContext context, object provider)
+        {
+            using (var sw = new StringWriter())
+            {
+                sw.WriteLine("Error activating {0}", context.Request.Service.Format());
+                sw.WriteLine("The provider does not implement {0}.", typeof(IProvider).Name);
+                sw.WriteLine();
+                sw.WriteLine("Activation path:");
+                sw.WriteLine(context.Request.FormatActivationPath());
+                sw.WriteLine("Suggestions:");
+                sw.WriteLine("  1) Update '{0}' to implement {1}.", provider.GetType().FullName, typeof(IProvider).FullName);
+                sw.WriteLine("  2) Ensure the correct provider was specified in the binding.");
+                sw.WriteLine("  3) Verify whether a custom provider is required, and if not no longer call the 'ToProvider()' method for the binding.");
+
+                return sw.ToString();
+            }
+
         }
 
         /// <summary>
@@ -228,7 +253,6 @@ namespace Ninject.Components
 
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(context.Request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Specify the constructor using ToConstructor syntax.");
                 sw.WriteLine("  2) Add an Inject attribute to the constructor.");
@@ -248,10 +272,9 @@ namespace Ninject.Components
             {
                 sw.WriteLine("Error activating {0}", request.Service.Format());
                 sw.WriteLine("No matching bindings are available, and the type is not self-bindable.");
-
+                sw.WriteLine();
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that you have defined a binding for {0}.", request.Service.Format());
                 sw.WriteLine("  2) If the binding was defined in a module, ensure that the module has been loaded into the kernel.");
@@ -278,10 +301,9 @@ namespace Ninject.Components
             {
                 sw.WriteLine("Error activating {0} using {1}", context.Request.Service.Format(), context.Binding.Format(context));
                 sw.WriteLine("More than one property value defined for property {0}.", target.Name);
-
+                sw.WriteLine();
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(context.Request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that you define only a single {0} with a given name for a binding.", typeof(PropertyValue));
                 sw.WriteLine("  2) If you pass a {0} for a given property when you get instance of a service, ensure that", typeof(PropertyValue));
@@ -303,10 +325,9 @@ namespace Ninject.Components
             {
                 sw.WriteLine("Error activating {0}", request.Service.Format());
                 sw.WriteLine("No matching property {0}.", propertyName);
-
+                sw.WriteLine();
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that you have the correct property name.");
 
@@ -326,10 +347,8 @@ namespace Ninject.Components
                 sw.WriteLine("Error activating {0} using {1}", context.Request.Service.Format(), context.Binding.Format(context));
                 sw.WriteLine("A cyclical dependency was detected between the constructors of two services.");
                 sw.WriteLine();
-
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(context.Request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that you have not declared a dependency for {0} on any implementations of the service.", context.Request.Service.Format());
                 sw.WriteLine("  2) Consider combining the services into a single one to remove the cycle.");
@@ -338,6 +357,18 @@ namespace Ninject.Components
 
                 return sw.ToString();
             }
+        }
+
+        /// <summary>
+        /// Generation a message saying that an operation cannot be performed once the component
+        /// container is built.
+        /// </summary>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        public string InvalidOperationOnceComponentContainerIsBuilt()
+        {
+            return "This operation cannot be performed after the component container has been built.";
         }
 
         /// <summary>
@@ -353,7 +384,6 @@ namespace Ninject.Components
                 sw.WriteLine("Error loading Ninject component {0}", component.Format());
                 sw.WriteLine("No constructor was available to create an instance of the registered implementation type {0}.", implementation.Format());
                 sw.WriteLine();
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that the implementation type has a public constructor.");
 
@@ -373,7 +403,6 @@ namespace Ninject.Components
                 sw.WriteLine("Error loading Ninject component {0}", component.Format());
                 sw.WriteLine("No such component has been registered in the kernel's component container.");
                 sw.WriteLine();
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) If you have created a custom subclass for KernelBase, ensure that you have properly");
                 sw.WriteLine("     implemented the AddComponents() method.");
@@ -395,10 +424,9 @@ namespace Ninject.Components
             {
                 sw.WriteLine("Error activating {0} using {1}", context.Request.Service.Format(), context.Binding.Format(context));
                 sw.WriteLine("Provider returned null.");
-
+                sw.WriteLine();
                 sw.WriteLine("Activation path:");
                 sw.WriteLine(context.Request.FormatActivationPath());
-
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Ensure that the provider handles creation requests properly.");
 
@@ -418,6 +446,7 @@ namespace Ninject.Components
             using (var sw = new StringWriter())
             {
                 sw.WriteLine("The component container cannot be modified once the kernel has been built.");
+                sw.WriteLine();
                 sw.WriteLine("Suggestions:");
                 sw.WriteLine("  1) Configure all components before building the kernel.");
 

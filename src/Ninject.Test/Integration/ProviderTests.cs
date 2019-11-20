@@ -29,6 +29,19 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
+        public void ShouldThrowActivationExceptionProviderDoesNotImplementIProvider()
+        {
+            this.kernel = CreateKernel(true);
+            this.kernel.Bind<IWeapon>().To<Sword>();
+            this.kernel.Bind<IWarrior>().ToProvider(typeof(IWeapon));
+
+            var actualException = Assert.Throws<ActivationException>(() => this.kernel.Get<IWarrior>());
+
+            actualException.InnerException.Should().BeNull();
+            actualException.Message.Should().Contain($"The provider does not implement {nameof(IProvider)}.");
+        }
+
+        [Fact]
         public void ShouldThrowActivationExceptionWhenNoBindingExistsForProviderType_AllowNullInjectionIsTrue()
         {
             this.kernel = CreateKernel(true);
@@ -51,7 +64,7 @@ namespace Ninject.Tests.Integration
         }
 
         [Fact]
-        public void ShouldThrowActivationExceptionWhenServiceBoundToProviderTypeDoesNotImplementIProvider()
+        public void ShouldThrowActivationExceptionWhenNoMatchingBindingIsAvailableForServiceBoundToProvider()
         {
             this.kernel = CreateKernel(false);
             this.kernel.Bind<IConfig>().ToProvider(typeof(string));

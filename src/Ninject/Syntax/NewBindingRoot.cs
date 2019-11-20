@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using Ninject.Builder;
 using Ninject.Builder.Bindings;
+using Ninject.Components;
 using Ninject.Infrastructure;
 
 namespace Ninject.Syntax
@@ -30,13 +31,19 @@ namespace Ninject.Syntax
     /// <summary>
     /// Provides a path to register bindings.
     /// </summary>
-    public sealed class NewBindingRoot : INewBindingRoot
+    internal sealed class NewBindingRoot : INewBindingRoot
     {
         private readonly List<INewBindingBuilder> bindingBuilders;
+        private readonly IExceptionFormatter exceptionFormatter;
 
-        public NewBindingRoot()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NewBindingRoot"/> class.
+        /// </summary>
+        /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        public NewBindingRoot(IExceptionFormatter exceptionFormatter)
         {
             this.bindingBuilders = new List<INewBindingBuilder>();
+            this.exceptionFormatter = exceptionFormatter;
         }
 
         /// <summary>
@@ -69,7 +76,7 @@ namespace Ninject.Syntax
         /// </returns>
         public INewBindingToSyntax<T> Bind<T>()
         {
-            var bindingBuilder = new BindingBuilder<T>();
+            var bindingBuilder = new BindingBuilder<T>(exceptionFormatter);
             this.AddBinding(bindingBuilder);
             return bindingBuilder;
         }

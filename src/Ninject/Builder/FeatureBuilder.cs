@@ -4,10 +4,10 @@ namespace Ninject.Builder
 {
     internal class FeatureBuilder : IFeatureBuilder
     {
-        public FeatureBuilder(IComponentBindingRoot components)
+        public FeatureBuilder(IComponentBindingRoot components, Dictionary<string, object> properties)
         {
             this.Components = components;
-            this.Properties = new Dictionary<string, object>();
+            this.Properties = properties;
         }
 
         /// <summary>

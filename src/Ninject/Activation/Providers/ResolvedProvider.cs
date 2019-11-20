@@ -33,8 +33,13 @@ namespace Ninject.Activation.Providers
         /// </returns>
         public object Create(IContext context, out bool isInitialized)
         {
-            var provider = (IProvider) context.Kernel.Get(this.providerType);
-            return provider.Create(context, out isInitialized);
+            var instance = context.Kernel.Get(this.providerType);
+            if (instance is IProvider provider)
+            {
+                return provider.Create(context, out isInitialized);
+            }
+
+            throw new ActivationException("TODO");
         }
     }
 }

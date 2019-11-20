@@ -21,10 +21,7 @@
 
 namespace Ninject.Builder
 {
-    using System.Collections.Generic;
-
     using Ninject.Activation;
-    using Ninject.Parameters;
     using Ninject.Syntax;
 
     /// <summary>
@@ -36,10 +33,9 @@ namespace Ninject.Builder
         /// Creates an appropiate <see cref="IProvider"/>.
         /// </summary>
         /// <param name="root">The resolution root.</param>
-        /// <param name="parameters">The parameters of the binding.</param>
         /// <returns>
         /// An <see cref="IProvider"/>.
         /// </returns>
-        IProvider Create(IResolutionRoot root, IReadOnlyList<IParameter> parameters);
+        IProvider Create(IResolutionRoot root);
     }
 }

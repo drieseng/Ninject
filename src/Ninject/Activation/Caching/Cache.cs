@@ -153,9 +153,8 @@ namespace Ninject.Activation.Caching
 
             if (bindings.TryGetValue(context.Binding.BindingConfiguration, out List<CacheEntry> cacheEntriesForBinding))
             {
-                /*lock (cacheEntriesForBinding)
+                lock (cacheEntriesForBinding)
                 {
-                */
                     var entryCount = cacheEntriesForBinding.Count;
                     for (var i = 0; i < entryCount; i++)
                     {
@@ -172,7 +171,7 @@ namespace Ninject.Activation.Caching
                         }
 
                         return entry.Reference.Instance;
-                    /*}*/
+                    }
                 }
             }
 

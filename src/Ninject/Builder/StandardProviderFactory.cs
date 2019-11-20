@@ -22,11 +22,9 @@
 namespace Ninject.Builder
 {
     using System;
-    using System.Collections.Generic;
 
     using Ninject.Activation;
     using Ninject.Activation.Providers;
-    using Ninject.Parameters;
     using Ninject.Planning;
     using Ninject.Selection;
     using Ninject.Syntax;
@@ -52,15 +50,12 @@ namespace Ninject.Builder
         /// and the parameters.
         /// </summary>
         /// <param name="root">The resolution root.</param>
-        /// <param name="parameters">The parameters of the binding.</param>
         /// <returns>
         /// An <see cref="IProvider"/>.
         /// </returns>
-        public IProvider Create(IResolutionRoot root, IReadOnlyList<IParameter> parameters)
+        public IProvider Create(IResolutionRoot root)
         {
             var constructorSelector = root.Get<IConstructorInjectionSelector>();
-            var pipeline = root.Get<IPipeline>();
-
             var planner = root.Get<IPlanner>();
             var plan = planner.GetPlan(this.Implementation);
 
@@ -69,25 +64,16 @@ namespace Ninject.Builder
                 var constructor = constructorSelector.Select(plan, null);
                 if (constructor.Targets.Length == 0)
                 {
-                    foreach (var parameter in parameters)
-                    {
-                        if (parameter is IConstructorArgument)
-                        {
-                            throw new Exception("Cannot define constructor arguments for a parameterless constructor.");
-                        }
-                    }
-
-                    return new ParameterlessConstructorProvider(this.Implementation, constructor, plan, pipeline);
+                    return new ParameterlessConstructorProvider(this.Implementation, constructor, plan);
                 }
 
                 return new FixedConstructorProvider(this.Implementation,
                                                     constructor,
                                                     plan,
-                                                    pipeline,
                                                     root.Get<IConstructorParameterValueProvider>());
             }
 
-            return new ContextAwareConstructorProvider(plan, constructorSelector, pipeline, root.Get<IConstructorParameterValueProvider>());
+            return new ContextAwareConstructorProvider(plan, constructorSelector, root.Get<IConstructorParameterValueProvider>());
         }
     }
 }

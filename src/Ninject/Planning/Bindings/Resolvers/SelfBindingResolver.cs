@@ -39,7 +39,6 @@ namespace Ninject.Planning.Bindings.Resolvers
     public class SelfBindingResolver : NinjectComponent, IMissingBindingResolver
     {
         private readonly IPlanner planner;
-        private readonly IPipeline pipeline;
         private readonly IConstructorInjectionSelector constructorSelector;
         private readonly IConstructorParameterValueProvider constructorParameterValueProvider;
 
@@ -47,18 +46,15 @@ namespace Ninject.Planning.Bindings.Resolvers
         /// Initializes a new instance of the <see cref="SelfBindingResolver"/> class.
         /// </summary>
         /// <param name="planner">The <see cref="IPlanner"/> component.</param>
-        /// <param name="pipeline">The <see cref="IPipeline"/> component.</param>
         /// <param name="constructorSelector">The <see cref="IConstructorInjectionSelector"/> component.</param>
         /// <param name="constructorParameterValueProvider">The value provider.</param>
-        public SelfBindingResolver(IPlanner planner, IPipeline pipeline, IConstructorInjectionSelector constructorSelector, IConstructorParameterValueProvider constructorParameterValueProvider)
+        public SelfBindingResolver(IPlanner planner, IConstructorInjectionSelector constructorSelector, IConstructorParameterValueProvider constructorParameterValueProvider)
         {
             Ensure.ArgumentNotNull(planner, nameof(planner));
-            Ensure.ArgumentNotNull(pipeline, nameof(pipeline));
             Ensure.ArgumentNotNull(constructorSelector, nameof(constructorSelector));
             Ensure.ArgumentNotNull(constructorParameterValueProvider, nameof(constructorParameterValueProvider));
 
             this.planner = planner;
-            this.pipeline = pipeline;
             this.constructorSelector = constructorSelector;
             this.constructorParameterValueProvider = constructorParameterValueProvider;
         }
@@ -85,7 +81,6 @@ namespace Ninject.Planning.Bindings.Resolvers
                 new Binding(service)
                 {
                     Provider = new SelfBindingProvider(this.planner.GetPlan(service),
-                                                       this.pipeline,
                                                        this.constructorSelector,
                                                        this.constructorParameterValueProvider),
                 },
@@ -114,10 +109,9 @@ namespace Ninject.Planning.Bindings.Resolvers
             private readonly IConstructorParameterValueProvider constructorParameterValueProvider;
 
             public SelfBindingProvider(IPlan plan,
-                                       IPipeline pipeline,
                                        IConstructorInjectionSelector constructorSelector,
                                        IConstructorParameterValueProvider constructorParameterValueProvider)
-                : base(plan, pipeline)
+                : base(plan)
             {
                 this.constructorSelector = constructorSelector;
                 this.constructorParameterValueProvider = constructorParameterValueProvider;

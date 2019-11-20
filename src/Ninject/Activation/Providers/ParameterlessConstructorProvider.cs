@@ -39,9 +39,8 @@ namespace Ninject.Activation.Providers
         /// <param name="type">The type.</param>
         /// <param name="constructor">The parameterless constructor.</param>
         /// <param name="plan">The plan.</param>
-        /// <param name="pipeline">The pipeline.</param>
-        public ParameterlessConstructorProvider(Type type, IConstructorInjectionDirective constructor, IPlan plan, IPipeline pipeline)
-            : base(plan, pipeline)
+        public ParameterlessConstructorProvider(Type type, IConstructorInjectionDirective constructor, IPlan plan)
+            : base(plan)
         {
             this.Type = type;
             this.constructor = constructor;

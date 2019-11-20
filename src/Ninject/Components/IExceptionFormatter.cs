@@ -71,6 +71,15 @@ namespace Ninject.Components
         string CyclicalDependenciesDetected(IContext context);
 
         /// <summary>
+        /// Generation a message saying that an operation cannot be performed once the component
+        /// container is built.
+        /// </summary>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        string InvalidOperationOnceComponentContainerIsBuilt();
+
+        /// <summary>
         /// Generates a message saying that modules without names are not supported.
         /// </summary>
         /// <returns>
@@ -144,5 +153,15 @@ namespace Ninject.Components
         /// The exception message.
         /// </returns>
         string ProviderReturnedNull(IContext context);
+
+        /// <summary>
+        /// Generates a message saying that the resolved provider does not implement <see cref="IProvider"/>.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="provider">The provider.</param>
+        /// <returns>
+        /// The exception message.
+        /// </returns>
+        string ProviderDoesNotImplementIProvider(IContext context, object provider);
     }
 }

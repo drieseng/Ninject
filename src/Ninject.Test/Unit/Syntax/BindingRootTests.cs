@@ -1,17 +1,21 @@
-﻿using Ninject.Planning.Bindings;
-using Ninject.Syntax;
-using System;
-using Xunit;
-
-namespace Ninject.Tests.Unit.Syntax
+﻿namespace Ninject.Tests.Unit.Syntax
 {
+    using Moq;
+    using Ninject.Components;
+    using Ninject.Syntax;
+    using System;
+    using Xunit;
+
     public class BindingRootTests
     {
+        private Mock<IExceptionFormatter> _exceptionFormatterMock;
         private NewBindingRoot _bindingRoot;
+
 
         public BindingRootTests()
         {
-            _bindingRoot = new NewBindingRoot();
+            _exceptionFormatterMock = new Mock<IExceptionFormatter>();
+            _bindingRoot = new NewBindingRoot(_exceptionFormatterMock.Object);
         }
 
         [Fact]

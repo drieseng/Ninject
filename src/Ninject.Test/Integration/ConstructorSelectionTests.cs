@@ -91,16 +91,15 @@ namespace Ninject.Tests.Integration
         public void CreationWillFailIfAllDependenciesAreMissingAndInjectAttributeIsApplied()
         {
             this.kernel.Bind<NinjaBarracks>().ToSelf();
-
             Assert.Throws<ActivationException>(() => this.kernel.Get<NinjaBarracks>());
+        }
 
+        [Fact]
+        public void CreationWillFailIfPartOfTheDependenciesAreMissingAndInjectAttributeIsApplied()
+        {
+            this.kernel.Bind<NinjaBarracks>().ToSelf();
             this.kernel.Bind<IWeapon>().To<Sword>();
             Assert.Throws<ActivationException>(() => this.kernel.Get<NinjaBarracks>());
-            this.kernel.Unbind<IWeapon>();
-
-            this.kernel.Bind<IWarrior>().To<Samurai>();
-            Assert.Throws<ActivationException>(() => this.kernel.Get<NinjaBarracks>());
-            this.kernel.Unbind<IWarrior>();
         }
 
         [Fact]

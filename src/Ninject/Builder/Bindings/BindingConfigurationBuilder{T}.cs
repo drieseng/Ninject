@@ -52,7 +52,7 @@ namespace Ninject.Builder
                                                            INewBindingWhenNamedOrOnActivationSyntax<T>,
                                                            INewBindingWhenWithOrOnInitializationSyntax<T>
     {
-        private readonly IProviderFactory providerBuilder;
+        private readonly IProviderFactory providerFactory;
         private readonly BindingTarget target;
         private readonly NewBindingBuilder bindingBuilder;
         private readonly IBindingMetadata metadata;
@@ -72,7 +72,7 @@ namespace Ninject.Builder
         internal BindingConfigurationBuilder(IProviderFactory providerFactory, BindingTarget target, NewBindingBuilder bindingBuilder)
         {
             this.metadata = new BindingMetadata();
-            this.providerBuilder = providerFactory;
+            this.providerFactory = providerFactory;
             this.target = target;
             this.bindingBuilder = bindingBuilder;
             this.parameters = new List<IParameter>();
@@ -119,7 +119,7 @@ namespace Ninject.Builder
 
         internal override IProviderFactory ProviderFactory
         {
-            get { return this.providerBuilder; }
+            get { return this.providerFactory; }
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace Ninject.Builder
             return new BindingConfiguration(this.parameters,
                                             this.metadata,
                                             this.condition,
-                                            this.providerBuilder.Create(root, this.parameters),
+                                            this.providerFactory.Create(root),
                                             this.scopeCallback ?? StandardScopeCallbacks.Transient,
                                             this.initializationActions,
                                             this.activationActions,

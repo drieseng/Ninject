@@ -58,7 +58,7 @@ namespace Ninject
 
             this.Settings = settings;
 
-            this.kernelBuilder = new KernelBuilder();
+            this.kernelBuilder = new KernelBuilder(kernelConfiguration => this.AddComponents(kernelConfiguration));
             this.kernelBuilder.Modules(m => m.Load(modules));
         }
 
@@ -74,12 +74,7 @@ namespace Ninject
         {
             get
             {
-                if (this.kernel == null)
-                {
-                    return this.kernelBuilder.Components;
-                }
-
-                return new ComponentContainerAdapter(this.kernel.Components, this.kernel.Components.Get<IExceptionFormatter>());
+                return new ComponentContainerAdapter2(this, new ExceptionFormatter());
             }
         }
 
@@ -96,18 +91,13 @@ namespace Ninject
                 {
                     if (this.kernel == null)
                     {
-                        this.kernel = BuildReadOnlyKernel();
+                        //AddComponents(kernelBuilder);
+                        this.kernel = kernelBuilder.Build();
                     }
 
                     return this.kernel;
                 }
             }
-        }
-
-        private IReadOnlyKernel BuildReadOnlyKernel()
-        {
-            AddComponents(kernelBuilder);
-            return kernelBuilder.Build();
         }
 
         /// <summary>
@@ -158,7 +148,7 @@ namespace Ninject
         /// <summary>
         /// Adds components to the kernel during startup.
         /// </summary>
-        protected abstract void AddComponents(IKernelBuilder kernelBuilder);
+        protected abstract void AddComponents(IKernelConfiguration kernelConfiguration);
 
         /*
         /// <summary>
@@ -571,6 +561,7 @@ namespace Ninject
 
             public void Dispose()
             {
+                this.componentContainer.Dispose();
             }
 
             public T Get<T>() where T : INinjectComponent
@@ -608,6 +599,114 @@ namespace Ninject
             public void RemoveAll(Type component)
             {
                 throw new ActivationException(this.exceptionFormatter.ComponentContainerCannotBeModifiedOnceKernelIsBuilt());
+            }
+        }
+
+        private class ComponentContainerAdapter2 : IComponentContainer
+        {
+            private readonly KernelBase kernelBase;
+            private readonly IExceptionFormatter exceptionFormatter;
+
+            public ComponentContainerAdapter2(KernelBase kernelBase, IExceptionFormatter exceptionFormatter)
+            {
+                this.kernelBase = kernelBase;
+                this.exceptionFormatter = exceptionFormatter;
+            }
+
+            public void Add<TComponent, TImplementation>()
+                where TComponent : INinjectComponent
+                where TImplementation : INinjectComponent, TComponent
+            {
+                EnsureKernelNotBuilt();
+
+                this.kernelBase.kernelBuilder.Components.Bind<TComponent>().To<TImplementation>().InSingletonScope();
+            }
+
+            public void AddTransient<TComponent, TImplementation>()
+                where TComponent : INinjectComponent
+                where TImplementation : INinjectComponent, TComponent
+            {
+                EnsureKernelNotBuilt();
+
+                this.kernelBase.kernelBuilder.Components.Bind<TComponent>().To<TImplementation>().InTransientScope();
+            }
+
+            public void Dispose()
+            {
+                this.kernelBase.Components.Dispose();
+
+                throw new NotImplementedException();
+            }
+
+            public T Get<T>() where T : INinjectComponent
+            {
+                if (this.kernelBase.kernel == null)
+                {
+                    return this.kernelBase.kernelBuilder.Components.GetOrBuild().Get<T>();
+                }
+
+                return this.kernelBase.kernel.Components.Get<T>();
+            }
+
+            public object Get(Type component)
+            {
+                if (this.kernelBase.kernel == null)
+                {
+                    return this.kernelBase.kernelBuilder.Components.GetOrBuild().Get(component);
+                }
+
+                return this.kernelBase.kernel.Components.Get(component);
+            }
+
+            public IEnumerable<T> GetAll<T>() where T : INinjectComponent
+            {
+                if (this.kernelBase.kernel == null)
+                {
+                    return this.kernelBase.kernelBuilder.Components.GetOrBuild().GetAll<T>();
+                }
+
+                return this.kernelBase.kernel.Components.GetAll<T>();
+            }
+
+            public IEnumerable<object> GetAll(Type component)
+            {
+                if (this.kernelBase.kernel == null)
+                {
+                    return this.kernelBase.kernelBuilder.Components.GetOrBuild().GetAll(component);
+                }
+
+                return this.kernelBase.kernel.Components.GetAll(component);
+            }
+
+            public void Remove<T, TImplementation>()
+                where T : INinjectComponent
+                where TImplementation : T
+            {
+                EnsureKernelNotBuilt();
+
+                this.kernelBase.kernelBuilder.Components.Remove<T, TImplementation>();
+            }
+
+            public void RemoveAll<T>() where T : INinjectComponent
+            {
+                EnsureKernelNotBuilt();
+
+                this.kernelBase.kernelBuilder.Components.RemoveAll<T>();
+            }
+
+            public void RemoveAll(Type component)
+            {
+                EnsureKernelNotBuilt();
+
+                this.kernelBase.kernelBuilder.Components.RemoveAll(component);
+            }
+
+            private void EnsureKernelNotBuilt()
+            {
+                if (this.kernelBase.kernel != null)
+                {
+                    throw new ActivationException(this.exceptionFormatter.ComponentContainerCannotBeModifiedOnceKernelIsBuilt());
+                }
             }
         }
     }

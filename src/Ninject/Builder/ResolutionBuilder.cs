@@ -2,6 +2,7 @@
 using Ninject.Activation.Caching;
 using Ninject.Components;
 using Ninject.Injection;
+using Ninject.Planning;
 using Ninject.Planning.Bindings.Resolvers;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace Ninject.Builder
         public void Build()
         {
             Components.Bind<IContextFactory>()
-                      .ToConstructor(c => new ContextFactory(c.Inject<ICache>(), c.Inject<IPipeline>(), c.Inject<IExceptionFormatter>(), this.allowNull, this.detectCyclicDependencies));
+                      .ToConstructor(c => new ContextFactory(c.Inject<ICache>(), c.Inject<IPlanner>(), c.Inject<IPipeline>(), c.Inject<IExceptionFormatter>(), this.allowNull, this.detectCyclicDependencies));
         }
 
         /// <summary>

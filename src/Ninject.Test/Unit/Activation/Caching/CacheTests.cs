@@ -124,7 +124,6 @@ namespace Ninject.Tests.Unit.Activation.Caching
 
             _contextMock1.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(_bindingConfigurationMock1.Object);
-            _pipelineMock.InSequence(_mockSequence).Setup(p => p.Activate(_contextMock1.Object, instanceReference));
             _pipelineMock.InSequence(_mockSequence).Setup(p => p.Deactivate(_contextMock1.Object, instanceReference));
 
             var disposabledScope = RememberDisposableScope(cache, _contextMock1, _bindingConfigurationMock1.Object, instanceReference);
@@ -688,13 +687,11 @@ namespace Ninject.Tests.Unit.Activation.Caching
         {
             contextMock.InSequence(_mockSequence).Setup(p => p.Binding).Returns(bindingMock.Object);
             bindingMock.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(bindingConfiguration);
-            _pipelineMock.InSequence(_mockSequence).Setup(p => p.Activate(contextMock.Object, instanceReference));
 
             cache.Remember(contextMock.Object, scope, instanceReference);
 
             contextMock.Reset();
             bindingMock.Reset();
-            _pipelineMock.Reset();
         }
 
         private WeakReference Remember(Cache cache, Mock<IContext> contextMock, IBindingConfiguration bindingConfiguration, InstanceReference instanceReference)
@@ -703,13 +700,11 @@ namespace Ninject.Tests.Unit.Activation.Caching
 
             contextMock.InSequence(_mockSequence).Setup(p => p.Binding).Returns(_bindingMock1.Object);
             _bindingMock1.InSequence(_mockSequence).Setup(p => p.BindingConfiguration).Returns(bindingConfiguration);
-            _pipelineMock.InSequence(_mockSequence).Setup(p => p.Activate(contextMock.Object, instanceReference));
 
             cache.Remember(contextMock.Object, scope, instanceReference);
 
             contextMock.Reset();
             _bindingMock1.Reset();
-            _pipelineMock.Reset();
 
             return new WeakReference(scope);
         }

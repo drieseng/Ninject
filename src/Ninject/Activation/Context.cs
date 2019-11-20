@@ -57,6 +57,7 @@ namespace Ninject.Activation
         /// <param name="request">The context's request.</param>
         /// <param name="binding">The context's binding.</param>
         /// <param name="cache">The cache component.</param>
+        /// <param name="planner">The planner component.</param>
         /// <param name="pipeline">The pipeline component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         /// <param name="allowNullInjection"><see langword="true"/> if <see langword="null"/> is allowed as injected value; otherwise, <see langword="false"/>.</param>
@@ -65,11 +66,14 @@ namespace Ninject.Activation
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="binding"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="cache"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="planner"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="pipeline"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="exceptionFormatter"/> is <see langword="null"/>.</exception>
         public Context(IReadOnlyKernel kernel,
                        IRequest request,
                        IBinding binding,
                        ICache cache,
+                       IPlanner planner,
                        IPipeline pipeline,
                        IExceptionFormatter exceptionFormatter,
                        bool allowNullInjection,
@@ -77,6 +81,8 @@ namespace Ninject.Activation
         {
             Ensure.ArgumentNotNull(kernel, nameof(kernel));
             Ensure.ArgumentNotNull(cache, nameof(cache));
+            Ensure.ArgumentNotNull(planner, nameof(planner));
+            Ensure.ArgumentNotNull(pipeline, nameof(pipeline));
             Ensure.ArgumentNotNull(exceptionFormatter, nameof(exceptionFormatter));
             Ensure.ArgumentNotNull(request, nameof(request));
             Ensure.ArgumentNotNull(binding, nameof(binding));
@@ -85,6 +91,7 @@ namespace Ninject.Activation
             this.Request = request;
             this.Binding = binding;
             this.Cache = cache;
+            this.Planner = planner;
             this.Pipeline = pipeline;
             this.Parameters = request.Parameters.Concat(binding.Parameters);
             this.exceptionFormatter = exceptionFormatter;
@@ -272,7 +279,11 @@ namespace Ninject.Activation
                 throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
             }
 
-            // TODO: do we want to check here if context.Plan was assigned?
+            // Ensure Plan is set, in case (custom) provider did not.
+            if (this.Plan == null)
+            {
+                this.Plan = this.Planner.GetPlan(this.Request.Service);
+            }
 
             // Only pass the instance through the initialization pipeline if the provider doesn't consider
             // the instance fully initialized.
@@ -280,8 +291,6 @@ namespace Ninject.Activation
             {
                 // Pass the instance through the initialization pipeline which may alter both the instance
                 // and the plan in the context.
-                //
-                // Note that this will not be reflected in the Plan and Type of the standard provider.
                 instance = this.Pipeline.Initialize(this, instance);
             }
 
@@ -319,10 +328,20 @@ namespace Ninject.Activation
                         throw new ActivationException(this.exceptionFormatter.ProviderReturnedNull(this));
                     }
 
+                    // Ensure Plan is set, in case (custom) provider did not.
+                    if (this.Plan == null)
+                    {
+                        this.Plan = this.Planner.GetPlan(this.Request.Service);
+                    }
+
                     return null;
                 }
 
-                // TODO: do we want to check here if context.Plan was assigned?
+                // Ensure Plan is set, in case (custom) provider did not.
+                if (this.Plan == null)
+                {
+                    this.Plan = this.Planner.GetPlan(this.Request.Service);
+                }
 
                 // Add the instance to the cache before passing it in the initialization pipeline, to make the
                 // instance available to be injected into properties or methods of dependent services.
@@ -332,8 +351,6 @@ namespace Ninject.Activation
                 {
                     // Pass the instance through the initialization pipeline which may alter both the instance
                     // and the plan in the context.
-                    //
-                    // Note that this will not be reflected in the Plan and Type of the standard provider.
                     reference.Instance = this.Pipeline.Initialize(this, reference.Instance);
                 }
 

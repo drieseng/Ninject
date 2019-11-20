@@ -60,11 +60,17 @@ namespace Ninject.Activation.Caching
         private bool stop;
 
         /// <summary>
+        /// Holds the synchronization object for this instance.
+        /// </summary>
+        private readonly object _lock;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="GarbageCollectionCachePruner"/> class.
         /// </summary>
         public GarbageCollectionCachePruner()
         {
             this.PruningInterval = DefaultPruningInterval;
+            this._lock = new object();
         }
 
         /// <summary>
@@ -98,10 +104,14 @@ namespace Ninject.Activation.Caching
         {
             Ensure.ArgumentNotNull(pruneable, nameof(pruneable));
 
-            this.caches.Add(pruneable);
-            if (this.timer == null)
+            lock (_lock)
             {
-                this.timer = new Timer((state) => this.PruneCacheIfGarbageCollectorHasRun(state), null, this.PruningInterval, Timeout.InfiniteTimeSpan);
+                this.caches.Add(pruneable);
+
+                if (this.timer == null)
+                {
+                    this.timer = new Timer((state) => this.PruneCacheIfGarbageCollectorHasRun(state), null, this.PruningInterval, Timeout.InfiniteTimeSpan);
+                }
             }
         }
 
@@ -120,13 +130,17 @@ namespace Ninject.Activation.Caching
                 this.timer.Dispose(signal);
                 signal.WaitOne();
                 this.timer = null;
+            }
+
+            lock (_lock)
+            {
                 this.caches.Clear();
             }
         }
 
         private void PruneCacheIfGarbageCollectorHasRun(object state)
         {
-            lock (this)
+            lock (_lock)
             {
                 if (this.stop)
                 {

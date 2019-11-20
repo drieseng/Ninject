@@ -30,17 +30,13 @@ namespace Ninject.Activation.Providers
     /// </summary>
     internal abstract class StandardProviderBase : IProvider
     {
-        private readonly IPipeline pipeline;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="StandardProviderBase"/> class.
         /// </summary>
         /// <param name="plan">The plan.</param>
-        /// <param name="pipeline">The pipeline.</param>
-        protected StandardProviderBase(IPlan plan, IPipeline pipeline)
+        protected StandardProviderBase(IPlan plan)
         {
             this.Plan = plan;
-            this.pipeline = pipeline;
         }
 
         /// <summary>

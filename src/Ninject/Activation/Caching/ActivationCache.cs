@@ -48,6 +48,7 @@ namespace Ninject.Activation.Caching
         public ActivationCache(ICachePruner cachePruner)
         {
             Ensure.ArgumentNotNull(cachePruner, nameof(cachePruner));
+
             cachePruner.Start(this);
         }
 

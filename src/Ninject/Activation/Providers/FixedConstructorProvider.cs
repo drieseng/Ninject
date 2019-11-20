@@ -40,14 +40,12 @@ namespace Ninject.Activation.Providers
         /// <param name="type">The type of instances the provides creates.</param>
         /// <param name="constructor">The constructor.</param>
         /// <param name="plan">The plan.</param>
-        /// <param name="pipeline">The pipeline.</param>
         /// <param name="constructorParameterValueProvider">The value provider.</param>
         public FixedConstructorProvider(Type type,
                                         IConstructorInjectionDirective constructor,
                                         IPlan plan,
-                                        IPipeline pipeline,
                                         IConstructorParameterValueProvider constructorParameterValueProvider)
-            : base(plan, pipeline)
+            : base(plan)
         {
             this.Type = type;
             this.constructor = constructor;

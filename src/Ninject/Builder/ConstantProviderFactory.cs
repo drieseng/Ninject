@@ -21,11 +21,8 @@
 
 namespace Ninject.Builder
 {
-    using System.Collections.Generic;
-
     using Ninject.Activation;
     using Ninject.Activation.Providers;
-    using Ninject.Parameters;
     using Ninject.Syntax;
 
     /// <summary>
@@ -49,11 +46,10 @@ namespace Ninject.Builder
         /// Creates a <see cref="ConstantProvider{T}"/> for the value that this instance was constructed with.
         /// </summary>
         /// <param name="root">The resolution root.</param>
-        /// <param name="parameters">The parameters of the binding.</param>
         /// <returns>
         /// A <see cref="ConstantProvider{T}"/> for the value that this instance was constructed with.
         /// </returns>
-        public IProvider Create(IResolutionRoot root, IReadOnlyList<IParameter> parameters)
+        public IProvider Create(IResolutionRoot root)
         {
             return new ConstantProvider<T>(this.value);
         }

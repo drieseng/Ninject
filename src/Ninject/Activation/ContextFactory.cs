@@ -23,12 +23,14 @@ namespace Ninject.Activation
 {
     using Ninject.Activation.Caching;
     using Ninject.Components;
+    using Ninject.Planning;
     using Ninject.Planning.Bindings;
     using System;
 
     internal class ContextFactory : IContextFactory
     {
         private readonly ICache cache;
+        private readonly IPlanner planner;
         private readonly IPipeline pipeline;
         private readonly IExceptionFormatter exceptionFormatter;
 
@@ -36,13 +38,15 @@ namespace Ninject.Activation
         /// Initializes a new <see cref="ContextFactory"/> instance.
         /// </summary>
         /// <param name="cache">The cache component.</param>
+        /// <param name="planner">The planner component.</param>
         /// <param name="pipeline">The pipeline component.</param>
         /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
         /// <param name="allowNullInjection"><see langword="true"/> if <see langword="null"/> is allowed as injected value; otherwise, <see langword="false"/>.</param>
         /// <param name="detectCyclicDependencies"><see langword="true"/> if cyclic dependencies should be detected; otherwise, <see langword="false"/>.</param>
-        public ContextFactory(ICache cache, IPipeline pipeline, IExceptionFormatter exceptionFormatter, bool allowNullInjection, bool detectCyclicDependencies)
+        public ContextFactory(ICache cache, IPlanner planner, IPipeline pipeline, IExceptionFormatter exceptionFormatter, bool allowNullInjection, bool detectCyclicDependencies)
         {
             this.cache = cache;
+            this.planner = planner;
             this.pipeline = pipeline;
             this.exceptionFormatter = exceptionFormatter;
             this.AllowNullInjection = allowNullInjection;
@@ -86,6 +90,7 @@ namespace Ninject.Activation
                                request,
                                binding,
                                this.cache,
+                               this.planner,
                                this.pipeline,
                                this.exceptionFormatter,
                                this.AllowNullInjection,

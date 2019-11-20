@@ -54,6 +54,14 @@ namespace Ninject.Builder
         /// </summary>
         public abstract BindingConfigurationBuilder BindingConfigurationBuilder { get; }
 
+        INewBindingConfigurationBuilder INewBindingBuilder.BindingConfigurationBuilder
+        {
+            get
+            {
+                return BindingConfigurationBuilder;
+            }
+        }
+
         /// <summary>
         /// Builds the binding(s) of this instance.
         /// </summary>
@@ -62,5 +70,10 @@ namespace Ninject.Builder
         public abstract void Build(IResolutionRoot root, IVisitor<IBinding> bindingVisitor);
 
         public abstract void Accept(IVisitor<NewBindingBuilder> visitor);
+
+        void INewBindingBuilder.Build(IResolutionRoot root, IVisitor<IBinding> bindingVisitor)
+        {
+            Build(root, bindingVisitor);
+        }
     }
 }

@@ -27,7 +27,7 @@ namespace Ninject.Components
     /// <summary>
     /// A container that manages and resolves components that contribute to Ninject.
     /// </summary>
-    public interface IComponentContainerNew
+    public interface IComponentContainerNew : IDisposable
     {
         /// <summary>
         /// Gets an instance of the specified component.

@@ -1,7 +1,5 @@
 ﻿namespace Ninject.Tests.Integration.SpecialResolutionTests
 {
-    using System;
-
     using FluentAssertions;
     using Ninject.Builder;
     using Ninject.Syntax;
@@ -12,7 +10,8 @@
         [Fact]
         public void InstanceOfKernelIsInjected()
         {
-            var kernelBuilder = new KernelBuilder().Bindings(bindings => bindings.Bind<RequestsKernel>().ToSelf());
+            var kernelBuilder = new KernelBuilder().Features(f => f.ConstructorInjection())
+                                                   .Bindings(bindings => bindings.Bind<RequestsKernel>().ToSelf());
 
             using (var kernel = kernelBuilder.Build())
             {
@@ -30,7 +29,8 @@
         [Fact]
         public void InstanceOfKernelIsInjected()
         {
-            var kernelBuilder = new KernelBuilder().Bindings(bindings => bindings.Bind<RequestsResolutionRoot>().ToSelf());
+            var kernelBuilder = new KernelBuilder().Features(f => f.ConstructorInjection())
+                                                   .Bindings(bindings => bindings.Bind<RequestsResolutionRoot>().ToSelf());
 
             using (var kernel = kernelBuilder.Build())
             {
@@ -48,7 +48,8 @@
         [Fact]
         public void InstanceOfStringIsInjected()
         {
-            var kernelBuilder = new KernelBuilder().Bindings(bindings => bindings.Bind<RequestsString>().ToSelf());
+            var kernelBuilder = new KernelBuilder().Features(f => f.ConstructorInjection())
+                                                   .Bindings(bindings => bindings.Bind<RequestsString>().ToSelf());
 
             using (var kernel = kernelBuilder.Build())
             {

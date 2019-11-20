@@ -52,10 +52,10 @@ namespace Ninject
         /// <summary>
         /// Adds components to the kernel during startup.
         /// </summary>
-        protected override void AddComponents(IKernelBuilder kernelBuilder)
+        protected override void AddComponents(IKernelConfiguration kernelConfiguration)
         {
-            kernelBuilder.Features(features => features.Components.Bind<INinjectSettings>().ToConstant(this.Settings));
-            kernelBuilder.Features(f => ConfigureFeatures(f));
+            kernelConfiguration.Features(features => features.Components.Bind<INinjectSettings>().ToConstant(this.Settings));
+            kernelConfiguration.Features(f => ConfigureFeatures(f));
 
             /*
             this.Components.Add<IAssemblyNameRetriever, AssemblyNameRetriever>();

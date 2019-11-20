@@ -42,13 +42,11 @@ namespace Ninject.Activation.Providers
         /// </summary>
         /// <param name="plan">The plan.</param>
         /// <param name="constructorSelector">The constructor selector.</param>
-        /// <param name="pipeline">The pipeline.</param>
         /// <param name="constructorParameterValueProvider">The value provider.</param>
         public ContextAwareConstructorProvider(IPlan plan,
                                                IConstructorInjectionSelector constructorSelector,
-                                               IPipeline pipeline,
                                                IConstructorParameterValueProvider constructorParameterValueProvider)
-            : base(plan, pipeline)
+            : base(plan)
         {
             this.constructorSelector = constructorSelector;
             this.constructorParameterValueProvider = constructorParameterValueProvider;

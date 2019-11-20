@@ -48,7 +48,7 @@ namespace Ninject.Builder
             this.newExpression = newExpression;
         }
 
-        public IProvider Create(IResolutionRoot root, IReadOnlyList<IParameter> parameters)
+        public IProvider Create(IResolutionRoot root)
         {
             var ctorExpression = (NewExpression)this.newExpression.Body;
 
@@ -56,7 +56,7 @@ namespace Ninject.Builder
             var selector = new BestMatchConstructorInjectionSelector(scorer, root.Get<IExceptionFormatter>());
             var plan = root.Get<IPlanner>().GetPlan(typeof(T));
 
-            return new ContextAwareConstructorProvider(plan, selector, root.Get<IPipeline>(), root.Get<IConstructorParameterValueProvider>());
+            return new ContextAwareConstructorProvider(plan, selector, root.Get<IConstructorParameterValueProvider>());
         }
 
         public List<ConstructorArgument> GetConstructorArguments()

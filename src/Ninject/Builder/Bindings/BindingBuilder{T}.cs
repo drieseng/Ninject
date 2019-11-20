@@ -26,7 +26,7 @@ namespace Ninject.Builder
 
     using Ninject.Activation;
     using Ninject.Activation.Providers;
-    using Ninject.Builder.Bindings;
+    using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Infrastructure.Introspection;
     using Ninject.Planning.Bindings;
@@ -38,8 +38,18 @@ namespace Ninject.Builder
     /// <typeparam name="T">The service type.</typeparam>
     internal sealed class BindingBuilder<T> : NewBindingBuilder, INewBindingToSyntax<T>
     {
+        private readonly IExceptionFormatter exceptionFormatter;
         private BindingConfigurationBuilder bindingConfigurationBuilder;
         private string serviceNames;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BindingBuilder{T}"/> class.
+        /// </summary>
+        /// <param name="exceptionFormatter">The <see cref="IExceptionFormatter"/> component.</param>
+        public BindingBuilder(IExceptionFormatter exceptionFormatter)
+        {
+            this.exceptionFormatter = exceptionFormatter;
+        }
 
         /// <summary>
         /// Gets the binding being built.
@@ -230,7 +240,7 @@ namespace Ninject.Builder
         /// </returns>
         public INewBindingWhenInNamedWithOrOnInitializationSyntax<T> ToProvider(Type providerType)
         {
-            var providerBuilder = new ProviderBuilderAdapter(new ProviderCallbackProvider<T>(ctx => ctx.Kernel.Get(providerType) as IProvider));
+            var providerBuilder = new ProviderBuilderAdapter(new ProviderCallbackProvider<T>(ctx => ResolveAsProvider(ctx, providerType)));
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Provider, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
@@ -265,6 +275,22 @@ namespace Ninject.Builder
             var bindingConfigurationBuilder = new BindingConfigurationBuilder<T>(providerBuilder, BindingTarget.Self, this);
             this.bindingConfigurationBuilder = bindingConfigurationBuilder;
             return bindingConfigurationBuilder;
+        }
+
+        private IProvider ResolveAsProvider(IContext context, Type providerType)
+        {
+            if (providerType == null)
+            {
+                throw new ArgumentNullException(nameof(providerType));
+            }
+
+            var instance = context.Kernel.Get(providerType);
+            if (instance is IProvider provider)
+            {
+                return provider;
+            }
+
+            throw new ActivationException(exceptionFormatter.ProviderDoesNotImplementIProvider(context, instance));
         }
     }
 }

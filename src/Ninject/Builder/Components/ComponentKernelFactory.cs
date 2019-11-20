@@ -37,9 +37,16 @@ namespace Ninject.Builder
     using Ninject.Selection;
     using Ninject.Syntax;
 
-    internal class BuilderKernelFactory
+    internal class ComponentKernelFactory
     {
-        public IReadOnlyKernel CreateResolveComponentBindingsKernel()
+        private readonly KernelBuilder kernelBuilder;
+
+        public ComponentKernelFactory(KernelBuilder kernelBuilder)
+        {
+            this.kernelBuilder = kernelBuilder;
+        }
+
+        public ReadOnlyKernel CreateResolveComponentBindingsKernel()
         {
             var exceptionFormatter = new ExceptionFormatter();
             var propertySelector = new PropertyReflectionSelector(false);
@@ -47,7 +54,7 @@ namespace Ninject.Builder
             var planner = CreatePlanner(propertySelector, injectorFactory);
             var pipeline = CreatePipeline(propertySelector, injectorFactory, exceptionFormatter);
             var cache = new Cache(pipeline, new GarbageCollectionCachePruner());
-            var contextFactory = new ContextFactory(cache, pipeline, exceptionFormatter, false, true);
+            var contextFactory = new ContextFactory(cache, planner, pipeline, exceptionFormatter, false, true);
 
             return new ReadOnlyKernel(CreateBindings(planner, pipeline, cache, exceptionFormatter, contextFactory),
                                       cache,
@@ -60,7 +67,7 @@ namespace Ninject.Builder
                                       new List<IMissingBindingResolver>());
         }
 
-        public IReadOnlyKernel CreateComponentsKernel(IReadOnlyKernel resolveComponentBindingsKernel, Dictionary<Type, ICollection<IBinding>> bindings)
+        public ReadOnlyKernel CreateComponentsKernel(IReadOnlyKernel resolveComponentBindingsKernel, Dictionary<Type, ICollection<IBinding>> bindings)
         {
             return new ReadOnlyKernel(bindings,
                                       resolveComponentBindingsKernel.Get<ICache>(),
@@ -70,7 +77,7 @@ namespace Ninject.Builder
                                       resolveComponentBindingsKernel.Get<IContextFactory>(),
                                       new BindingPrecedenceComparer(),
                                       new List<IBindingResolver> { new StandardBindingResolver() },
-                                      new List<IMissingBindingResolver>());
+                                      new List<IMissingBindingResolver> { new UserFacingKernelBindingResolver(kernelBuilder) });
         }
 
         private static NewBindingRoot CreateBindings(IPlanner planner,
@@ -79,7 +86,7 @@ namespace Ninject.Builder
                                                      IExceptionFormatter exceptionFormatter,
                                                      IContextFactory contextFactory)
         {
-            var bindings = new NewBindingRoot();
+            var bindings = new NewBindingRoot(exceptionFormatter);
 
             bindings.Bind<IPlanner>().ToConstant(planner);
             bindings.Bind<IPipeline>().ToConstant(pipeline);
@@ -120,6 +127,26 @@ namespace Ninject.Builder
             public bool ShouldInject(PropertyInfo property)
             {
                 return true;
+            }
+        }
+
+        private class UserFacingKernelBindingResolver : IMissingBindingResolver
+        {
+            private readonly KernelBuilder kernelBuilder;
+
+            public UserFacingKernelBindingResolver(KernelBuilder kernelBuilder)
+            {
+                this.kernelBuilder = kernelBuilder;
+            }
+
+            public void Dispose()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<IBinding> Resolve(IDictionary<Type, ICollection<IBinding>> bindings, IRequest request)
+            {
+                return kernelBuilder.GetOrBuild().GetBindings(request.Service);
             }
         }
     }

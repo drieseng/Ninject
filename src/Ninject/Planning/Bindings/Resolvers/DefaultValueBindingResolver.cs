@@ -27,6 +27,7 @@ namespace Ninject.Planning.Bindings.Resolvers
 
     using Ninject.Activation;
     using Ninject.Components;
+    using Ninject.Infrastructure;
     using Ninject.Planning.Targets;
 
     /// <summary>
@@ -34,6 +35,21 @@ namespace Ninject.Planning.Bindings.Resolvers
     /// </summary>
     public class DefaultValueBindingResolver : NinjectComponent, IMissingBindingResolver
     {
+        /// <summary>
+        /// Determines whether the specified request can be resolved.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns>
+        /// <see langword="true"/> if the request can be resolved; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
+        public bool CanResolve(IRequest request)
+        {
+            Ensure.ArgumentNotNull(request, nameof(request));
+
+            return HasDefaultValue(request.Target);
+        }
+
         /// <summary>
         /// Returns any bindings from the specified collection that match the specified service.
         /// </summary>

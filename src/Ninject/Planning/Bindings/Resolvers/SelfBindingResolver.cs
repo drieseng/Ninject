@@ -27,11 +27,9 @@ namespace Ninject.Planning.Bindings.Resolvers
 
     using Ninject.Activation;
     using Ninject.Activation.Providers;
-    using Ninject.Builder;
     using Ninject.Components;
     using Ninject.Infrastructure;
     using Ninject.Selection;
-    using Ninject.Selection.Heuristics;
 
     /// <summary>
     /// Represents a binding resolver that uses the service in question itself as the target to activate.
@@ -57,6 +55,21 @@ namespace Ninject.Planning.Bindings.Resolvers
             this.planner = planner;
             this.constructorSelector = constructorSelector;
             this.constructorParameterValueProvider = constructorParameterValueProvider;
+        }
+
+        /// <summary>
+        /// Determines whether the specified request can be resolved.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns>
+        /// <see langword="true"/> if the request can be resolved; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
+        public bool CanResolve(IRequest request)
+        {
+            Ensure.ArgumentNotNull(request, nameof(request));
+
+            return this.TypeIsSelfBindable(request.Service);
         }
 
         /// <summary>

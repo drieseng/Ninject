@@ -36,7 +36,9 @@ namespace Ninject.Planning.Bindings.Resolvers
         /// </summary>
         /// <param name="bindings">The dictionary of all registered bindings.</param>
         /// <param name="service">The service in question.</param>
-        /// <returns>The series of matching bindings.</returns>
+        /// <returns>
+        /// The series of matching bindings.
+        /// </returns>
         public ICollection<IBinding> Resolve(IDictionary<Type, ICollection<IBinding>> bindings, Type service)
         {
             if (!service.IsGenericType || service.IsGenericTypeDefinition)

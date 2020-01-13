@@ -38,7 +38,19 @@ namespace Ninject.Planning.Bindings.Resolvers
         /// </summary>
         /// <param name="bindings">The dictionary of all registered bindings.</param>
         /// <param name="request">The request in question.</param>
-        /// <returns>The series of matching bindings.</returns>
+        /// <returns>
+        /// The series of matching bindings.
+        /// </returns>
         IEnumerable<IBinding> Resolve(IDictionary<Type, ICollection<IBinding>> bindings, IRequest request);
+
+        /// <summary>
+        /// Determines whether the specified request can be resolved.
+        /// </summary>
+        /// <param name="request">The request.</param>
+        /// <returns>
+        /// <see langword="true"/> if the request can be resolved; otherwise, <see langword="false"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
+        bool CanResolve(IRequest request);
     }
 }

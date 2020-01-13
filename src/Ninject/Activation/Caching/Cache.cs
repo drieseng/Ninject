@@ -260,7 +260,10 @@ namespace Ninject.Activation.Caching
         /// the specified scope.
         /// </summary>
         /// <param name="scope">The scope whose instances should be deactivated.</param>
-        public void Clear(object scope)
+        /// <returns>
+        /// <see langword="true"/> if the scope was found; otherwise, <see langword="false"/>.
+        /// </returns>
+        public bool Clear(object scope)
         {
             if (this.entries.TryRemove(scope, out ConcurrentDictionary<IBindingConfiguration, List<CacheEntry>> bindings))
             {
@@ -286,7 +289,11 @@ namespace Ninject.Activation.Caching
                         }
                     }
                 }
+
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>

@@ -71,7 +71,10 @@ namespace Ninject.Activation.Caching
         /// the specified scope.
         /// </summary>
         /// <param name="scope">The scope whose instances should be deactivated.</param>
-        void Clear(object scope);
+        /// <returns>
+        /// <see langword="true"/> if the scope was found; otherwise, <see langword="false"/>.
+        /// </returns>
+        bool Clear(object scope);
 
         /// <summary>
         /// Immediately deactivates and removes all instances in the cache, regardless of scope.
